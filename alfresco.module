@@ -72,6 +72,26 @@ function alfresco_help($path, $arg) {
   }
 }
 
+/**
+ * Implementation of hook_perm().
+ *
+ * Since we are limiting the ability to create new nodes to certain users,
+ * we need to define what those permissions are here. We also define a permission
+ * to allow users to edit the nodes they created.
+ */
+function alfresco_perm() {
+
+  return array(
+    'administer alfresco configuration',
+    'create alfresco content',
+    'delete own alfresco content',
+    'delete any alfresco content',
+    'download alfresco content',
+    'edit own alfresco content',
+    'edit any alfresco content',
+  );
+}
+
 function _alfresco_download_access($node) {
   return node_access('download alfresco content', $node) && ($node->type == 'alfresco_item');
 }
@@ -80,6 +100,15 @@ function _alfresco_download_access($node) {
  * Implementation of hook_menu().
  */
 function alfresco_menu() {
+  $items['admin/settings/alfresco'] = array(
+    'title' => 'Alfresco',
+    'description' => "Configure Alfresco.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_admin_overview'),  
+    'access arguments' => array('administer alfresco configuration'),
+    'file' => 'alfresco.admin.inc',
+  );
+  
   $items['node/%node/download'] = array(
     'title' => 'Download file',
     'page callback' => 'alfresco_file_download',
@@ -121,6 +150,8 @@ function alfresco_file_download($node) {
 
 /**
  * Implementation of hook_node_info().
+ * 
+ * Define un nuevo tipo de contenido 'alfresco_item'.
  */
 function alfresco_node_info() {
 
@@ -134,25 +165,6 @@ function alfresco_node_info() {
       'has_body' => TRUE,
       'body_label' => t('Body'),
     )
-  );
-}
-
-/**
- * Implementation of hook_perm().
- *
- * Since we are limiting the ability to create new nodes to certain users,
- * we need to define what those permissions are here. We also define a permission
- * to allow users to edit the nodes they created.
- */
-function alfresco_perm() {
-
-  return array(
-    'create alfresco content',
-    'delete own alfresco content',
-    'delete any alfresco content',
-    'download alfresco content',
-    'edit own alfresco content',
-    'edit any alfresco content',
   );
 }
 

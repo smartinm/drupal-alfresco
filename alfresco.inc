@@ -45,9 +45,8 @@
  
 /**
  * @file
- * Formulario de edición.
+ * Implementación de las operaciones CRUD sobre el tipo de contenido.
  */
-
 
 /**
  * Implementation of hook_form().
@@ -63,12 +62,28 @@ function alfresco_form(&$node, $form_state) {
   // build the node form correctly.
   $type = node_get_types('type', $node);
 
+  $form['reference'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Node Reference'),
+    '#required' => TRUE,
+    '#default_value' => $node->reference,
+    '#weight' => -6,
+    '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/ID'),
+  );
+  
   if ($type->has_title) {
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => check_plain($type->title_label),
       '#required' => FALSE,
       '#default_value' => $node->title,
+      '#weight' => -5
+    );
+    
+    $form['use_title'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use Alfresco Node Title.'),
+      '#default_value' => TRUE,
       '#weight' => -5
     );
   }
@@ -81,16 +96,78 @@ function alfresco_form(&$node, $form_state) {
     $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
 
-  $form['reference'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Node Reference'),
-    '#required' => TRUE,
-    '#default_value' => $node->reference,
-    '#weight' => -10,
-    '#description' => t('The Alfresco Node Reference (workspace://SpacesStore/ID).'),
-  );
-
   return $form;
+}
+
+/**
+ * Implementation of hook_validate().
+ */
+function alfresco_validate($node, &$form) {
+}
+
+/**
+ * Implementation of hook_insert().
+ */
+function alfresco_insert($node) {
+  db_query("INSERT INTO {alfresco} (vid, nid, reference) VALUES (%d, %d, '%s')", $node->vid, $node->nid, $node->reference);
+}
+
+/**
+ * Implementation of hook_update().
+ *
+ * As an existing node is being updated in the database, we need to do our own
+ * database updates.
+ */
+function alfresco_update($node) {
+
+  // if this is a new node or we're adding a new revision,
+  if ($node->revision) {
+    alfresco_insert($node);
+  }
+  else {
+    db_query("UPDATE {alfresco} SET reference = '%s' WHERE vid = %d", $node->reference, $node->vid);
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ *
+ * When a node revision is deleted, we need to remove the corresponding record
+ * from our table. The only way to handle revision deletion is by implementing
+ * hook_nodeapi().
+ */
+function alfresco_nodeapi(&$node, $op, $teaser, $page) {
+  
+  switch ($op) {
+    case 'delete revision':
+      // Notice that we're matching a single revision based on the node's vid.
+      db_query('DELETE FROM {alfresco} WHERE vid = %d', $node->vid);
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_delete().
+ *
+ * When a node is deleted, we need to remove all related records from out table.
+ */
+function alfresco_delete($node) {
+  
+  // Notice that we're matching all revision, by using the node's nid.
+  db_query('DELETE FROM {alfresco} WHERE nid = %d', $node->nid);
+}
+
+/**
+ * Implementation of hook_load().
+ *
+ * Now that we've defined how to manage the node data in the database, we
+ * need to tell Drupal how to get the node back out. This hook is called
+ * every time a node is loaded, and allows us to do some loading of our own.
+ */
+function alfresco_load($node) {
+  
+  $additions = db_fetch_object(db_query('SELECT reference FROM {alfresco} WHERE vid = %d', $node->vid));
+  return $additions;
 }
 
 /**
@@ -102,17 +179,18 @@ function alfresco_form(&$node, $form_state) {
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
   
+  
   // Include the required Alfresco PHP API objects  
   require_once "Alfresco/Service/Repository.php";
   require_once "Alfresco/Service/Session.php";
   require_once "Alfresco/Service/SpacesStore.php";
 
   // The web service end point URL for the Alfresco repository
-  $repositoryUrl = "http://localhost:8080/alfresco/api";
+  $repositoryUrl = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
   
   // The user credentials we are going to use
-  $userName = "admin";
-  $password = "admin"; 
+  $userName = variable_get('alfresco_credentials_username', 'guest');
+  $password = variable_get('alfresco_credentials_password', ''); 
   
   // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
   // It can be used to authenticate users and as a session factory.
@@ -125,14 +203,17 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather 
   // than creating one and using across many pages as this helps to prevent resource usage from creaping up.
   $session = $repository->createSession($ticket);
+  //$session->getStoreFromString()
 
   // Create a reference to the 'SpacesStore'
   $spacesStore = new SpacesStore($session);
   
   $currentNode = $session->getNode($spacesStore, 'c55a02a0-bbc3-11dd-b785-274d22f26a6c');
   
+  
+  
   $properties = array();
-  foreach ($currentNode->properties as $name=>$value) {
+  foreach ($currentNode->properties as $name => $value) {
     if(is_string($value)) {
       $properties[] = array($name, $value);
     }

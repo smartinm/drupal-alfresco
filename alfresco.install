@@ -1,0 +1,105 @@
+<?php
+/*
+ * OFICINA VIRTUAL DE COORDINACIÓN DE LAS TIC
+ *
+ * Empresa desarrolladora:
+ *     GMV Soluciones Globales Internet, S.A.
+ *     Avda. Américo Vespucio, Nº5
+ *     Edificio Cartuja, Bloque E, 1ª Planta
+ *     41092 Sevilla (España)
+ *
+ * Autor: Junta de Andalucía. Derechos de explotación
+ *     propiedad de la Junta de Andalucía
+ *
+ * Este programa es software libre: usted tiene derecho a
+ * redistribuirlo y/o modificarlo bajo los términos de la
+ * Licencia EUPL European Public License publicada por el
+ * organismo IDABC de la Comisión Europea, en su versión 1.0.
+ * o posteriores.
+ *
+ * Este programa se distribuye de buena fe, pero SIN NINGUNA
+ * GARANTÍA, incluso sin las presuntas garantías implítareas
+ * de USABILIDAD o ADECUACIÓN A PROPÓSITO CONCRETO. Para mas
+ * información consulte la Licencia EUPL European Public
+ * License.
+ *
+ * Usted recibe una copia de la Licencia EUPL European Public
+ * License junto con este programa, si por algún motivo no le
+ * es posible visualizarla, puede consultarla en la siguiente
+ * URL: http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * You should have received a copy of the EUPL European Public
+ * License along with this program. If not, see
+ * http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * Vous devez avoir reçu une copie de la EUPL European Public
+ * License avec ce programme. Si non, voir
+ * http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * Sie sollten eine Kopie der EUPL European Public License
+ * zusammen mit diesem Programm. Wenn nicht, finden Sie da
+ * http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * $Id$
+ */
+
+/**
+ * @file
+ * Install and configure Alfresco module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function alfresco_install() {
+  drupal_install_schema('alfresco');
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function alfresco_enable() {
+  
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function alfresco_disable() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alfresco_uninstall() {
+
+  // Eliminamos todo los nodos de tipo alfresco_item
+  $result = db_query("SELECT nid FROM {node} WHERE type = 'alfresco_item'");
+  while ($obj = db_fetch_object($result)) {
+    node_delete($obj->nid);
+  }
+
+  // Remove the node type.
+  node_type_delete('alfresco_item');
+
+  drupal_uninstall_schema('alfresco');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function alfresco_schema() {
+  
+  $schema['alfresco'] = array(
+    'fields' => array(
+      'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+  
+      // Alfresco Node Reference
+      'reference' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+    ),
+    'primary key' => array('vid'),
+  );
+  
+  return $schema;
+}
