@@ -1,0 +1,190 @@
+<?php
+/*
+ * OFICINA VIRTUAL DE COORDINACIÓN DE LAS TIC
+ *
+ * Empresa desarrolladora:
+ *     GMV Soluciones Globales Internet, S.A.
+ *     Avda. Américo Vespucio, Nº5
+ *     Edificio Cartuja, Bloque E, 1ª Planta
+ *     41092 Sevilla (España)
+ *
+ * Autor: Junta de Andalucía. Derechos de explotación
+ *     propiedad de la Junta de Andalucía
+ *
+ * Este programa es software libre: usted tiene derecho a
+ * redistribuirlo y/o modificarlo bajo los términos de la
+ * Licencia EUPL European Public License publicada por el
+ * organismo IDABC de la Comisión Europea, en su versión 1.0.
+ * o posteriores.
+ *
+ * Este programa se distribuye de buena fe, pero SIN NINGUNA
+ * GARANTÍA, incluso sin las presuntas garantías implítareas
+ * de USABILIDAD o ADECUACIÓN A PROPÓSITO CONCRETO. Para mas
+ * información consulte la Licencia EUPL European Public
+ * License.
+ *
+ * Usted recibe una copia de la Licencia EUPL European Public
+ * License junto con este programa, si por algún motivo no le
+ * es posible visualizarla, puede consultarla en la siguiente
+ * URL: http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * You should have received a copy of the EUPL European Public
+ * License along with this program. If not, see
+ * http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * Vous devez avoir reçu une copie de la EUPL European Public
+ * License avec ce programme. Si non, voir
+ * http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * Sie sollten eine Kopie der EUPL European Public License
+ * zusammen mit diesem Programm. Wenn nicht, finden Sie da
+ * http://ec.europa.eu/idabc/servlets/Doc?id=27470
+ *
+ * $Id$
+ */
+ 
+/**
+ * @file
+ * Implementación del tipo de contenido Alfresco content.
+ */
+
+/**
+ * 
+ */
+define('ALFRESCO_PHP_LIBRARY_PATH', '/alfresco-php-library');
+
+
+if (function_exists('drupal_get_path')) {
+  $path = drupal_get_path('module', 'alfresco');
+  if (file_exists($path .'/alfresco.inc')) {
+    require_once  $path .'/alfresco.inc';
+  }
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function alfresco_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#alfresco':
+      return '<p>'. t('Alfresco integration.') .'</p>';
+  }
+}
+
+function _alfresco_download_access($node) {
+  return node_access('download alfresco content', $node) && ($node->type == 'alfresco_item');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function alfresco_menu() {
+  $items['node/%node/download'] = array(
+    'title' => 'Download file',
+    'page callback' => 'alfresco_file_download',
+    'page arguments' => array(1),
+    'access callback' => '_alfresco_download_access',
+    'access arguments' => array(1),   
+    'type' => MENU_LOCAL_TASK,
+  );
+  
+  return $items;
+}
+
+/**
+ * @see http://www.php-mysql-tutorial.com/php-tutorial/php-read-remote-file.php
+ * @see http://htmlblog.net/10-code-snippets-for-php-developers/
+ */
+function alfresco_file_download($node) {
+  $url = "http://localhost:8080/alfresco/download/direct/workspace/SpacesStore/c55a02a0-bbc3-11dd-b785-274d22f26a6c/produccion_20081002_1208.pdf?ticket=TICKET_18d018cf9291e9a3f85683d3f4726dce1643174a";
+  
+  // make sure the remote file is successfully opened before doing anything else
+  if ($fp = fopen($url, 'r')) {
+     $content = '';
+     // keep reading until there's nothing left
+     while ($line = fread($fp, 1024)) {
+        $content .= $line;
+     }
+
+     //header("Content-type: application/octet-stream");
+     //header("Content-Length: " . sizeof($content));
+     drupal_set_header('Content-type: application/octet-stream');
+     
+     print $content;
+     // do something with the content here
+     // ...
+  } else {
+     // an error occured when trying to open the specified url
+  }
+}
+
+/**
+ * Implementation of hook_node_info().
+ */
+function alfresco_node_info() {
+
+  return array(
+    'alfresco_item' => array(
+      'name' => t('Alfresco item'),
+      'module' => 'alfresco',
+      'description' => t("This is an example node type with a few fields."),
+      'has_title' => TRUE,
+      'title_label' => t('Title'),
+      'has_body' => TRUE,
+      'body_label' => t('Body'),
+    )
+  );
+}
+
+/**
+ * Implementation of hook_perm().
+ *
+ * Since we are limiting the ability to create new nodes to certain users,
+ * we need to define what those permissions are here. We also define a permission
+ * to allow users to edit the nodes they created.
+ */
+function alfresco_perm() {
+
+  return array(
+    'create alfresco content',
+    'delete own alfresco content',
+    'delete any alfresco content',
+    'download alfresco content',
+    'edit own alfresco content',
+    'edit any alfresco content',
+  );
+}
+
+/**
+ * Implementation of hook_access().
+ *
+ * Node modules may implement node_access() to determine the operations
+ * users may perform on nodes. This example uses a very common access pattern.
+ */
+function alfresco_access($op, $node, $account) {
+
+  if ($op == 'create') {
+    return user_access('create alfresco content', $account);
+  }
+
+  if ($op == 'update') {
+    if (user_access('edit any alfresco content', $account) || (user_access('edit own alfresco content', $account) && ($account->uid == $node->uid))) {
+      return TRUE;
+    }
+  }
+
+  if ($op == 'delete') {
+    if (user_access('delete any alfresco content', $account) || (user_access('delete own alfresco content', $account) && ($account->uid == $node->uid))) {
+      return TRUE;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function alfresco_init() {
+  $alfresco_path = drupal_get_path('module', 'alfresco') . ALFRESCO_PHP_LIBRARY_PATH;
+  ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . $alfresco_path);
+}
