@@ -19,6 +19,8 @@ function _alfresco_exception_handler($excepcion) {
  */
 function alfresco_form(&$node, $form_state) {
 
+  drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
+  
   // The site admin can decide if this node type has a title and body, and how
   // the fields should be labeled. We need to load these settings so we can
   // build the node form correctly.
@@ -34,19 +36,21 @@ function alfresco_form(&$node, $form_state) {
   );
   
   if ($type->has_title) {
+    $form['use_title'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use Alfresco node title.'),
+      '#description' => t('Deje esta campo marcado para obtener el título automáticamente del nodo de Alfresco, si desea indicar un título desmárquelo.'),
+      '#default_value' => TRUE,
+      '#weight' => -5
+    );
+    
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => check_plain($type->title_label),
       '#required' => FALSE,
       '#default_value' => $node->title,
-      '#weight' => -5
-    );
-    
-    $form['use_title'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Use Alfresco Node Title.'),
-      '#default_value' => TRUE,
-      '#weight' => -5
+      '#weight' => -5,
+      '#disabled' => TRUE,
     );
   }
 
@@ -58,39 +62,60 @@ function alfresco_form(&$node, $form_state) {
     $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
   
+  $form['#validate'][] = 'alfresco_form_validate';
   $form['#submit'][] = 'alfresco_form_submit';
 
   return $form;
 }
 
 /**
- *
+ * Implementation of hook_validate().
  */
-function alfresco_form_submit($form, &$form_state) {
-  $nodeRef = $form_state['values']['reference'];
-  
-  //$aNode = alfresco_service_get_node($nodeRef);
+function alfresco_validate($node, &$form) {
+  dpm("alfresco_validate");
 }
 
 /**
  * Implementation of hook_validate().
+ * 
+ * Valida que la referencia al nodo de alfresco es correcta, comprueba que el nodo existe y obtiene el título. 
+ * 
+ * @see alfresco_form_submit
+ * @see http://drupal.org/node/144132#passing
  */
-function alfresco_validate($node, &$form) {
+function alfresco_form_validate($form, &$form_state) {
+  dpm("alfresco_form_validate");
   
-  if (isset($node->reference)) {
-    $nodeRef = $node->reference;
+  if ($form_state['values']['reference']) {
+    $nodeRef = $form_state['values']['reference'];
+    
     if (!alfresco_valid_reference($nodeRef)) {
-      form_set_error('reference', t('Invalid node reference.'));
+      form_set_error('reference', t('La referencia al nodo de Alfresco no tiene el formato correcto.'));
     }
     else {
-      //$session = alfresco_service_create_session();
-      $aNode = alfresco_service_get_node($nodeRef);
-      if (is_null($aNode)) {
-        form_set_error('reference', t('Alfresco Node Reference not exists.'));
+      $alf_node = alfresco_service_get_node($nodeRef);
+      
+      if (is_null($alf_node)) {
+        form_set_error('reference', t('La referencia al nodo de Alfresco no existe.'));
       }
       else {
-        $node->title = $aNode->cm_title;
+        $form_state['alf_node'] = $alf_node;
       }
+    }
+  }
+}
+
+/**
+ *
+ */
+function alfresco_form_submit($form, &$form_state) {
+  dpm("alfresco_form_submit");
+
+  if (isset($form_state['alf_node'])) {
+    $alf_node = $form_state['alf_node'];
+    
+    if (!empty($form_state['values']['use_title'])) {
+      $form_state['values']['title'] = $alf_node->cm_title;
     }
   }
 }
@@ -126,7 +151,7 @@ function alfresco_update($node) {
  * from our table. The only way to handle revision deletion is by implementing
  * hook_nodeapi().
  */
-function alfresco_nodeapi(&$node, $op, $teaser, $page) {
+function alfresco_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   
   switch ($op) {
     case 'delete revision':
@@ -299,7 +324,11 @@ function alfresco_service_include_api() {
 function alfresco_service_create_session() {
 
   try {
-    alfresco_service_include_api();
+    //alfresco_service_include_api();
+    
+    // Include the required Alfresco PHP API objects  
+    require_once "Alfresco/Service/Repository.php";
+    require_once "Alfresco/Service/Session.php";
     
     // The web service end point URL for the Alfresco repository
     $repositoryUrl = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
@@ -324,6 +353,7 @@ function alfresco_service_create_session() {
   }
   catch (Exception $e) {
     drupal_set_message('[alfresco_service_create_session] '. $e->getMessage(), 'error');
+    watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR);
   }
 }
 
@@ -342,6 +372,7 @@ function alfresco_service_create_store($session, $nodeRef) {
   }
   catch (Exception $e) {
     drupal_set_message('[alfresco_service_create_store] '. $e->getMessage(), 'error');
+    watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR);
   }
 }
 
@@ -351,12 +382,15 @@ function alfresco_service_create_store($session, $nodeRef) {
  * @param $nodeRef
  * @return unknown_type
  */
-function alfresco_service_exists_node($session, $nodeRef) {
+function alfresco_service_exists_node($nodeRef, $session = NULL) {
   try {
+    if (is_null($session)) {
+      $session = alfresco_service_create_session();
+    }
     $infoRef = alfresco_parse_reference($nodeRef);
     $store = new Store($session, $infoRef['address'], $infoRef['scheme']);
     $nodes = $session->query($store, "ID:\"$nodeRef\"");
-    return count($nodes) == 1;
+    return count($nodes) > 0;
   }
   catch (Exception $e) {
     drupal_set_message('[alfresco_service_exists_node] '. $e->getMessage(), 'error');
@@ -367,38 +401,32 @@ function alfresco_service_exists_node($session, $nodeRef) {
  * 
  * @param $session Session
  * @param $nodeRef
- * @return unknown_type
+ * @return Node
  */
 function alfresco_service_get_node($nodeRef, $session = NULL) {
   try {
+    $infoRef = alfresco_parse_reference($nodeRef);
+
     if (is_null($session)) {
       $session = alfresco_service_create_session();
+      dpm($session, "AAAA");
     }
-    $infoRef = alfresco_parse_reference($nodeRef);
+    
     $store = new Store($session, $infoRef['address'], $infoRef['scheme']);
     $nodes = $session->query($store, "ID:\"$nodeRef\"");
-    dpm($nodes);
-    if (count($nodes)) {
+    $count = count($nodes);
+    
+    if ($count > 0) {
+      if ($count > 1) {
+        $msg = "Alfresco module: Se ha encontrado más de un nodo con la misma referencia !reference";
+        $vars = array('!reference' => $nodeRef);
+        watchdog('alfresco', $msg, $vars, WATCHDOG_WARNING);
+      }
       return $nodes[0];
     }
   }
   catch (Exception $e) {
     drupal_set_message('[alfresco_service_get_node] '. $e->getMessage(), 'error');
+    watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR);
   }
-}
-
-/**
- * 
- * @param $ref
- * @return Node
- */
-function alfresco_get_node_from_reference($ref) {
-
-  $ref_info = alfresco_parse_reference($ref);
-  
-  $session = alfresco_service_create_store();
-  
-  $store = new Store($session, $ref_info['address'], $ref_info['scheme']);
-
-  return $session->getNode($store, $store);
 }
