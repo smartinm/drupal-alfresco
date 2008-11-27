@@ -1,52 +1,14 @@
 <?php
-/*
- * OFICINA VIRTUAL DE COORDINACIÓN DE LAS TIC
- *
- * Empresa desarrolladora:
- *     GMV Soluciones Globales Internet, S.A.
- *     Avda. Américo Vespucio, Nº5
- *     Edificio Cartuja, Bloque E, 1ª Planta
- *     41092 Sevilla (España)
- *
- * Autor: Junta de Andalucía. Derechos de explotación
- *     propiedad de la Junta de Andalucía
- *
- * Este programa es software libre: usted tiene derecho a
- * redistribuirlo y/o modificarlo bajo los términos de la
- * Licencia EUPL European Public License publicada por el
- * organismo IDABC de la Comisión Europea, en su versión 1.0.
- * o posteriores.
- *
- * Este programa se distribuye de buena fe, pero SIN NINGUNA
- * GARANTÍA, incluso sin las presuntas garantías implítareas
- * de USABILIDAD o ADECUACIÓN A PROPÓSITO CONCRETO. Para mas
- * información consulte la Licencia EUPL European Public
- * License.
- *
- * Usted recibe una copia de la Licencia EUPL European Public
- * License junto con este programa, si por algún motivo no le
- * es posible visualizarla, puede consultarla en la siguiente
- * URL: http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * You should have received a copy of the EUPL European Public
- * License along with this program. If not, see
- * http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * Vous devez avoir reçu une copie de la EUPL European Public
- * License avec ce programme. Si non, voir
- * http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * Sie sollten eine Kopie der EUPL European Public License
- * zusammen mit diesem Programm. Wenn nicht, finden Sie da
- * http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * $Id$
- */
- 
+// $Id$
+
 /**
  * @file
  * Implementación de las operaciones CRUD sobre el tipo de contenido.
  */
+
+function _alfresco_exception_handler($excepcion) {
+  drupal_set_message($excepcion->getMessage(), 'error');
+}
 
 /**
  * Implementation of hook_form().
@@ -68,7 +30,7 @@ function alfresco_form(&$node, $form_state) {
     '#required' => TRUE,
     '#default_value' => $node->reference,
     '#weight' => -6,
-    '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/ID'),
+    '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
   );
   
   if ($type->has_title) {
@@ -95,14 +57,42 @@ function alfresco_form(&$node, $form_state) {
     // properly.
     $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
+  
+  $form['#submit'][] = 'alfresco_form_submit';
 
   return $form;
+}
+
+/**
+ *
+ */
+function alfresco_form_submit($form, &$form_state) {
+  $nodeRef = $form_state['values']['reference'];
+  
+  //$aNode = alfresco_service_get_node($nodeRef);
 }
 
 /**
  * Implementation of hook_validate().
  */
 function alfresco_validate($node, &$form) {
+  
+  if (isset($node->reference)) {
+    $nodeRef = $node->reference;
+    if (!alfresco_valid_reference($nodeRef)) {
+      form_set_error('reference', t('Invalid node reference.'));
+    }
+    else {
+      //$session = alfresco_service_create_session();
+      $aNode = alfresco_service_get_node($nodeRef);
+      if (is_null($aNode)) {
+        form_set_error('reference', t('Alfresco Node Reference not exists.'));
+      }
+      else {
+        $node->title = $aNode->cm_title;
+      }
+    }
+  }
 }
 
 /**
@@ -178,56 +168,60 @@ function alfresco_load($node) {
  */
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
-  
-  
-  // Include the required Alfresco PHP API objects  
-  require_once "Alfresco/Service/Repository.php";
-  require_once "Alfresco/Service/Session.php";
-  require_once "Alfresco/Service/SpacesStore.php";
+  //return $node;
 
-  // The web service end point URL for the Alfresco repository
-  $repositoryUrl = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+  try {
+    // Include the required Alfresco PHP API objects  
+    require_once "Alfresco/Service/Repository.php";
+    require_once "Alfresco/Service/Session.php";
+    require_once "Alfresco/Service/SpacesStore.php";
   
-  // The user credentials we are going to use
-  $userName = variable_get('alfresco_credentials_username', 'guest');
-  $password = variable_get('alfresco_credentials_password', ''); 
+    // The web service end point URL for the Alfresco repository
+    $repositoryUrl = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+    
+    // The user credentials we are going to use
+    $userName = variable_get('alfresco_credentials_username', 'guest');
+    $password = variable_get('alfresco_credentials_password', 'guest'); 
+    
+    // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
+    // It can be used to authenticate users and as a session factory.
+    $repository = new Repository($repositoryUrl);
+    
+    // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
+    // a ticket.  The ticket is a string which can be used to create Session's
+    $ticket = $repository->authenticate($userName, $password);
+    
+    // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather 
+    // than creating one and using across many pages as this helps to prevent resource usage from creaping up.
+    $session = $repository->createSession($ticket);
+    //$session->getStoreFromString()
   
-  // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
-  // It can be used to authenticate users and as a session factory.
-  $repository = new Repository($repositoryUrl);
-  
-  // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
-  // a ticket.  The ticket is a string which can be used to create Session's
-  $ticket = $repository->authenticate($userName, $password);
-  
-  // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather 
-  // than creating one and using across many pages as this helps to prevent resource usage from creaping up.
-  $session = $repository->createSession($ticket);
-  //$session->getStoreFromString()
-
-  // Create a reference to the 'SpacesStore'
-  $spacesStore = new SpacesStore($session);
-  
-  $currentNode = $session->getNode($spacesStore, 'c55a02a0-bbc3-11dd-b785-274d22f26a6c');
-  
-  
-  
-  $properties = array();
-  foreach ($currentNode->properties as $name => $value) {
-    if(is_string($value)) {
-      $properties[] = array($name, $value);
+    // Create a reference to the 'SpacesStore'
+    $spacesStore = new SpacesStore($session);
+    
+    $currentNode = $session->getNode($spacesStore, '38985dc2-bc5e-11dd-8590-695888b0c20c');
+    
+    $properties = array();
+    foreach ($currentNode->properties as $name => $value) {
+      if(is_string($value)) {
+        $properties[] = array($name, $value);
+      }
+      else {
+        $properties[] = array($name, $value->mimetype);
+      }
     }
-    else {
-      $properties[] = array($name, $value->mimetype);
-    }
+    
+    $contentData = $currentNode->cm_content;
+    
+    $node->content['alfresco'] = array(
+      '#value' => theme('table', array('Propiedad', 'Valor'), $properties) . l('Descarga', $contentData->getUrl()),
+      '#weight' => 1,
+    );
   }
-  
-  $contentData = $currentNode->cm_content;
-  
-  $node->content['alfresco'] = array(
-    '#value' => theme('table', array('Propiedad', 'Valor'), $properties) . l('Descarga', $contentData->getUrl()),
-    '#weight' => 1,
-  );
+  catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+    return $node;
+  }
   
   /*
   if (ini_get('allow_url_fopen') == '1') {
@@ -251,4 +245,160 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   */
 
   return $node;
+}
+
+
+//////////
+
+/**
+ * @see http://wiki.alfresco.com/wiki/Web_Service_Data_Types
+ */
+function alfresco_valid_reference($reference) {
+  $scheme = '\w+';
+  $address = '\w+';
+  $uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+  return preg_match("/^$scheme:\/\/$address\/$uuid$/", $reference);
+}
+
+/**
+ * 
+ */
+function alfresco_parse_reference($reference) {
+  
+  $info = array();
+
+  $scheme = '\w+';
+  $address = '\w+';
+  $uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+  
+  if (preg_match("/^($scheme):\/\/($address)\/($uuid)$/", $reference, $matches)) {
+    $info['scheme'] = $matches[1];
+    $info['address'] = $matches[2];
+    $info['uuid'] = $matches[3];
+  }
+  return $info;
+}
+
+
+function alfresco_service_include_api() {
+  static $included = FALSE;
+  
+  // Ensure this only gets run once.
+  if ($included) {
+    return;
+  }
+  
+  // Include the required Alfresco PHP API objects  
+  require_once "Alfresco/Service/Repository.php";
+  require_once "Alfresco/Service/Session.php";
+  //require_once "Alfresco/Service/SpacesStore.php";
+  
+  $included = TRUE;
+}
+
+function alfresco_service_create_session() {
+
+  try {
+    alfresco_service_include_api();
+    
+    // The web service end point URL for the Alfresco repository
+    $repositoryUrl = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+    
+    // The user credentials we are going to use
+    $userName = variable_get('alfresco_credentials_username', 'guest');
+    $password = variable_get('alfresco_credentials_password', 'guest'); 
+    
+    // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
+    // It can be used to authenticate users and as a session factory.
+    $repository = new Repository($repositoryUrl);
+    
+    // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
+    // a ticket.  The ticket is a string which can be used to create Session's
+    $ticket = $repository->authenticate($userName, $password);
+    
+    // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather 
+    // than creating one and using across many pages as this helps to prevent resource usage from creaping up.
+    $session = $repository->createSession($ticket);
+    
+    return $session;
+  }
+  catch (Exception $e) {
+    drupal_set_message('[alfresco_service_create_session] '. $e->getMessage(), 'error');
+  }
+}
+
+/**
+ * 
+ * @param $session
+ *  Session
+ * @param $nodeRef
+ *  Alfresco Node Reference
+ * @return Store
+ */
+function alfresco_service_create_store($session, $nodeRef) {
+  try {
+    $infoRef = alfresco_parse_reference($nodeRef);
+    return new Store($session, $infoRef['address'], $infoRef['scheme']);
+  }
+  catch (Exception $e) {
+    drupal_set_message('[alfresco_service_create_store] '. $e->getMessage(), 'error');
+  }
+}
+
+/**
+ * 
+ * @param $session Session
+ * @param $nodeRef
+ * @return unknown_type
+ */
+function alfresco_service_exists_node($session, $nodeRef) {
+  try {
+    $infoRef = alfresco_parse_reference($nodeRef);
+    $store = new Store($session, $infoRef['address'], $infoRef['scheme']);
+    $nodes = $session->query($store, "ID:\"$nodeRef\"");
+    return count($nodes) == 1;
+  }
+  catch (Exception $e) {
+    drupal_set_message('[alfresco_service_exists_node] '. $e->getMessage(), 'error');
+  }
+}
+
+/**
+ * 
+ * @param $session Session
+ * @param $nodeRef
+ * @return unknown_type
+ */
+function alfresco_service_get_node($nodeRef, $session = NULL) {
+  try {
+    if (is_null($session)) {
+      $session = alfresco_service_create_session();
+    }
+    $infoRef = alfresco_parse_reference($nodeRef);
+    $store = new Store($session, $infoRef['address'], $infoRef['scheme']);
+    $nodes = $session->query($store, "ID:\"$nodeRef\"");
+    dpm($nodes);
+    if (count($nodes)) {
+      return $nodes[0];
+    }
+  }
+  catch (Exception $e) {
+    drupal_set_message('[alfresco_service_get_node] '. $e->getMessage(), 'error');
+  }
+}
+
+/**
+ * 
+ * @param $ref
+ * @return Node
+ */
+function alfresco_get_node_from_reference($ref) {
+
+  $ref_info = alfresco_parse_reference($ref);
+  
+  $session = alfresco_service_create_store();
+  
+  $store = new Store($session, $ref_info['address'], $ref_info['scheme']);
+
+  return $session->getNode($store, $store);
 }

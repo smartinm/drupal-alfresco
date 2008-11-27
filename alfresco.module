@@ -1,47 +1,5 @@
 <?php
-/*
- * OFICINA VIRTUAL DE COORDINACIÓN DE LAS TIC
- *
- * Empresa desarrolladora:
- *     GMV Soluciones Globales Internet, S.A.
- *     Avda. Américo Vespucio, Nº5
- *     Edificio Cartuja, Bloque E, 1ª Planta
- *     41092 Sevilla (España)
- *
- * Autor: Junta de Andalucía. Derechos de explotación
- *     propiedad de la Junta de Andalucía
- *
- * Este programa es software libre: usted tiene derecho a
- * redistribuirlo y/o modificarlo bajo los términos de la
- * Licencia EUPL European Public License publicada por el
- * organismo IDABC de la Comisión Europea, en su versión 1.0.
- * o posteriores.
- *
- * Este programa se distribuye de buena fe, pero SIN NINGUNA
- * GARANTÍA, incluso sin las presuntas garantías implítareas
- * de USABILIDAD o ADECUACIÓN A PROPÓSITO CONCRETO. Para mas
- * información consulte la Licencia EUPL European Public
- * License.
- *
- * Usted recibe una copia de la Licencia EUPL European Public
- * License junto con este programa, si por algún motivo no le
- * es posible visualizarla, puede consultarla en la siguiente
- * URL: http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * You should have received a copy of the EUPL European Public
- * License along with this program. If not, see
- * http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * Vous devez avoir reçu une copie de la EUPL European Public
- * License avec ce programme. Si non, voir
- * http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * Sie sollten eine Kopie der EUPL European Public License
- * zusammen mit diesem Programm. Wenn nicht, finden Sie da
- * http://ec.europa.eu/idabc/servlets/Doc?id=27470
- *
- * $Id$
- */
+// $Id$
  
 /**
  * @file
@@ -51,7 +9,7 @@
 /**
  * 
  */
-define('ALFRESCO_PHP_LIBRARY_PATH', '/alfresco-php-library');
+define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-library');
 
 
 if (function_exists('drupal_get_path')) {
@@ -197,6 +155,7 @@ function alfresco_access($op, $node, $account) {
  * Implementation of hook_init().
  */
 function alfresco_init() {
-  $alfresco_path = drupal_get_path('module', 'alfresco') . ALFRESCO_PHP_LIBRARY_PATH;
+  $alfresco_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
   ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . $alfresco_path);
+  //set_exception_handler('_alfresco_exception_handler');
 }
