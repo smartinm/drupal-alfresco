@@ -193,61 +193,124 @@ function alfresco_load($node) {
  */
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
-  //return $node;
 
-  try {
-    // Include the required Alfresco PHP API objects  
-    require_once "Alfresco/Service/Repository.php";
-    require_once "Alfresco/Service/Session.php";
-    require_once "Alfresco/Service/SpacesStore.php";
-  
-    // The web service end point URL for the Alfresco repository
-    $repositoryUrl = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
-    
-    // The user credentials we are going to use
-    $userName = variable_get('alfresco_credentials_username', 'guest');
-    $password = variable_get('alfresco_credentials_password', 'guest'); 
-    
-    // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
-    // It can be used to authenticate users and as a session factory.
-    $repository = new Repository($repositoryUrl);
-    
-    // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
-    // a ticket.  The ticket is a string which can be used to create Session's
-    $ticket = $repository->authenticate($userName, $password);
-    
-    // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather 
-    // than creating one and using across many pages as this helps to prevent resource usage from creaping up.
-    $session = $repository->createSession($ticket);
-    //$session->getStoreFromString()
-  
-    // Create a reference to the 'SpacesStore'
-    $spacesStore = new SpacesStore($session);
-    
-    $currentNode = $session->getNode($spacesStore, '38985dc2-bc5e-11dd-8590-695888b0c20c');
-    
-    $properties = array();
-    foreach ($currentNode->properties as $name => $value) {
-      if(is_string($value)) {
-        $properties[] = array($name, $value);
-      }
-      else {
-        $properties[] = array($name, $value->mimetype);
-      }
-    }
-    
-    $contentData = $currentNode->cm_content;
-    
-    $node->content['alfresco'] = array(
-      '#value' => theme('table', array('Propiedad', 'Valor'), $properties) . l('Descarga', $contentData->getUrl()),
-      '#weight' => 1,
-    );
-  }
-  catch (Exception $e) {
-    drupal_set_message($e->getMessage(), 'error');
+  // Obtenemos el nodo de Alfresco a partir de su referencia.
+  $alf_node = alfresco_service_get_node($node->reference);
+  if (is_null($alf_node)) {
     return $node;
   }
   
+  
+  dpm($alf_node->getType());
+  dpm($alf_node->getAspects());
+  dpm($alf_node->getProperties());
+  dpm($alf_node->getVersionHistory());
+  dpm($alf_node->getAssociations());
+  
+  
+  //
+  // Alfresco node properties
+  //
+  $model_content = '{http://www.alfresco.org/model/content/1.0}';
+  $mapping = array(
+    'name'        => t('Name'),
+    'title'       => t('Title'),
+    'description' => t('Description'),
+    'author'      => t('Author'),
+    'creator'     => t('Creator'),
+    'created'     => t('Created date'),
+    'modifier'    => t('Modifier'),
+    'modified'    => t('Modified date'),
+  
+    'node-uuid'        => t('Node UUID'),
+    'node-dbid'        => t('Node DBID'),
+    'store-protocol'   => t('Store protocol'),
+    'store-identifier' => t('Store identifier'),
+  
+    'content'     => t('Content data'),
+  
+    'mimetype'  => t('Mimetype'),
+    'encoding'  => t('Encoding'),
+    'size'      => t('Size'),
+    'url'       => t('URL'),
+    'guest-url' => t('Guest URL'),
+  );
+  
+  
+  $contentData = $alf_node->cm_content;
+  if (!is_null($contentData)) {
+    
+    dpm($contentData->getNode(), 'getNode');
+    dpm($contentData->getProperty(), 'getProperty');
+    dpm($contentData->getIsDirty(), 'getIsDirty');
+    dpm($contentData->getMimetype(), 'getMimetype');
+    dpm($contentData->getSize(), 'getSize');
+    dpm($contentData->getEncoding(), 'getEncoding');
+    dpm($contentData->getUrl(), 'getUrl');
+    dpm($contentData->getGuestUrl(), 'getGuestUrl');
+    dpm($contentData->getContent(), 'getContent');
+    
+    
+    $size = $contentData->getSize();
+    $url  = $contentData->getUrl();
+    
+    $file_properties = array(
+      'mimetype'  => $contentData->getMimetype(),
+      'encoding'  => $contentData->getEncoding(),
+      'size'      => is_numeric($size) ? alfresco_bytestostring($size, 2) : $size,
+      //'url'       => $url,
+      //'guest-url' => $contentData->getGuestUrl(),
+    );
+  }
+  
+  $properties = array();
+  foreach ($alf_node->getProperties() as $key => $value) {
+    if(is_string($value) || is_null($value)) {
+      $key = str_replace($model_content, '', $key);
+      if (isset($mapping[$key])) {
+        $value = is_null($value) ? t('n/a') : $value;
+        $properties[] = array($mapping[$key], $value);  
+      } 
+      else {
+        $properties[] = array($key, $value);
+      }
+    }
+  }
+  
+  if (count($file_properties)) {
+    foreach ($file_properties as $key => $value) {
+      if(is_string($value) || is_null($value)) {
+        if (isset($mapping[$key])) {
+          $value = is_null($value) ? t('n/a') : $value;
+          $properties[] = array($mapping[$key], $value);  
+        }
+      }
+    }
+  }
+
+  $header = array(t('Propiedad'), t('Valor'));
+  $table_properties = theme('table', $header, $properties, NULL, t('Propiedades')); 
+  
+  $node->content['alfresco_properties'] = array(
+    '#value' => $table_properties,
+    '#weight' => 1,
+  );
+  
+  //
+  // Alfresco content data
+  //
+  
+  
+  $header = array(t('Propiedad'), t('Valor'));
+  $table_properties = theme('table', $header, $properties, NULL, t('Propiedades del nodo')); 
+  
+  $node->content['alfresco_properties'] = array(
+    '#value' => $table_properties,
+    '#weight' => 1,
+  );
+
+  return $node;
+    
   /*
   if (ini_get('allow_url_fopen') == '1') {
     dpm("allow_url_fopen");
@@ -279,10 +342,8 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
  * @see http://wiki.alfresco.com/wiki/Web_Service_Data_Types
  */
 function alfresco_valid_reference($reference) {
-  $scheme = '\w+';
-  $address = '\w+';
-  $uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
-  return preg_match("/^$scheme:\/\/$address\/$uuid$/", $reference);
+  $uuid_pattern = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+  return preg_match("/^\w+:\/\/\w+\/$uuid_pattern$/", $reference);
 }
 
 /**
@@ -292,40 +353,36 @@ function alfresco_parse_reference($reference) {
   
   $info = array();
 
-  $scheme = '\w+';
-  $address = '\w+';
-  $uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
-  
-  if (preg_match("/^($scheme):\/\/($address)\/($uuid)$/", $reference, $matches)) {
-    $info['scheme'] = $matches[1];
+  $uuid_pattern = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+  if (preg_match("/^(\w+):\/\/(\w+)\/($uuid_pattern)$/", $reference, $matches)) {
+    
+    $info['scheme']  = $matches[1];
     $info['address'] = $matches[2];
-    $info['uuid'] = $matches[3];
+    $info['uuid']    = $matches[3];
   }
   return $info;
 }
 
+/**
+ * Present a size (in bytes) as a human-readable value
+ *
+ * @param int    $size        size (in bytes)
+ * @param int    $precision    number of digits after the decimal point
+ * @return string
+ * 
+ * @see http://php.net/manual/es/function.filesize.php#84652
+ */
+function alfresco_bytestostring($size, $precision = 0) {
+    $sizes = array('YB', 'ZB', 'EB', 'PB', 'TB', 'GB', 'MB', 'kB', 'B');
+    $total = count($sizes);
 
-function alfresco_service_include_api() {
-  static $included = FALSE;
-  
-  // Ensure this only gets run once.
-  if ($included) {
-    return;
-  }
-  
-  // Include the required Alfresco PHP API objects  
-  require_once "Alfresco/Service/Repository.php";
-  require_once "Alfresco/Service/Session.php";
-  //require_once "Alfresco/Service/SpacesStore.php";
-  
-  $included = TRUE;
+    while($total-- && $size > 1024) $size /= 1024;
+    return round($size, $precision) .' '. $sizes[$total];
 }
 
 function alfresco_service_create_session() {
 
   try {
-    //alfresco_service_include_api();
-    
     // Include the required Alfresco PHP API objects  
     require_once "Alfresco/Service/Repository.php";
     require_once "Alfresco/Service/Session.php";
@@ -352,81 +409,53 @@ function alfresco_service_create_session() {
     return $session;
   }
   catch (Exception $e) {
-    drupal_set_message('[alfresco_service_create_session] '. $e->getMessage(), 'error');
-    watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR);
-  }
-}
-
-/**
- * 
- * @param $session
- *  Session
- * @param $nodeRef
- *  Alfresco Node Reference
- * @return Store
- */
-function alfresco_service_create_store($session, $nodeRef) {
-  try {
-    $infoRef = alfresco_parse_reference($nodeRef);
-    return new Store($session, $infoRef['address'], $infoRef['scheme']);
-  }
-  catch (Exception $e) {
-    drupal_set_message('[alfresco_service_create_store] '. $e->getMessage(), 'error');
-    watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR);
-  }
-}
-
-/**
- * 
- * @param $session Session
- * @param $nodeRef
- * @return unknown_type
- */
-function alfresco_service_exists_node($nodeRef, $session = NULL) {
-  try {
-    if (is_null($session)) {
-      $session = alfresco_service_create_session();
+    $msg = "Error iniciando sesión con el repositorio de Alfresco";
+    drupal_set_message(t($msg), 'error');
+    
+    if ($e->getMessage()) {
+      watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR,
+        l(t('Alfresco repository'), $repositoryUrl));
     }
-    $infoRef = alfresco_parse_reference($nodeRef);
-    $store = new Store($session, $infoRef['address'], $infoRef['scheme']);
-    $nodes = $session->query($store, "ID:\"$nodeRef\"");
-    return count($nodes) > 0;
-  }
-  catch (Exception $e) {
-    drupal_set_message('[alfresco_service_exists_node] '. $e->getMessage(), 'error');
   }
 }
 
 /**
  * 
  * @param $session Session
- * @param $nodeRef
+ * @param $node_ref
  * @return Node
  */
-function alfresco_service_get_node($nodeRef, $session = NULL) {
-  try {
-    $infoRef = alfresco_parse_reference($nodeRef);
+function alfresco_service_get_node($node_ref, $session = NULL) {
 
+  $info_ref = alfresco_parse_reference($node_ref);
+  
+  try {
     if (is_null($session)) {
       $session = alfresco_service_create_session();
-      dpm($session, "AAAA");
     }
+
+    $store = $session->getStore($info_ref['address'], $info_ref['scheme']);
+    $nodes = $session->query($store, 'ID:"'. $node_ref .'"');
     
-    $store = new Store($session, $infoRef['address'], $infoRef['scheme']);
-    $nodes = $session->query($store, "ID:\"$nodeRef\"");
-    $count = count($nodes);
-    
-    if ($count > 0) {
+    if ($count = count($nodes)) {
       if ($count > 1) {
-        $msg = "Alfresco module: Se ha encontrado más de un nodo con la misma referencia !reference";
-        $vars = array('!reference' => $nodeRef);
-        watchdog('alfresco', $msg, $vars, WATCHDOG_WARNING);
+        $msg = "Se ha encontrado más de un nodo con referencia !reference";
+        $vars = array('!reference' => $node_ref);
+        
+        watchdog('alfresco', $msg, $vars, WATCHDOG_WARNING,
+          l(t('Alfresco node reference'), $node_ref));
       }
       return $nodes[0];
     }
   }
   catch (Exception $e) {
-    drupal_set_message('[alfresco_service_get_node] '. $e->getMessage(), 'error');
-    watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR);
+    $msg = "Error obteniendo el nodo de Alfresco con referencia !reference";
+    $args = array('!reference' => $node_ref);
+    drupal_set_message(t($msg, $args), 'error');
+    
+    if ($e->getMessage()) {
+      watchdog('alfresco', $e->getMessage(), NULL, WATCHDOG_ERROR,
+        l(t('Alfresco node reference'), $node_ref));
+    }
   }
 }
