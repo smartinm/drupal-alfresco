@@ -1,5 +1,5 @@
 ; $Id$
-name = Alfresco
-description = Alfresco integration.
-package = Oficina Virtual de Coordinación de las TIC 
-core = 6.x
+name = "Alfresco"
+description = "Alfresco and Drupal integration."
+package = "Alfresco" 
+core = "6.x"

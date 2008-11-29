@@ -8,12 +8,13 @@
 
 /**
  * 
+ * @see alfresco_admin_form_submit
  */
 function alfresco_admin_overview(&$form_state) {
 
   $form['repository'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Repository information'),
+    '#title' => t('Repository'),
   );
   
   $form['repository']['alfresco_repository_url'] = array(
@@ -23,11 +24,11 @@ function alfresco_admin_overview(&$form_state) {
     '#type'          => 'textfield',
     '#required'      => TRUE,
   );
-  
+
   $form['repository']['alfresco_credentials_username'] = array(
     '#default_value' => variable_get('alfresco_credentials_username', 'guest'),
-    '#description'   => t(''),
     '#title'         => t('Username'),
+    '#description'   => t(''),
     '#type'          => 'textfield',
     '#size'          => 25,
   );
@@ -36,6 +37,22 @@ function alfresco_admin_overview(&$form_state) {
     '#description'   => t('To change the current password, enter the new password in both fields. Default password is <em>guest</em>'),
     '#size'          => 25,
   );
+
+  $form['downloads'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Downloads'),
+  );
+  
+  $form['downloads']['alfresco_file_downloads'] = array(
+    '#type' => 'radios',
+    '#title' => t('Download method'),
+    '#default_value' => variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_DIRECT),
+    '#options' => array(
+      ALFRESCO_FILE_DOWNLOADS_DIRECT => t('Direct - files are available using Alfresco URL directly.'),
+      ALFRESCO_FILE_DOWNLOADS_MODULE => t('Module - files are transferred by Drupal\'s alfresco module.'),
+    ),
+    '#description' => t('')
+  ); 
   
   $form['#submit'][] = 'alfresco_admin_form_submit';
 
@@ -46,9 +63,9 @@ function alfresco_admin_overview(&$form_state) {
  * 
  */
 function alfresco_admin_form_submit($form, &$form_state) {
-
+  
   if (empty($form_state['values']['alfresco_credentials_password'])) {
     $password = variable_get('alfresco_credentials_password', 'guest');
-    form_set_value($form['repository']['alfresco_credentials_password'], $password, $form_state);   
+    $form_state['values']['alfresco_credentials_password'] = $password;
   }
 }

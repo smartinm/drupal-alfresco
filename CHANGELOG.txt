@@ -1,0 +1,9 @@
+// $Id$
+
+Alfresco 6.x-x.x, xxxx-xx-xx
+----------------------------
+
+
+Alfresco 6.x-0.1, 2008-12-xx
+----------------------------
+Initial version.

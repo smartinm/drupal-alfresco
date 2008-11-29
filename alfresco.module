@@ -11,6 +11,8 @@
  */
 define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-library');
 
+define('ALFRESCO_FILE_DOWNLOADS_DIRECT', 1);
+define('ALFRESCO_FILE_DOWNLOADS_MODULE', 2);
 
 if (function_exists('drupal_get_path')) {
   $path = drupal_get_path('module', 'alfresco');
@@ -26,7 +28,7 @@ function alfresco_help($path, $arg) {
 
   switch ($path) {
     case 'admin/help#alfresco':
-      return '<p>'. t('Alfresco integration.') .'</p>';
+      return '<p>'. t('Alfresco and Drupal integration.') .'</p>';
   }
 }
 
@@ -40,7 +42,7 @@ function alfresco_help($path, $arg) {
 function alfresco_perm() {
 
   return array(
-    'administer alfresco configuration',
+    'administer alfresco',
     'create alfresco content',
     'delete own alfresco content',
     'delete any alfresco content',
@@ -63,7 +65,7 @@ function alfresco_menu() {
     'description' => "Configure Alfresco.",
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_admin_overview'),  
-    'access arguments' => array('administer alfresco configuration'),
+    'access arguments' => array('administer alfresco'),
     'file' => 'alfresco.admin.inc',
   );
   
