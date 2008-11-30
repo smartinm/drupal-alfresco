@@ -56,11 +56,11 @@ function alfresco_perm() {
 }
 
 function _alfresco_download_access($node) {
-  return node_access('download alfresco content', $node) && ($node->type == 'alfresco_item' && !empty($node->cm_content));
+  return user_access('download alfresco content') && ($node->type == 'alfresco_item' && !empty($node->cm_content));
 }
 
 function _alfresco_sync_access($node) {
-  return node_access('administer alfresco', $node) && ($node->type == 'alfresco_item');
+  return user_access('administer alfresco') && ($node->type == 'alfresco_item');
 }
 
 /**
@@ -69,10 +69,26 @@ function _alfresco_sync_access($node) {
 function alfresco_menu() {
   $items['admin/settings/alfresco'] = array(
     'title' => 'Alfresco',
-    'description' => "Configure Alfresco.",
+    'description' => 'Configure Alfresco.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_admin_overview'),  
     'access arguments' => array('administer alfresco'),
+    'file' => 'alfresco.admin.inc',
+  );
+  
+  $items['admin/settings/alfresco/repository'] = array(
+    'title' => 'Repository',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  
+  $items['admin/settings/alfresco/display'] = array(
+    'title' => 'Display',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_admin_display'),
+    'access arguments' => array('administer alfresco'),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK,
+    'parent' => 'admin/settings/alfresco',
     'file' => 'alfresco.admin.inc',
   );
   
@@ -97,21 +113,34 @@ function alfresco_menu() {
   
   return $items;
 }
+
 /*
 function alfresco_name_load($arg) {
-  dpm('alfresco_name_load');
-  dpm($arg);
+  dpm("alfresco_name_load ($arg)");
 }
 */
+
 function alfresco_name_to_arg($arg) {
   
-  if (arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)) {
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
     $node = node_load(arg(1));
     if ($node && $node->type == 'alfresco_item') {
       return $node->cm_name;
     }
   }
   return $arg;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function alfresco_theme() {
+  return array(
+    'alfresco_properties_table' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'alfresco.admin.inc',
+    ),
+  );
 }
 
 /**

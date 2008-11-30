@@ -31,6 +31,17 @@ function alfresco_disable() {
  */
 function alfresco_uninstall() {
 
+  // Eliminamos variables
+  $variables = array(
+    'alfresco_repository_url',
+    'alfresco_credentials_username',
+    'alfresco_credentials_password',
+    'alfresco_file_downloads',
+  );
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+  
   // Eliminamos todo los nodos de tipo alfresco_item
   $result = db_query("SELECT nid FROM {node} WHERE type = 'alfresco_item'");
   while ($obj = db_fetch_object($result)) {

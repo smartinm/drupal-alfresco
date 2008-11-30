@@ -27,7 +27,8 @@ function alfresco_service_create_session() {
     
     // The user credentials we are going to use
     $username = variable_get('alfresco_credentials_username', 'guest');
-    $password = variable_get('alfresco_credentials_password', 'guest'); 
+    $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+    //$password = variable_get('alfresco_credentials_password', 'guest');
     
     // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
     // It can be used to authenticate users and as a session factory.
@@ -108,7 +109,7 @@ function _alfresco_service_include_library() {
   // Add the Alfresco PHP library directory to include path
   $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
   if (is_dir($lib_path)) {
-    ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . $lib_path);
+    set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
   }
   
   // Include the required Alfresco PHP API objects  

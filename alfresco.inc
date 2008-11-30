@@ -284,6 +284,9 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
         $properties[] = array($mapping['content']['size'], alfresco_bytestostring($content['size'], 2));
         $properties[] = array($mapping['content']['encoding'], $content['encoding']);
       }
+      elseif ($key == 'created' || $key == 'modified') {
+        $properties[] = array($name, format_date(strtotime($value), 'large'));
+      }
       else {
         $properties[] = array($name, $value);
       }
