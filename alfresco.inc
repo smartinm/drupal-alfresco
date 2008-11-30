@@ -149,16 +149,7 @@ function alfresco_form_submit($form, &$form_state) {
  * Implementation of hook_insert().
  */
 function alfresco_insert($node) {
-  drupal_write_record('alfresco_node', $node);
-  
-  if (isset($node->cm_content)) {
-    $content = $node->cm_content;
-    $content['nid'] = $node->nid;
-    drupal_write_record('alfresco_content', $content, 'nid');
-    if (!db_affected_rows()) {
-      drupal_write_record('alfresco_content', $content);
-    }
-  }
+  alfresco_save($node);
 }
 
 /**
@@ -168,21 +159,27 @@ function alfresco_insert($node) {
  * database updates.
  */
 function alfresco_update($node) {
+  alfresco_save($node);
+}
+
+function alfresco_save($node) {
 
   // if this is a new node or we're adding a new revision,
-  if ($node->revision) {
-    alfresco_insert($node);
+  if ($node->is_new || $node->revision) {
+    drupal_write_record('alfresco_node', $node);
   }
   else {
     drupal_write_record('alfresco_node', $node, 'vid');
+  }
+
+  if (isset($node->cm_content)) {
+    $content = $node->cm_content;
+    $content['vid'] = $node->vid;
+    $content['nid'] = $node->nid;
     
-    if (isset($node->cm_content)) {
-      $content = $node->cm_content;
-      $content['nid'] = $node->nid;
-      drupal_write_record('alfresco_content', $content, 'nid');
-      if (!db_affected_rows()) {
-        drupal_write_record('alfresco_content', $content);
-      }
+    drupal_write_record('alfresco_content', $content, 'vid');
+    if (!db_affected_rows()) {
+      drupal_write_record('alfresco_content', $content);
     }
   }
 }
@@ -199,6 +196,7 @@ function alfresco_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'delete revision':
       db_query('DELETE FROM {alfresco_node} WHERE vid = %d', $node->vid);
+      db_query('DELETE FROM {alfresco_content} WHERE vid = %d', $node->vid);
       break;
   }
 }
@@ -224,8 +222,6 @@ function alfresco_delete($node) {
  */
 function alfresco_load($node) {
   
-  //$fields = array_merge($fields, drupal_schema_fields_sql('alfresco_content', 'c'));
-  //$fields = array_diff($fields, array('n.vid', 'n.nid', 'c.nid'));
   $fields = drupal_schema_fields_sql('alfresco_node');
   $fields = array_diff($fields, array('vid', 'nid'));
   $fields = implode(', ', $fields);
@@ -234,11 +230,11 @@ function alfresco_load($node) {
   $alfresco_node = db_fetch_object(db_query($sql, $node->vid));
 
   $fields = drupal_schema_fields_sql('alfresco_content');
-  $fields = array_diff($fields, array('nid'));
+  $fields = array_diff($fields, array('vid', 'nid'));
   $fields = implode(', ', $fields);
   
-  $sql = "SELECT $fields FROM {alfresco_content} WHERE nid = %d";
-  $content_data = db_fetch_array(db_query($sql, $node->nid));
+  $sql = "SELECT $fields FROM {alfresco_content} WHERE vid = %d";
+  $content_data = db_fetch_array(db_query($sql, $node->vid));
   if ($content_data) {
     $alfresco_node->cm_content = $content_data;
   }
@@ -410,29 +406,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   );
   
   return $node;
-    
-  /*
-  if (ini_get('allow_url_fopen') == '1') {
-    dpm("allow_url_fopen");
-    $url = $contentData->getUrl(); 
-    // make sure the remote file is successfully opened before doing anything else
-    if ($fp = fopen($url, 'r')) {
-      dpm("fopen");
-       $content = '';
-       // keep reading until there's nothing left
-       while ($line = fread($fp, 1024)) {
-          $content .= $line;
-       }
-    
-       print $content;
-    } else {
-      dpm("ERROR");
-       // an error occured when trying to open the specified url
-    }
-  } 
-  */
-
-  return $node;
 }
 
 
@@ -451,6 +424,9 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
  *   Taxonomy terms to assign to the node if the taxonomy.module is installed.
  * @return 
  *   A node object if the node is created successfully or FALSE on error.
+ * 
+ * @see http://www.darrenmothersele.com/content/programmatically-creating-drupal-nodes
+ * @see http://drupal.org/node/293663
  */
 function alfresco_create_node_from($reference, $title = NULL, $body = '', $taxonomy = NULL) {
   global $user;
@@ -460,7 +436,28 @@ function alfresco_create_node_from($reference, $title = NULL, $body = '', $taxon
   }
   
   // Ensure it's a valid alfresco node referente.
-  if (!$image_info = alfresco_valid_reference($reference)) {
+  if (!alfresco_valid_reference($reference)) {
     return FALSE;
   }
+
+  // Import node functions.
+  module_load_include('inc', 'node', 'node.pages');
+
+  // Create a new alfresco_item node
+  $node = array(
+    'type' => 'alfresco_item',
+    'name' => $user->name,
+    'taxonomy' => $taxonomy,
+  );
+  
+  $form_state = array();
+  $form_state['values']['title'] = is_null($title) ? '' : $title;
+  $form_state['values']['body']  = $body;
+  
+  $form_state['values']['reference'] = $reference;
+  $form_state['values']['use_title'] = TRUE;
+  
+  $form_state['values']['op'] = t('Save');
+  
+  drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
 }

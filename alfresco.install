@@ -127,6 +127,12 @@ function alfresco_schema() {
   // ContentData
   $schema['alfresco_content'] = array(
     'fields' => array(
+      'vid' => array(
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
       'nid' => array(
         'type'        => 'int',
         'unsigned'    => TRUE,
@@ -158,7 +164,7 @@ function alfresco_schema() {
         'default'     => '',
       ),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('vid'),
   );
   
   return $schema;
