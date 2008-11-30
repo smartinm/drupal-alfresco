@@ -69,7 +69,7 @@ function alfresco_form(&$node, $form_state) {
  * Implementation of hook_validate().
  */
 function alfresco_validate($node, &$form) {
-  dpm("alfresco_validate");
+  apm("alfresco_validate");
   
   // Validate uri.
   if (!empty($node->reference)) {
@@ -88,7 +88,7 @@ function alfresco_validate($node, &$form) {
  * @see http://drupal.org/node/144132#passing
  */
 function alfresco_form_validate($form, &$form_state) {
-  dpm("alfresco_form_validate");
+  apm("alfresco_form_validate");
   
   if ($form_state['values']['reference']) {
     $nodeRef = $form_state['values']['reference'];
@@ -100,6 +100,7 @@ function alfresco_form_validate($form, &$form_state) {
       $alf_node = alfresco_service_load_node($nodeRef);
       if (!$alf_node) {
         form_set_error('reference', t('La referencia al nodo de Alfresco no existe.'));
+        // @TODO Añadir opción para eliminar el nodo en Drupal
       }
       else {
         $form_state['alf_node'] = $alf_node;
@@ -112,7 +113,7 @@ function alfresco_form_validate($form, &$form_state) {
  *
  */
 function alfresco_form_submit($form, &$form_state) {
-  dpm("alfresco_form_submit");
+  apm("alfresco_form_submit");
 
   if (isset($form_state['alf_node'])) {
     $alf_node = $form_state['alf_node'];
@@ -143,7 +144,14 @@ function alfresco_form_submit($form, &$form_state) {
       $form_state['values']['cm_content'] = $content;
     }
   }
+  else {
+    // @TODO el nodo de alfresco se ha eliminado
+  }
 }
+
+// -----------------------------------------------------------------------
+// Alfresco database functions 
+// -----------------------------------------------------------------------
 
 /**
  * Implementation of hook_insert().

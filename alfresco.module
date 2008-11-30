@@ -6,7 +6,10 @@
  * Implementación del tipo de contenido Alfresco content.
  */
 
-define('ALFRESCO_DEBUG_MODE', TRUE);
+/**
+ * Default value for alfresco_debug_output variable.
+ */
+define('ALFRESCO_DEBUG_OUTPUT', TRUE);
 
 /**
  * 
@@ -78,6 +81,7 @@ function alfresco_menu() {
   
   $items['admin/settings/alfresco/repository'] = array(
     'title' => 'Repository',
+    'weight' => 1,
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   
@@ -86,7 +90,18 @@ function alfresco_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_admin_display'),
     'access arguments' => array('administer alfresco'),
-    'weight' => 5,
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+    'parent' => 'admin/settings/alfresco',
+    'file' => 'alfresco.admin.inc',
+  );
+
+  $items['admin/settings/alfresco/advanced'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_admin_advanced'),
+    'access arguments' => array('administer alfresco'),
+    'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'parent' => 'admin/settings/alfresco',
     'file' => 'alfresco.admin.inc',
@@ -116,7 +131,7 @@ function alfresco_menu() {
 
 /*
 function alfresco_name_load($arg) {
-  dpm("alfresco_name_load ($arg)");
+  apm("alfresco_name_load ($arg)");
 }
 */
 
@@ -178,7 +193,13 @@ function alfresco_file_download($node) {
 }
 
 function alfresco_sync_node($node) {
-  dpm("alfresco_sync_node");
+  apm("alfresco_sync_node");
+  
+  $form_state = array();
+  $form_state['values']['op'] = t('Save');
+  module_load_include('inc', 'node', 'node.pages');
+  drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+  drupal_goto('node/'. $node->nid);
 }
 
 /**
@@ -304,6 +325,23 @@ function alfresco_bytestostring($size, $precision = 0) {
     return round($size, $precision) .' '. $sizes[$total];
 }
 
-function alfresco_debug() {
-  return (ALFRESCO_DEBUG_MODE && module_exists('devel'));
+
+// ------------------------------------------------------------------
+// Alfresco debug helper functions
+// ------------------------------------------------------------------
+
+/**
+ * Provide debug output for Alfresco.
+ */
+function alfresco_debug($message) {
+  if (module_exists('devel') && variable_get('alfresco_debug_output', ALFRESCO_DEBUG_OUTPUT)) {
+    dpm($message);
+  }
+}
+
+/**
+ * Shortcut to alfresco_debug()
+ */
+function apm($message) {
+  alfresco_debug($message);
 }

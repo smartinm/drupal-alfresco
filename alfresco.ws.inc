@@ -15,9 +15,7 @@
  * @see http://wiki.alfresco.com/wiki/PHP_Tutorial_One_Complete_Script
  */
 function alfresco_service_create_session() {
-  if (alfresco_debug()) {
-    dpm('alfresco_service_create_session');
-  }
+  apm('alfresco_service_create_session');
   
   try {
     _alfresco_service_include_library();
@@ -61,9 +59,7 @@ function alfresco_service_create_session() {
  * @return Node
  */
 function alfresco_service_load_node($reference, $session = NULL) {
-  if (alfresco_debug()) {
-    dpm('alfresco_service_load_node');
-  }
+  apm('alfresco_service_load_node');
   
   if (!$inforef = alfresco_parse_reference($reference)) {
     return FALSE;
@@ -102,19 +98,25 @@ function _alfresco_service_include_library() {
     return;
   }
   
-  if (alfresco_debug()) {
-    dpm('alfresco_service_include_library');
-  }
+  apm('alfresco_service_include_library');
 
-  // Add the Alfresco PHP library directory to include path
-  $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
-  if (is_dir($lib_path)) {
-    set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
-  }
-  
   // Include the required Alfresco PHP API objects  
-  require_once "Alfresco/Service/Repository.php";
-  require_once "Alfresco/Service/Session.php";
+  @include_once "Alfresco/Service/Repository.php";
+  @include_once "Alfresco/Service/Session.php";
+  
+  if (!class_exists('Repository')) {
+    apm('alfresco_service_include_library set_include_path');
+    
+    // Add the Alfresco PHP library directory to include path
+    $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
+    if (is_dir($lib_path)) {
+      set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
+    }
+    
+    // Include the required Alfresco PHP API objects  
+    require_once "Alfresco/Service/Repository.php";
+    require_once "Alfresco/Service/Session.php";
+  }
   
   $included = TRUE;
 }

@@ -197,3 +197,19 @@ function theme_alfresco_properties_table($form) {
   
   return $output;
 }
+
+
+/**
+ * Form builder for the alfresco advanced settings page.
+ */
+function alfresco_admin_advanced(&$form_state) {
+
+  $form['alfresco_debug_output'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable debug output via the Devel module'),
+    '#description' => t("Check this to enable Alfresco debug messages <em>if Devel is installed</em>."),
+    '#default_value' => variable_get('alfresco_debug_output', ALFRESCO_DEBUG_OUTPUT),
+  );
+   
+  return system_settings_form($form); 
+}

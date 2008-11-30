@@ -27,16 +27,45 @@ function alfresco_disable() {
 }
 
 /**
+ * Implementation of hook_requirements().
+ */
+function alfresco_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    // @TODO Comprobar si Alfresco PHP Library está instalado
+    // @TODO Comprobar conexión a repositorio y obtener versión
+    
+    $requirements['alfresco_php_library'] = array(
+      'title' => t('Alfresco PHP Library'),
+      'value' => t('Available (%path)', array('%path' => drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH)),
+      'severity' => REQUIREMENT_OK,
+      'description' => t(''),
+    );
+    
+    $requirements['alfresco_repository'] = array(
+      'title' => t('Alfresco repository'),
+      'value' => t('<a href="@url">Alfresco Labs - v3.0.0 (b 1164)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
+      'severity' => REQUIREMENT_OK,
+      'description' => t(''),
+    );
+  }
+
+  return $requirements;
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function alfresco_uninstall() {
 
   // Eliminamos variables
   $variables = array(
-    'alfresco_repository_url',
     'alfresco_credentials_username',
     'alfresco_credentials_password',
+    'alfresco_debug_output',
     'alfresco_file_downloads',
+    'alfresco_repository_url',
   );
   foreach ($variables as $variable) {
     variable_del($variable);
