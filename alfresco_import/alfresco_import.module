@@ -1,0 +1,18 @@
+<?php
+// $Id$
+ 
+/**
+ * @file
+ * 
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function alfresco_import_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#alfresco_import':
+      return '<p>'. t('Allows importing multiple alfresco nodes from a space of Alfresco.') .'</p>';
+  }
+}

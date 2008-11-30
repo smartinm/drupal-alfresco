@@ -48,15 +48,117 @@ function alfresco_uninstall() {
  */
 function alfresco_schema() {
   
-  $schema['alfresco'] = array(
+  $schema['alfresco_node'] = array(
     'fields' => array(
+      /* Drupal node */
       'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
   
-      // Alfresco Node Reference
+      /* Alfresco Node Reference */
       'reference' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+  
+      /* Alfresco Content Domain Model */
+  
+      // Filename (Object type)
+      'cm_name' => array(
+        'description' => 'cm:name property from cm:cmobject',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      
+      // Title (Titled aspect)
+      'cm_title' => array(
+        'description' => 'cm:title property from cm:titled',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => FALSE,
+        'default'     => '',
+      ),
+      // Description (Titled aspect)
+      'cm_description' => array(
+        'description' => 'cm:description property from cm:titled',
+        'type'        => 'text',
+        'not null'    => FALSE,
+      ),
+      
+      // Author (Author aspect)
+      'cm_author' => array(
+        'description' => 'cm:author property from cm:author',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => FALSE,
+        'default'     => '',
+      ),
+      
+      // Created (Auditable aspect)
+      'cm_created' => array(
+        'description' => 'cm:created property from cm:auditable',
+        'type'        => 'datetime',
+        'not null'    => TRUE,
+      ),
+      // Creator (Auditable aspect)
+      'cm_creator' => array(
+        'description' => 'cm:creator property from cm:auditable',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      // Modified (Auditable aspect)
+      'cm_modified' => array(
+        'description' => 'cm:modified property from cm:auditable',
+        'type'        => 'datetime',
+        'not null'    => TRUE,
+      ),
+      // Modifier (Auditable aspect)
+      'cm_modifier' => array(
+        'description' => 'cm:modifier property from cm:auditable',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
     ),
     'primary key' => array('vid'),
+  );
+
+  // ContentData
+  $schema['alfresco_content'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'url' => array(
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'mimetype' => array(
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'size' => array(
+        'type'        => 'int',
+        'unsigned'    => TRUE, 
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'encoding' => array(
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+    ),
+    'primary key' => array('nid'),
   );
   
   return $schema;

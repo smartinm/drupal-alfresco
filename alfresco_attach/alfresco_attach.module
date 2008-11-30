@@ -1,0 +1,18 @@
+<?php
+// $Id$
+ 
+/**
+ * @file
+ * 
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function alfresco_attach_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#alfresco_attach':
+      return '<p>'. t('Allows users to upload and attach Alfresco files to content.') .'</p>';
+  }
+}

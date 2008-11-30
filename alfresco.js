@@ -4,10 +4,10 @@ if (Drupal.jsEnabled) {
   $(document).ready(function() {
     $('input#edit-use-title').click(function() {
       if (this.checked) {
-        $('#edit-title').attr("disabled", true);
+        $('#edit-title').attr('readonly', 'readonly');
       }
       else {
-        $('#edit-title').removeAttr("disabled");
+        $('#edit-title').removeAttr('readonly');
       }
     });
   });
