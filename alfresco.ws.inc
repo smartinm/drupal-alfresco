@@ -15,7 +15,7 @@
  * @see http://wiki.alfresco.com/wiki/PHP_Tutorial_One_Complete_Script
  */
 function alfresco_service_create_session() {
-  apm('alfresco_service_create_session');
+  apm('[alfresco_service] Connecting to repository.');
   
   try {
     _alfresco_service_include_library();
@@ -59,7 +59,7 @@ function alfresco_service_create_session() {
  * @return Node
  */
 function alfresco_service_load_node($reference, $session = NULL) {
-  apm('alfresco_service_load_node');
+  apm('[alfresco_service] Loading node from repository.');
   
   if (!$inforef = alfresco_parse_reference($reference)) {
     return FALSE;
@@ -71,7 +71,9 @@ function alfresco_service_load_node($reference, $session = NULL) {
   
   try {
     $store = $session->getStore($inforef['address'], $inforef['scheme']);
-    $nodes = $session->query($store, 'ID:"'. $reference .'"');
+    
+    // @see https://issues.alfresco.com/jira/browse/AR-1063
+    $nodes = $session->query($store, '+ISNODE:T +ID:"'. $reference .'"');
     
     if ($count = count($nodes)) {
       if ($count > 1) {
@@ -103,7 +105,6 @@ function _alfresco_service_include_library() {
   @include_once "Alfresco/Service/Session.php";
   
   if (!class_exists('Repository')) {
-    
     // Add the Alfresco PHP library directory to include path
     $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
     if (is_dir($lib_path)) {

@@ -26,6 +26,12 @@ define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);
 define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);
 
+/**
+ * Maximum age of temporary files in seconds.
+ */
+define('ALFRESCO_CRON_TEMP_SYNC', 21600);
+
+
 // Include required files
 if (function_exists('drupal_get_path')) {
   $path = drupal_get_path('module', 'alfresco');
@@ -233,6 +239,31 @@ function alfresco_name_to_arg($arg) {
     }
   }
   return $arg;
+}
+
+// ------------------------------------------------------------------
+// Alfresco cron hooks
+// ------------------------------------------------------------------
+
+/**
+ * Implementation of hook_cron().
+ * 
+ * @see ALFRESCO_SYNC_TIME
+ * @see ALFRESCO_SYNC_LIMIT
+ */
+function alfresco_cron() {
+
+  // @todo Sincronización de nodos
+   
+  $result = db_query('SELECT nid FROM {alfresco_node} /*WHERE timestamp < %d*/', time() - ALFRESCO_CRON_TEMP_SYNC);
+  while ($node = db_fetch_object($result)) {
+    
+    $node = node_load($node->nid);
+    $form_state = array();
+    $form_state['values']['op'] = t('Save');
+    module_load_include('inc', 'node', 'node.pages');
+    drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+  }
 }
 
 // ------------------------------------------------------------------

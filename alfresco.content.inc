@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Alfresco Node API hooks.
+ * Alfresco node content type implementation.
  * 
  * - Alfresco edit page node functions
  * - Alfresco validate node functions
@@ -84,10 +84,9 @@ function alfresco_form(&$node, $form_state) {
  */
 function alfresco_validate($node, &$form) {
   
-  // Validate uri.
   if (!empty($node->reference)) {
     if ($nid = db_result(db_query("SELECT nid FROM {alfresco_node} WHERE reference = '%s' AND nid <> %d", $node->reference, $node->nid))) {
-      form_set_error('reference', t('Ya existe otro contenido referenciando este nodo de Alfresco (<a href="!url">ir al contenido</a>)', array('!url' => url('node/'. $nid))));
+      form_set_error('reference', t('The <a href="!url">Alfresco node</a> already exists.', array('!url' => url('node/'. $nid))));
     }
   }
 }
@@ -112,7 +111,7 @@ function alfresco_form_validate($form, &$form_state) {
         $form_state['alf_node'] = $alf_node;
       }
       else {
-        // @todo Mejorar el control de nodos borrados en Alfresco (sincronización).
+        // @todo mejorar el control de nodos borrados en Alfresco (sincronización).
         // @todo Report watchdog
         
         $nid = $form_state['values']['nid'];
@@ -289,7 +288,10 @@ function alfresco_load($node) {
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   
   $node = node_prepare($node, $teaser);
-
+  
+  $node->teaser = TRUE;
+  $node->readmore = TRUE;
+  
   $model = array(
     'name'        => t('Name'),
     'title'       => t('Title'),
@@ -347,7 +349,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   );
   
   if (!$teaser && user_access('administer alfresco')) {
-    
     // Obtenemos el nodo directamente de Alfresco.
     $alf_node = alfresco_service_load_node($node->reference);
     if (!$alf_node) {
@@ -365,7 +366,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     $details = array();
     foreach ($alf_node->getAspects() as $key => $value) {
       if(is_string($value) || is_null($value)) {
-        $value = is_null($value) ? t('n/a') : $value;
         $details[] = array($value);
       }
     }
@@ -375,7 +375,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     $details = array();
     foreach ($alf_node->getProperties() as $key => $value) {
       if(is_string($value) || is_null($value)) {
-        $value = is_null($value) ? t('n/a') : $value;
         $details[] = array($key, $value);
       }
     }
@@ -385,7 +384,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     $details = array();
     foreach ($alf_node->getVersionHistory() as $key => $value) {
       if(is_string($value) || is_null($value)) {
-        $value = is_null($value) ? t('n/a') : $value;
         $details[] = array($key, $value);
       }
     }
@@ -395,7 +393,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     $details = array();
     foreach ($alf_node->getAssociations() as $key => $value) {
       if(is_string($value) || is_null($value)) {
-        $value = is_null($value) ? t('n/a') : $value;
         $details[] = array($key, $value);
       }
     }
@@ -409,7 +406,7 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   /*  
   apm($alf_node->getChildren());
   apm($alf_node->getParents());
-  apm($alf_node->getPrimaryParent());^
+  apm($alf_node->getPrimaryParent());
   */
   return $node;
 }
