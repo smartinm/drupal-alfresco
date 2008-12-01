@@ -2,6 +2,10 @@
 
 -- SUMMARY --
 
+-- FEATURES --
+
+ * Provides a new "alfresco_item" node content type for Drupal sites.
+ * Direct and private download Alfresco files method.
 
 -- REQUIREMENTS --
 

@@ -3,8 +3,19 @@
 
 /**
  * @file
- * Implementación de las operaciones CRUD sobre el tipo de contenido.
+ * Alfresco Node API hooks.
+ * 
+ * - Alfresco edit page node functions
+ * - Alfresco validate node functions
+ * - Alfresco submit node functions
+ * - Alfresco database functions
+ * - Alfresco view functions
+ * - Alfresco external API
  */
+
+// ------------------------------------------------------------------
+// Alfresco edit page node functions
+// ------------------------------------------------------------------
 
 /**
  * Implementation of hook_form().
@@ -46,7 +57,6 @@ function alfresco_form(&$node, $form_state) {
       '#required' => FALSE,
       '#default_value' => $node->title,
       '#weight' => -5,
-      //'#disabled' => TRUE,
       '#attributes' => array('readonly' => 'readonly'),
     );
   }
@@ -65,11 +75,14 @@ function alfresco_form(&$node, $form_state) {
   return $form;
 }
 
+// ------------------------------------------------------------------
+// Alfresco validate node functions
+// ------------------------------------------------------------------
+
 /**
  * Implementation of hook_validate().
  */
 function alfresco_validate($node, &$form) {
-  apm("alfresco_validate");
   
   // Validate uri.
   if (!empty($node->reference)) {
@@ -80,15 +93,12 @@ function alfresco_validate($node, &$form) {
 }
 
 /**
- * Implementation of hook_validate().
- * 
  * Valida que la referencia al nodo de alfresco es correcta, comprueba que el nodo existe y obtiene el título. 
  * 
  * @see alfresco_form_submit
  * @see http://drupal.org/node/144132#passing
  */
 function alfresco_form_validate($form, &$form_state) {
-  apm("alfresco_form_validate");
   
   if ($form_state['values']['reference']) {
     $nodeRef = $form_state['values']['reference'];
@@ -109,11 +119,14 @@ function alfresco_form_validate($form, &$form_state) {
   }
 }
 
+// ------------------------------------------------------------------
+// Alfresco submit node functions
+// ------------------------------------------------------------------
+
 /**
  *
  */
 function alfresco_form_submit($form, &$form_state) {
-  apm("alfresco_form_submit");
 
   if (isset($form_state['alf_node'])) {
     $alf_node = $form_state['alf_node'];
@@ -136,7 +149,7 @@ function alfresco_form_submit($form, &$form_state) {
       $data = $alf_node->cm_content;
 
       $content = array();
-      $content['url']      = $data->url;
+      $content['url']      = $data->guestUrl;
       $content['mimetype'] = $data->mimetype;
       $content['size']     = $data->size;
       $content['encoding'] = $data->encoding;
@@ -250,6 +263,10 @@ function alfresco_load($node) {
   return $alfresco_node;
 }
 
+// -----------------------------------------------------------------------
+// Alfresco view functions 
+// -----------------------------------------------------------------------
+
 /**
  * Implementation of hook_view().
  *
@@ -282,14 +299,14 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     if (isset($node->$property)) {
       $value = empty($node->$property) ? t('n/a') : $node->$property;
       
-      if ($key == 'name' && isset($node->cm_content)) {
-        $url = $node->cm_content['url'];
+      if ($key == 'name' && isset($node->cm_content) && user_access('download alfresco content')) {
+        $url = alfresco_url_download($node);
         $properties[] = array($name, l($value, $url, array('attributes' => array('title' => t('Download file')))));
       }
       elseif ($key == 'content') {
         $content = $node->cm_content;
         $properties[] = array($mapping['content']['mimetype'], $content['mimetype']);
-        $properties[] = array($mapping['content']['size'], alfresco_bytestostring($content['size'], 2));
+        $properties[] = array($mapping['content']['size'], alfresco_size_to_string($content['size'], 2));
         $properties[] = array($mapping['content']['encoding'], $content['encoding']);
       }
       elseif ($key == 'created' || $key == 'modified') {
@@ -377,7 +394,7 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     $file_properties = array(
       'mimetype'  => $contentData->getMimetype(),
       'encoding'  => $contentData->getEncoding(),
-      'size'      => is_numeric($size) ? alfresco_bytestostring($size, 2) : $size,
+      'size'      => is_numeric($size) ? alfresco_size_to_string($size, 2) : $size,
       //'url'       => $url,
       //'guest-url' => $contentData->getGuestUrl(),
     );
@@ -419,7 +436,9 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   return $node;
 }
 
-
+// ------------------------------------------------------------------
+// Alfresco external API
+// ------------------------------------------------------------------
 
 /**
  * Function to other modules to use to create image nodes.
@@ -456,8 +475,8 @@ function alfresco_create_node_from($reference, $title = NULL, $body = '', $taxon
 
   // Create a new alfresco_item node
   $node = array(
-    'type' => 'alfresco_item',
-    'name' => $user->name,
+    'type'     => 'alfresco_item',
+    'name'     => $user->name,
     'taxonomy' => $taxonomy,
   );
   
@@ -471,4 +490,6 @@ function alfresco_create_node_from($reference, $title = NULL, $body = '', $taxon
   $form_state['values']['op'] = t('Save');
   
   drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+  
+  return $node;
 }
