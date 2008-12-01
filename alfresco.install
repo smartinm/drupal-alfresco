@@ -6,6 +6,9 @@
  * Install and configure Alfresco module.
  */
 
+// Relative path to Alfresco PHP Library
+define('ALFRESCO_PHP_LIBRARY_PATH_INSTALL', 'alfresco-php-library');
+
 /**
  * Implementation of hook_install().
  */
@@ -17,7 +20,6 @@ function alfresco_install() {
  * Implementation of hook_enable().
  */
 function alfresco_enable() {
-  
 }
 
 /**
@@ -31,23 +33,34 @@ function alfresco_disable() {
  */
 function alfresco_requirements($phase) {
   $requirements = array();
+  $t = get_t();
 
   if ($phase == 'runtime') {
-    // @TODO Comprobar si Alfresco PHP Library está instalado
-    // @TODO Comprobar conexión a repositorio y obtener versión
-    
+    // Check Alfresco PHP Library
+    $result = _alfresco_check_php_library();
     $requirements['alfresco_php_library'] = array(
-      'title' => t('Alfresco PHP Library'),
-      'value' => t('Available (%path)', array('%path' => drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH)),
-      'severity' => REQUIREMENT_OK,
-      'description' => t(''),
+      'title'       => $t('Alfresco PHP Library'),
+      'value'       => $result['value'],
+      'severity'    => $result['severity'],
+      'description' => isset($result['description']) ? $result['description'] : NULL,
     );
     
+    // Check connection Alfresco Repository
+    $result = _alfresco_check_connection_repository();
     $requirements['alfresco_repository'] = array(
-      'title' => t('Alfresco repository'),
-      'value' => t('<a href="@url">Alfresco Labs - v3.0.0 (b 1164)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
-      'severity' => REQUIREMENT_OK,
-      'description' => t(''),
+      'title'    => $t('Alfresco repository'),
+      'value'       => $result['value'],
+      'severity'    => $result['severity'],
+      'description' => isset($result['description']) ? $result['description'] : NULL,
+    );
+  }
+  elseif ($phase == 'install') {
+    // Check Alfresco PHP Library
+    $result = _alfresco_check_php_library();
+    $requirements['alfresco_php_library'] = array(
+      'title'       => $t('Alfresco PHP Library'),
+      'severity'    => $result['severity'],
+      'description' => isset($result['description']) ? $result['description'] : NULL,
     );
   }
 
@@ -208,4 +221,53 @@ function alfresco_schema() {
   );
   
   return $schema;
+}
+
+function _alfresco_check_php_library() {
+  $t = get_t();
+  
+  @include_once "Alfresco/Service/Repository.php";
+  if (class_exists('Repository')) {
+    return array(
+      'value'    => $t('Available via the system\'s include_path'),
+      'severity' => REQUIREMENT_OK,
+    );
+  }
+  
+  // Add the Alfresco PHP library directory to include path
+  $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH_INSTALL;
+  if (!is_dir($lib_path)) {
+    return array(
+      'value'       => $t('No such Alfresco PHP Library on module'),
+      'description' => $t('Download and copy Alfresco PHP Library on %path.', array('%path' => $lib_path)),
+      'severity'    => REQUIREMENT_ERROR,
+    );
+  }
+  
+  set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
+  
+  @include_once "Alfresco/Service/Repository.php";
+  if (class_exists('Repository')) {
+    return array(
+      'value'    => $t('Available via module (%path).', array('%path' => $lib_path)),
+      'severity' => REQUIREMENT_OK,
+    );
+  }
+
+  return array(
+    'value'       => $t('No available'),
+    'description' => $t('Error adding Alfresco PHP Library on include_path.'),
+    'severity'    => REQUIREMENT_ERROR,
+  );
+}
+
+function _alfresco_check_connection_repository() {
+  // @todo  Implementar esta función
+  $t = get_t();
+    
+  return array(
+    'value' => $t('<a href="@url">Alfresco Labs - v3.0.0 (b 1164)</a>',
+      array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
+    'severity' => REQUIREMENT_OK,
+  );
 }

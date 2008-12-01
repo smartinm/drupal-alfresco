@@ -1,6 +1,6 @@
 ; $Id$
 name = "Alfresco"
-description = "Alfresco and Drupal integration."
+description = "Alfresco and Drupal integration, this module define a new alfresco node content type."
 package = "Alfresco" 
 core = "6.x"
 php = "5.2"

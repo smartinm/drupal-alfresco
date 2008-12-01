@@ -101,19 +101,32 @@ function alfresco_validate($node, &$form) {
 function alfresco_form_validate($form, &$form_state) {
   
   if ($form_state['values']['reference']) {
-    $nodeRef = $form_state['values']['reference'];
+    $reference = $form_state['values']['reference'];
     
-    if (!alfresco_valid_reference($nodeRef)) {
-      form_set_error('reference', t('La referencia al nodo de Alfresco no tiene el formato correcto.'));
+    if (!alfresco_valid_reference($reference)) {
+      form_set_error('reference', t('Alfresco Node Reference is in an invalid format.'));
     }
     else {
-      $alf_node = alfresco_service_load_node($nodeRef);
-      if (!$alf_node) {
-        form_set_error('reference', t('La referencia al nodo de Alfresco no existe.'));
-        // @TODO Añadir opción para eliminar el nodo en Drupal
+      $alf_node = alfresco_service_load_node($reference);
+      if ($alf_node) {
+        $form_state['alf_node'] = $alf_node;
       }
       else {
-        $form_state['alf_node'] = $alf_node;
+        // @todo Mejorar el control de nodos borrados en Alfresco (sincronización).
+        // @todo Report watchdog
+        
+        $nid = $form_state['values']['nid'];
+        if ($nid) {
+          $url_edit   = url('node/'. $nid .'/edit', array('fragment' => 'edit-reference-wrapper'));
+          $url_delete = url('node/'. $nid .'/delete');
+          
+          form_set_error('reference',
+            t('No such node in Alfresco repository. <a href="@url_edit">Edit Alfresco node reference</a> or <a href="@url_delete">delete this node</a>.',
+              array('@url_edit' => $url_edit, '@url_delete' => $url_delete)));
+        }
+        else {
+          form_set_error('reference', t('No such node in Alfresco repository.'));
+        }
       }
     }
   }
@@ -157,9 +170,6 @@ function alfresco_form_submit($form, &$form_state) {
       $form_state['values']['cm_content'] = $content;
     }
   }
-  else {
-    // @TODO el nodo de alfresco se ha eliminado
-  }
 }
 
 // -----------------------------------------------------------------------
@@ -202,6 +212,9 @@ function alfresco_save($node) {
     if (!db_affected_rows()) {
       drupal_write_record('alfresco_content', $content);
     }
+  }
+  else {
+    db_query('DELETE FROM {alfresco_content} WHERE vid = %d', $node->vid);
   }
 }
 
@@ -277,7 +290,7 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   
   $node = node_prepare($node, $teaser);
 
-  $mapping = array(
+  $model = array(
     'name'        => t('Name'),
     'title'       => t('Title'),
     'description' => t('Description'),
@@ -293,8 +306,15 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     'modified'    => t('Modified date'),
   );
   
+  /*
+    'node-uuid'        => t('Node UUID'),
+    'node-dbid'        => t('Node DBID'),
+    'store-protocol'   => t('Store protocol'),
+    'store-identifier' => t('Store identifier'),
+   */
+  
   $properties = array();
-  foreach ($mapping as $key => $name) {
+  foreach ($model as $key => $name) {
     $property = 'cm_'. $key;
     if (isset($node->$property)) {
       $value = empty($node->$property) ? t('n/a') : $node->$property;
@@ -305,9 +325,9 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
       }
       elseif ($key == 'content') {
         $content = $node->cm_content;
-        $properties[] = array($mapping['content']['mimetype'], $content['mimetype']);
-        $properties[] = array($mapping['content']['size'], alfresco_size_to_string($content['size'], 2));
-        $properties[] = array($mapping['content']['encoding'], $content['encoding']);
+        $properties[] = array($model['content']['mimetype'], $content['mimetype']);
+        $properties[] = array($model['content']['size'], alfresco_size_to_string($content['size'], 2));
+        $properties[] = array($model['content']['encoding'], $content['encoding']);
       }
       elseif ($key == 'created' || $key == 'modified') {
         $properties[] = array($name, format_date(strtotime($value), 'large'));
@@ -325,114 +345,72 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     '#value' => $table_properties,
     '#weight' => 1,
   );
-  return $node;
   
+  if (!$teaser && user_access('administer alfresco')) {
+    
+    // Obtenemos el nodo directamente de Alfresco.
+    $alf_node = alfresco_service_load_node($node->reference);
+    if (!$alf_node) {
+      return $node;
+    }
+    
+    $output = '';
+    
+    // Type
+    $details = array();
+    $details[] = array($alf_node->getType());
+    $output .= theme('table', array(t('Type')), $details);
   
-  
-  // Obtenemos el nodo de Alfresco a partir de su referencia.
-  $alf_node = alfresco_service_load_node($node->reference);
-  if (!$alf_node) {
-    return $node;
-  }
+    // Aspects
+    $details = array();
+    foreach ($alf_node->getAspects() as $key => $value) {
+      if(is_string($value) || is_null($value)) {
+        $value = is_null($value) ? t('n/a') : $value;
+        $details[] = array($value);
+      }
+    }
+    $output .= theme('table', array(t('Aspects')), $details);
+    
+    // Properties
+    $details = array();
+    foreach ($alf_node->getProperties() as $key => $value) {
+      if(is_string($value) || is_null($value)) {
+        $value = is_null($value) ? t('n/a') : $value;
+        $details[] = array($key, $value);
+      }
+    }
+    $output .= theme('table', array(t('Properties'), t('Value')), $details);
 
-  /* 
-  dpm($alf_node->getType());
-  dpm($alf_node->getAspects());
-  dpm($alf_node->getProperties());
-  dpm($alf_node->getVersionHistory());
-  dpm($alf_node->getAssociations());
-  */
-  
-  //
-  // Alfresco node properties
-  //
-  $model_content = '{http://www.alfresco.org/model/content/1.0}';
-  $mapping = array(
-    'name'        => t('Name'),
-    'title'       => t('Title'),
-    'description' => t('Description'),
-    'author'      => t('Author'),
-    'creator'     => t('Creator'),
-    'created'     => t('Created date'),
-    'modifier'    => t('Modifier'),
-    'modified'    => t('Modified date'),
-  
-    'node-uuid'        => t('Node UUID'),
-    'node-dbid'        => t('Node DBID'),
-    'store-protocol'   => t('Store protocol'),
-    'store-identifier' => t('Store identifier'),
-  
-    'content'     => t('Content data'),
-  
-    'mimetype'  => t('Mimetype'),
-    'encoding'  => t('Encoding'),
-    'size'      => t('Size'),
-    'url'       => t('URL'),
-    'guest-url' => t('Guest URL'),
-  );
-  
-  
-  $contentData = $alf_node->cm_content;
-  if (!is_null($contentData)) {
+    // VersionHistory
+    $details = array();
+    foreach ($alf_node->getVersionHistory() as $key => $value) {
+      if(is_string($value) || is_null($value)) {
+        $value = is_null($value) ? t('n/a') : $value;
+        $details[] = array($key, $value);
+      }
+    }
+    $output .= theme('table', NULL, $details);
+
+    // Associations
+    $details = array();
+    foreach ($alf_node->getAssociations() as $key => $value) {
+      if(is_string($value) || is_null($value)) {
+        $value = is_null($value) ? t('n/a') : $value;
+        $details[] = array($key, $value);
+      }
+    }
+    $output .= theme('table', NULL, $details);
     
-    /*
-    dpm($contentData->getNode(), 'getNode');
-    dpm($contentData->getProperty(), 'getProperty');
-    dpm($contentData->getIsDirty(), 'getIsDirty');
-    dpm($contentData->getMimetype(), 'getMimetype');
-    dpm($contentData->getSize(), 'getSize');
-    dpm($contentData->getEncoding(), 'getEncoding');
-    dpm($contentData->getUrl(), 'getUrl');
-    dpm($contentData->getGuestUrl(), 'getGuestUrl');
-    dpm($contentData->getContent(), 'getContent');
-    */
-    
-    
-    $size = $contentData->getSize();
-    $url  = $contentData->getUrl();
-    
-    $file_properties = array(
-      'mimetype'  => $contentData->getMimetype(),
-      'encoding'  => $contentData->getEncoding(),
-      'size'      => is_numeric($size) ? alfresco_size_to_string($size, 2) : $size,
-      //'url'       => $url,
-      //'guest-url' => $contentData->getGuestUrl(),
+    $node->content['alfresco_details'] = array(
+      '#value'  => $output,
+      '#weight' => 2,
     );
   }
-  
-  $properties = array();
-  foreach ($alf_node->getProperties() as $key => $value) {
-    if(is_string($value) || is_null($value)) {
-      $key = str_replace($model_content, '', $key);
-      if (isset($mapping[$key])) {
-        $value = is_null($value) ? t('n/a') : $value;
-        $properties[] = array($mapping[$key], $value);  
-      } 
-      else {
-        $properties[] = array($key, $value);
-      }
-    }
-  }
-  
-  if (count($file_properties)) {
-    foreach ($file_properties as $key => $value) {
-      if(is_string($value) || is_null($value)) {
-        if (isset($mapping[$key])) {
-          $value = is_null($value) ? t('n/a') : $value;
-          $properties[] = array($mapping[$key], $value);  
-        }
-      }
-    }
-  }
-
-  $header = array(t('Property'), t('Value'));
-  $table_properties = theme('table', $header, $properties, NULL); 
-  
-  $node->content['alfresco_properties'] = array(
-    '#value' => $table_properties,
-    '#weight' => 1,
-  );
-  
+  /*  
+  apm($alf_node->getChildren());
+  apm($alf_node->getParents());
+  apm($alf_node->getPrimaryParent());^
+  */
   return $node;
 }
 

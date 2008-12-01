@@ -14,11 +14,11 @@
  * - Alfresco debug helper functions
  */
 
+// Relative path to Alfresco PHP Library
+define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-library');
+
 // Default value for alfresco_debug_output variable.
 define('ALFRESCO_DEBUG_OUTPUT', TRUE);
-
-// Alfresco PHP Library relative path
-define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-library');
 
 // Alfresco file downloads methods.
 // @see http://wiki.alfresco.com/wiki/URL_Addressability
@@ -29,10 +29,8 @@ define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);
 // Include required files
 if (function_exists('drupal_get_path')) {
   $path = drupal_get_path('module', 'alfresco');
-  if (file_exists($path .'/alfresco.inc')) {
-    require_once $path .'/alfresco.inc';
-    require_once $path .'/alfresco.ws.inc';
-  }
+  require_once $path .'/alfresco.content.inc';
+  require_once $path .'/alfresco.ws.inc';
 }
 
 // ------------------------------------------------------------------
@@ -53,6 +51,26 @@ function alfresco_help($path, $arg) {
 // ------------------------------------------------------------------
 // Alfresco node and permissions hooks
 // ------------------------------------------------------------------
+
+/**
+ * Implementation of hook_node_info().
+ * 
+ * Provides a new "alfresco_item" node content type.
+ */
+function alfresco_node_info() {
+
+  return array(
+    'alfresco_item' => array(
+      'name'        => t('Alfresco item'),
+      'module'      => 'alfresco',
+      'description' => t('An <em>alfresco item</em> is a reference to node stored in Alfresco repository. Alfresco node can be content items o spaces.'),
+      'has_title'   => TRUE,
+      'title_label' => t('Title'),
+      'has_body'    => TRUE,
+      'body_label'  => t('Body'),
+    )
+  );
+}
 
 /**
  * Implementation of hook_perm().
@@ -97,26 +115,6 @@ function alfresco_access($op, $node, $account) {
       return TRUE;
     }
   }
-}
-
-/**
- * Implementation of hook_node_info().
- * 
- * Provides a new "alfresco_item" node content type.
- */
-function alfresco_node_info() {
-
-  return array(
-    'alfresco_item' => array(
-      'name'        => t('Alfresco item'),
-      'module'      => 'alfresco',
-      'description' => t('An <em>alfresco item</em> is a reference to node stored in Alfresco repository. Alfresco node can be content items o spaces.'),
-      'has_title'   => TRUE,
-      'title_label' => t('Title'),
-      'has_body'    => TRUE,
-      'body_label'  => t('Body'),
-    )
-  );
 }
 
 // ------------------------------------------------------------------
@@ -279,6 +277,10 @@ function alfresco_url_download($node) {
 function alfresco_file_transfer($node) {
   
   $alf_node = alfresco_service_load_node($node->reference);
+  if (!$alf_node) {
+    drupal_not_found();
+    exit();
+  }
   $alf_data = $alf_node->cm_content;
   
   if (!$alf_data) {
@@ -373,19 +375,20 @@ function alfresco_parse_reference($reference, $component = '') {
  * @see http://php.net/manual/es/function.filesize.php#84652
  */
 function alfresco_size_to_string($size, $precision = 0) {
-    $sizes = array('YB', 'ZB', 'EB', 'PB', 'TB', 'GB', 'MB', 'KB', 'B');
-    $total = count($sizes);
-    
-    // Si el tamaño es inferior a 1024 B y superior a 1024/10 B se muestra como 0.xx KB
-    if ($size < 1024 && $size > 1024 / 10) {
-      return round($size / 1024, $precision) .' KB';
-    }
-    
-    while($total-- && $size > 1024) {
-      $size /= 1024;
-    }
-    
-    return round($size, $precision) .' '. $sizes[$total];
+  $sizes = array('YB', 'ZB', 'EB', 'PB', 'TB', 'GB', 'MB', 'KB', 'B');
+  $total = count($sizes);
+  
+  // Si el tamaño es inferior a 1024 B y superior a 1024/10 B
+  // se muestra como 0.xx KB en vez de en Bytes.
+  if ($size < 1024 && $size > 1024 / 10) {
+    return round($size / 1024, $precision) .' KB';
+  }
+  
+  while($total-- && $size > 1024) {
+    $size /= 1024;
+  }
+  
+  return round($size, $precision) .' '. $sizes[$total];
 }
 
 // ------------------------------------------------------------------

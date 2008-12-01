@@ -98,14 +98,11 @@ function _alfresco_service_include_library() {
     return;
   }
   
-  apm('alfresco_service_include_library');
-
   // Include the required Alfresco PHP API objects  
   @include_once "Alfresco/Service/Repository.php";
   @include_once "Alfresco/Service/Session.php";
   
   if (!class_exists('Repository')) {
-    apm('alfresco_service_include_library set_include_path');
     
     // Add the Alfresco PHP library directory to include path
     $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
@@ -114,8 +111,8 @@ function _alfresco_service_include_library() {
     }
     
     // Include the required Alfresco PHP API objects  
-    require_once "Alfresco/Service/Repository.php";
-    require_once "Alfresco/Service/Session.php";
+    @include_once "Alfresco/Service/Repository.php";
+    @include_once "Alfresco/Service/Session.php";
   }
   
   $included = TRUE;

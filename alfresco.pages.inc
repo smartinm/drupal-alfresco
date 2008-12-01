@@ -40,6 +40,7 @@ function alfresco_node_download($node) {
   }
   
   drupal_not_found();
+  exit();
 }
 
 // ------------------------------------------------------------------
