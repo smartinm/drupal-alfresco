@@ -22,14 +22,19 @@ define('ALFRESCO_DEBUG_OUTPUT', TRUE);
 
 // Alfresco file downloads methods.
 // @see http://wiki.alfresco.com/wiki/URL_Addressability
-define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);
-define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);
-define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);
+define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);  // Private transfer
+define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
+define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
 /**
- * Maximum age of temporary files in seconds.
+ * 
  */
-define('ALFRESCO_CRON_TEMP_SYNC', 21600);
+define('ALFRESCO_SYNC_TIME', 21600);
+
+/**
+ * 
+ */
+define('ALFRESCO_SYNC_LIMIT', 10);
 
 
 // Include required files
@@ -170,22 +175,33 @@ function alfresco_menu() {
   
   $items['node/%alfresco_node/download/%alfresco_name'] = array(
     'title' => 'Download',
-    'page callback' => 'alfresco_node_download',
+    'page callback' => 'alfresco_page_download',
     'page arguments' => array(1),
     'access callback' => '_alfresco_download_access',
     'access arguments' => array(1),
-    'weight' => 4,   
+    'weight' => 5,   
     'type' => MENU_LOCAL_TASK,
     'file' => 'alfresco.pages.inc',
   );
 
   $items['node/%alfresco_node/sync'] = array(
     'title' => 'Synchronize',
-    'page callback' => 'alfresco_node_sync',
+    'page callback' => 'alfresco_page_sync',
     'page arguments' => array(1),
-    'access callback' => '_alfresco_sync_access',
+    'access callback' => '_alfresco_administer_access',
     'access arguments' => array(1),
-    'weight' => 5,   
+    'weight' => 6,   
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'alfresco.pages.inc',
+  );
+
+  $items['node/%alfresco_node/details'] = array(
+    'title' => 'Details',
+    'page callback' => 'alfresco_page_details',
+    'page arguments' => array(1),
+    'access callback' => '_alfresco_administer_access',
+    'access arguments' => array(1),
+    'weight' => 7,   
     'type' => MENU_LOCAL_TASK,
     'file' => 'alfresco.pages.inc',
   );
@@ -197,7 +213,7 @@ function _alfresco_download_access($node) {
   return user_access('download alfresco content') && ($node->type == 'alfresco_item' && !empty($node->cm_content));
 }
 
-function _alfresco_sync_access($node) {
+function _alfresco_administer_access($node) {
   return user_access('administer alfresco') && ($node->type == 'alfresco_item');
 }
 
@@ -212,6 +228,7 @@ function alfresco_node_load($arg) {
     return FALSE;
   }
   $node = node_load($arg);
+
   if (!$node || $node->type != 'alfresco_item') {
     return FALSE;
   }
@@ -253,16 +270,11 @@ function alfresco_name_to_arg($arg) {
  */
 function alfresco_cron() {
 
-  // @todo Sincronización de nodos
-   
-  $result = db_query('SELECT nid FROM {alfresco_node} /*WHERE timestamp < %d*/', time() - ALFRESCO_CRON_TEMP_SYNC);
+  // Sincronización de nodos de Alfresco
+  $result = db_query_range('SELECT nid FROM {alfresco_node} WHERE timestamp < %d ORDER BY timestamp DESC', time() - ALFRESCO_SYNC_TIME, 0, ALFRESCO_SYNC_LIMIT);
+  
   while ($node = db_fetch_object($result)) {
-    
-    $node = node_load($node->nid);
-    $form_state = array();
-    $form_state['values']['op'] = t('Save');
-    module_load_include('inc', 'node', 'node.pages');
-    drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+    alfresco_sync_node($node);
   }
 }
 

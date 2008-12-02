@@ -103,15 +103,31 @@ function alfresco_schema() {
   
   $schema['alfresco_node'] = array(
     'fields' => array(
-      /* Drupal node */
+
+      /* Drupal node identifications */
       'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
   
-      /* Alfresco Node Reference */
-      'reference' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''),
+      /* The Alfresco node reference */
+      'reference' => array(
+        'type'     => 'varchar',
+        'length'   => 255,
+        'not null' => TRUE,
+        'default'  => ''
+      ),
+
+      /* The most recent time the {alfresco_node} has been saved/synchronized */
+      'timestamp' => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0
+      ),
   
-      /* Alfresco Content Domain Model */
-  
+      /*********************************
+       * Alfresco Content Domain Model *
+       *********************************/
+
       // Filename (Object type)
       'cm_name' => array(
         'description' => 'cm:name property from cm:cmobject',

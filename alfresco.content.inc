@@ -80,18 +80,6 @@ function alfresco_form(&$node, $form_state) {
 // ------------------------------------------------------------------
 
 /**
- * Implementation of hook_validate().
- */
-function alfresco_validate($node, &$form) {
-  
-  if (!empty($node->reference)) {
-    if ($nid = db_result(db_query("SELECT nid FROM {alfresco_node} WHERE reference = '%s' AND nid <> %d", $node->reference, $node->nid))) {
-      form_set_error('reference', t('The <a href="!url">Alfresco node</a> already exists.', array('!url' => url('node/'. $nid))));
-    }
-  }
-}
-
-/**
  * Valida que la referencia al nodo de alfresco es correcta, comprueba que el nodo existe y obtiene el título. 
  * 
  * @see alfresco_form_submit
@@ -106,27 +94,42 @@ function alfresco_form_validate($form, &$form_state) {
       form_set_error('reference', t('Alfresco Node Reference is in an invalid format.'));
     }
     else {
+      // Check node in Alfresco repository.
       $alf_node = alfresco_service_load_node($reference);
       if ($alf_node) {
         $form_state['alf_node'] = $alf_node;
       }
       else {
-        // @todo mejorar el control de nodos borrados en Alfresco (sincronización).
-        // @todo Report watchdog
-        
+        // No such node in Alfresco repository.
         $nid = $form_state['values']['nid'];
         if ($nid) {
+          // Node edit
           $url_edit   = url('node/'. $nid .'/edit', array('fragment' => 'edit-reference-wrapper'));
           $url_delete = url('node/'. $nid .'/delete');
           
           form_set_error('reference',
             t('No such node in Alfresco repository. <a href="@url_edit">Edit Alfresco node reference</a> or <a href="@url_delete">delete this node</a>.',
               array('@url_edit' => $url_edit, '@url_delete' => $url_delete)));
+          
+          watchdog('alfresco', 'No such node in Alfresco repository.', NULL, WATCHDOG_NOTICE, l('view', 'node/'. $nid));
         }
         else {
+          // Node new
           form_set_error('reference', t('No such node in Alfresco repository.'));
         }
       }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_validate().
+ */
+function alfresco_validate($node, &$form) {
+  
+  if (!empty($node->reference)) {
+    if ($nid = db_result(db_query("SELECT nid FROM {alfresco_node} WHERE reference = '%s' AND nid <> %d", $node->reference, $node->nid))) {
+      form_set_error('reference', t('The <a href="!url">Alfresco node</a> already exists.', array('!url' => url('node/'. $nid))));
     }
   }
 }
@@ -136,37 +139,22 @@ function alfresco_form_validate($form, &$form_state) {
 // ------------------------------------------------------------------
 
 /**
- *
+ * Submit handler for node.
  */
 function alfresco_form_submit($form, &$form_state) {
 
   if (isset($form_state['alf_node'])) {
     $alf_node = $form_state['alf_node'];
     
-    $form_state['values']['cm_name']        = $alf_node->cm_name;
-    $form_state['values']['cm_title']       = $alf_node->cm_title;
-    $form_state['values']['cm_description'] = $alf_node->cm_description;
-    $form_state['values']['cm_author']      = $alf_node->cm_author;
-    $form_state['values']['cm_created']     = $alf_node->cm_created;
-    $form_state['values']['cm_creator']     = $alf_node->cm_creator;
-    $form_state['values']['cm_modified']    = $alf_node->cm_modified;
-    $form_state['values']['cm_modifier']    = $alf_node->cm_modifier;
-    $form_state['values']['cm_author']      = $alf_node->cm_author;
-    
-    if (!empty($form_state['values']['use_title'])) {
-      $form_state['values']['title'] = $alf_node->cm_title;
-    }
-    
-    if (is_object($alf_node->cm_content)) {
-      $data = $alf_node->cm_content;
-
-      $content = array();
-      $content['url']      = $data->guestUrl;
-      $content['mimetype'] = $data->mimetype;
-      $content['size']     = $data->size;
-      $content['encoding'] = $data->encoding;
-       
-      $form_state['values']['cm_content'] = $content;
+    $properties = alfresco_service_load_properties($alf_node);
+    if ($properties) {
+      foreach ($properties as $key => $value) {
+        $form_state['values'][$key] = $value;
+      }
+      
+      if (!empty($form_state['values']['use_title'])) {
+        $form_state['values']['title'] = $properties['cm_title'];
+      }
     }
   }
 }
@@ -179,7 +167,7 @@ function alfresco_form_submit($form, &$form_state) {
  * Implementation of hook_insert().
  */
 function alfresco_insert($node) {
-  alfresco_save($node);
+  _alfresco_save($node);
 }
 
 /**
@@ -189,13 +177,22 @@ function alfresco_insert($node) {
  * database updates.
  */
 function alfresco_update($node) {
-  alfresco_save($node);
+  _alfresco_save($node);
 }
 
-function alfresco_save($node) {
+function _alfresco_presave($node) {
+}
 
-  // if this is a new node or we're adding a new revision,
-  if ($node->is_new || $node->revision) {
+/**
+ * Save an alfresco node in database.
+ */
+function _alfresco_save($node) {
+  
+  // update timestamp
+  $node->timestamp = time();
+  
+  // if this is a new node or we're adding a new revision
+  if ($node->is_new || !empty($node->revision)) {
     drupal_write_record('alfresco_node', $node);
   }
   else {
@@ -230,6 +227,12 @@ function alfresco_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     case 'delete revision':
       db_query('DELETE FROM {alfresco_node} WHERE vid = %d', $node->vid);
       db_query('DELETE FROM {alfresco_content} WHERE vid = %d', $node->vid);
+      break;
+      
+    case 'presave':
+      if ($node && $node->type == 'alfresco_item') {
+        _alfresco_presave($node);
+      }
       break;
   }
 }
@@ -289,8 +292,8 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   
   $node = node_prepare($node, $teaser);
   
-  $node->teaser = TRUE;
-  $node->readmore = TRUE;
+  //$node->teaser = TRUE;
+  //$node->readmore = TRUE;
   
   $model = array(
     'name'        => t('Name'),
@@ -348,61 +351,6 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
     '#weight' => 1,
   );
   
-  if (!$teaser && user_access('administer alfresco')) {
-    // Obtenemos el nodo directamente de Alfresco.
-    $alf_node = alfresco_service_load_node($node->reference);
-    if (!$alf_node) {
-      return $node;
-    }
-    
-    $output = '';
-    
-    // Type
-    $details = array();
-    $details[] = array($alf_node->getType());
-    $output .= theme('table', array(t('Type')), $details);
-  
-    // Aspects
-    $details = array();
-    foreach ($alf_node->getAspects() as $key => $value) {
-      if(is_string($value) || is_null($value)) {
-        $details[] = array($value);
-      }
-    }
-    $output .= theme('table', array(t('Aspects')), $details);
-    
-    // Properties
-    $details = array();
-    foreach ($alf_node->getProperties() as $key => $value) {
-      if(is_string($value) || is_null($value)) {
-        $details[] = array($key, $value);
-      }
-    }
-    $output .= theme('table', array(t('Properties'), t('Value')), $details);
-
-    // VersionHistory
-    $details = array();
-    foreach ($alf_node->getVersionHistory() as $key => $value) {
-      if(is_string($value) || is_null($value)) {
-        $details[] = array($key, $value);
-      }
-    }
-    $output .= theme('table', NULL, $details);
-
-    // Associations
-    $details = array();
-    foreach ($alf_node->getAssociations() as $key => $value) {
-      if(is_string($value) || is_null($value)) {
-        $details[] = array($key, $value);
-      }
-    }
-    $output .= theme('table', NULL, $details);
-    
-    $node->content['alfresco_details'] = array(
-      '#value'  => $output,
-      '#weight' => 2,
-    );
-  }
   /*  
   apm($alf_node->getChildren());
   apm($alf_node->getParents());
@@ -414,6 +362,53 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
 // ------------------------------------------------------------------
 // Alfresco external API
 // ------------------------------------------------------------------
+
+/**
+ * 
+ */
+function alfresco_sync_node($node) {
+  global $user;
+  
+  // check permissions
+  if (!user_access('administer alfresco')) {
+    return FALSE;
+  }
+  
+  // check node content type 
+  if (!$node || $node->type != 'alfresco_item') {
+    return FALSE;
+  }
+
+  // check alfresco node reference 
+  $reference = $node->reference;
+  if (!alfresco_valid_reference($reference)) {
+    return FALSE;
+  }
+
+  // check alfresco node in repository
+  $alf_node = alfresco_service_load_node($reference);
+  if (!$alf_node) {
+    // @todo el nodo de Alfresco no existe, decidir que hacer.
+    return FALSE;
+  }
+  
+  // update properties
+  $properties = alfresco_service_load_properties($alf_node);
+  if (!$properties) {
+    foreach ($properties as $key => $value) {
+      $node->$key = $value;
+    }
+    
+    // @todo mapping
+    // $node->title = $properties->cm_title;
+    // $node->body  = $properties->cm_description;
+  }
+  
+  // save node
+  node_save($node);
+  
+  return TRUE;
+}
 
 /**
  * Function to other modules to use to create image nodes.
@@ -432,8 +427,9 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
  * 
  * @see http://www.darrenmothersele.com/content/programmatically-creating-drupal-nodes
  * @see http://drupal.org/node/293663
+ * @see drupal_execute()
  */
-function alfresco_create_node_from($reference, $title = NULL, $body = '', $taxonomy = NULL) {
+function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body = '', $taxonomy = NULL) {
   global $user;
 
   if (!user_access('create alfresco content')) {
@@ -456,15 +452,16 @@ function alfresco_create_node_from($reference, $title = NULL, $body = '', $taxon
   );
   
   $form_state = array();
-  $form_state['values']['title'] = is_null($title) ? '' : $title;
-  $form_state['values']['body']  = $body;
-  
+  $form_state['values']['use_title'] = $use_title;
+  $form_state['values']['title']     = $title;
+  $form_state['values']['body']      = $body;
   $form_state['values']['reference'] = $reference;
-  $form_state['values']['use_title'] = TRUE;
-  
-  $form_state['values']['op'] = t('Save');
-  
+  $form_state['values']['op']        = t('Save');
+
   drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+  if (form_get_errors()) {
+    return FALSE;  
+  }
   
   return $node;
 }

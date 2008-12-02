@@ -54,7 +54,8 @@ function alfresco_service_create_session() {
 /**
  * Load a node by reference from alfresco repository.
  * 
- * @param $reference Alfresco Node Reference.
+ * @param $reference
+ *  The alfresco node reference.
  * @param $session Session
  * @return Node
  */
@@ -85,10 +86,54 @@ function alfresco_service_load_node($reference, $session = NULL) {
   catch (Exception $e) {
     drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
     watchdog('alfresco', 'Error loading node from alfresco repository, with reference %reference. Exception=%msg', array(
-      '%reference' => $repositoryUrl,
+      '%reference' => $reference,
       '%msg' => $e->getMessage()),
       WATCHDOG_ERROR);
   }
+}
+
+/**
+ * Return an array of node properties from alfresco repository.
+ * 
+ * @param $node Node Alfresco object node.
+ */
+function alfresco_service_load_properties($node) {
+  apm('[alfresco_service] Updating properties from alfresco node.');
+
+  $properties = array();
+  
+  try {
+    $properties['cm_name']        = $node->cm_name;
+    $properties['cm_title']       = $node->cm_title;
+    $properties['cm_description'] = $node->cm_description;
+    $properties['cm_author']      = $node->cm_author;
+    $properties['cm_created']     = $node->cm_created;
+    $properties['cm_creator']     = $node->cm_creator;
+    $properties['cm_modified']    = $node->cm_modified;
+    $properties['cm_modifier']    = $node->cm_modifier;
+    $properties['cm_author']      = $node->cm_author;
+    
+    if (is_object($node->cm_content)) {
+      $data = $node->cm_content;
+      $properties['cm_content'] = array();
+      $properties['cm_content']['url']      = $data->guestUrl;
+      $properties['cm_content']['mimetype'] = $data->mimetype;
+      $properties['cm_content']['size']     = $data->size;
+      $properties['cm_content']['encoding'] = $data->encoding;
+    }
+    else {
+      $properties['cm_content'] = NULL;
+    }
+  }
+  catch (Exception $e) {
+    drupal_set_message(t('Error loading properties from alfresco node.'), 'error');
+    watchdog('alfresco', 'Error loading properties from alfresco node, with reference %reference. Exception=%msg', array(
+      '%reference' => strval($node),
+      '%msg' => $e->getMessage()),
+      WATCHDOG_ERROR);
+  }
+  
+  return $properties;
 }
 
 /**

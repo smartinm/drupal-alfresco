@@ -13,7 +13,7 @@
 /**
  * Menu callback; transfer alfresco file using the configured download method. 
  */
-function alfresco_node_download($node) {
+function alfresco_page_download($node) {
   
   if (!user_access('download alfresco content')) {
     return drupal_access_denied();
@@ -50,11 +50,72 @@ function alfresco_node_download($node) {
 /**
  * Menu callback; synchronize Drupal Node data with Alfresco Node data.
  */
-function alfresco_node_sync($node) {
+function alfresco_page_sync($node) {
+
+  // Synchronize node
+  alfresco_sync_node($node);
   
-  $form_state = array();
-  $form_state['values']['op'] = t('Save');
-  module_load_include('inc', 'node', 'node.pages');
-  drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+  // Redirect view node
   drupal_goto('node/'. $node->nid);
+}
+
+
+// ------------------------------------------------------------------
+// Alfresco details page
+// ------------------------------------------------------------------
+
+/**
+ * Menu callback; synchronize Drupal Node data with Alfresco Node data.
+ */
+function alfresco_page_details($node) {
+
+  $alf_node = alfresco_service_load_node($node->reference);
+  if (!$alf_node) {
+    return $node;
+  }
+  
+  $output = '';
+  
+  // Type
+  $details = array();
+  $details[] = array($alf_node->getType());
+  $output .= theme('table', array(t('Type')), $details);
+
+  // Aspects
+  $details = array();
+  foreach ($alf_node->getAspects() as $key => $value) {
+    if(is_string($value) || is_null($value)) {
+      $details[] = array($value);
+    }
+  }
+  $output .= theme('table', array(t('Aspects')), $details);
+  
+  // Properties
+  $details = array();
+  foreach ($alf_node->getProperties() as $key => $value) {
+    if(is_string($value) || is_null($value)) {
+      $details[] = array($key, $value);
+    }
+  }
+  $output .= theme('table', array(t('Properties'), t('Value')), $details);
+
+  // VersionHistory
+  $details = array();
+  foreach ($alf_node->getVersionHistory() as $key => $value) {
+    if(is_string($value) || is_null($value)) {
+      $details[] = array($key, $value);
+    }
+  }
+  $output .= theme('table', NULL, $details);
+
+  // Associations
+  $details = array();
+  foreach ($alf_node->getAssociations() as $key => $value) {
+    if(is_string($value) || is_null($value)) {
+      $details[] = array($key, $value);
+    }
+  }
+  $output .= theme('table', NULL, $details);
+  
+  return $output;
 }
