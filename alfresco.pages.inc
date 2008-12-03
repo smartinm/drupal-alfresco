@@ -19,6 +19,10 @@ function alfresco_page_download($node) {
     return drupal_access_denied();
   }
   
+  $node_link = l(t('view'), 'node/'. $node->nid);
+  $watchdog_args = array('@type' => $node->type, '%title' => $node->title);
+  watchdog('alfresco', '@type: downloaded %title.', $watchdog_args, WATCHDOG_NOTICE, $node_link);
+    
   switch (variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_MODULE)) {
     case ALFRESCO_FILE_DOWNLOADS_MODULE:
       alfresco_file_transfer($node);
@@ -54,6 +58,13 @@ function alfresco_page_sync($node) {
 
   // Synchronize node
   alfresco_sync_node($node);
+  
+  $node_link = l(t('view'), 'node/'. $node->nid);
+  $watchdog_args = array('@type' => $node->type, '%title' => $node->title);
+  $t_args = array('@type'  => node_get_types('name', $node), '%title' => $node->title);
+
+  watchdog('alfresco', '@type: synchronized %title.', $watchdog_args, WATCHDOG_NOTICE, $node_link); 
+  drupal_set_message(t('@type %title has been synchronized.', $t_args)); 
   
   // Redirect view node
   drupal_goto('node/'. $node->nid);

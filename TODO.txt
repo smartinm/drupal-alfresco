@@ -18,6 +18,7 @@ Próximo
  * Módulo Alfresco Import, permite importar múltiples nodos de Alfresco desde un Espacio de Alfresco
  * Módulo Alfresco Browser, widget/element que permite navegar por la estructura de Alfresco para obtener la referencia de un nodo
  * Añadir tests
+ * Estádisticas de descargas de ficheros
  
 Ideas
 -----
