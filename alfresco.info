@@ -4,3 +4,6 @@ description = "Alfresco and Drupal integration, this module define a new alfresc
 package = "Alfresco" 
 core = "6.x"
 php = "5.2"
+
+; Information added for OVC-TIC
+version = "6.x-1.0-alpha"
