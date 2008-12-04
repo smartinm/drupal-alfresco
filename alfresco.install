@@ -6,8 +6,10 @@
  * Install and configure Alfresco module.
  */
 
-// Relative path to Alfresco PHP Library
-define('ALFRESCO_PHP_LIBRARY_PATH_INSTALL', 'alfresco-php-library');
+if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
+  // Relative path to Alfresco PHP Library
+  define('ALFRESCO_PHP_LIBRARY_PATH', 'php-sdk');
+}
 
 /**
  * Implementation of hook_install().
@@ -45,14 +47,16 @@ function alfresco_requirements($phase) {
       'description' => isset($result['description']) ? $result['description'] : NULL,
     );
     
-    // Check connection Alfresco Repository
-    $result = _alfresco_check_connection_repository();
-    $requirements['alfresco_repository'] = array(
-      'title'    => $t('Alfresco repository'),
-      'value'       => $result['value'],
-      'severity'    => $result['severity'],
-      'description' => isset($result['description']) ? $result['description'] : NULL,
-    );
+    // Check connection Alfresco Repository only if Alfresco PHP Library is installed
+    if ($result['severity'] == REQUIREMENT_OK) {
+      $result = _alfresco_check_connection_repository();
+      $requirements['alfresco_repository'] = array(
+        'title'    => $t('Alfresco repository'),
+        'value'       => $result['value'],
+        'severity'    => $result['severity'],
+        'description' => isset($result['description']) ? $result['description'] : NULL,
+      );
+    }
   }
   elseif ($phase == 'install') {
     // Check Alfresco PHP Library
@@ -242,7 +246,15 @@ function alfresco_schema() {
 function _alfresco_check_php_library() {
   $t = get_t();
   
-  @include_once "Alfresco/Service/Repository.php";
+  if (!class_exists('SoapClient')) {
+    return array(
+      'value'       => $t('The PHP SOAP extension is no available'),
+      'description' => $t('Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP in your PHP setup.', array('@url' => 'http://php.net/manual/en/book.soap.php')),
+      'severity'    => REQUIREMENT_ERROR,
+    );
+  }
+  
+  include_once "Alfresco/Service/Repository.php";
   if (class_exists('Repository')) {
     return array(
       'value'    => $t('Available via the system\'s include_path'),
@@ -254,7 +266,7 @@ function _alfresco_check_php_library() {
   $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH_INSTALL;
   if (!is_dir($lib_path)) {
     return array(
-      'value'       => $t('No such Alfresco PHP Library on module'),
+      'value'       => $t('No such Alfresco PHP Library available on module'),
       'description' => $t('Download and copy Alfresco PHP Library on %path.', array('%path' => $lib_path)),
       'severity'    => REQUIREMENT_ERROR,
     );
@@ -262,7 +274,7 @@ function _alfresco_check_php_library() {
   
   set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
   
-  @include_once "Alfresco/Service/Repository.php";
+  include_once "Alfresco/Service/Repository.php";
   if (class_exists('Repository')) {
     return array(
       'value'    => $t('Available via module (%path).', array('%path' => $lib_path)),
@@ -280,10 +292,9 @@ function _alfresco_check_php_library() {
 function _alfresco_check_connection_repository() {
   // @todo  Implementar esta función
   $t = get_t();
-    
+
   return array(
-    'value' => $t('<a href="@url">Alfresco Labs - v3.0.0 (b 1164)</a>',
-      array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
+    'value' => $t('<a href="@url">Alfresco Labs - v3.0.0 (b 1164)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
     'severity' => REQUIREMENT_OK,
   );
 }
