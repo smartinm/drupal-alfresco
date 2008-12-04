@@ -16,7 +16,7 @@
 
 if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
   // Relative path to Alfresco PHP Library
-  define('ALFRESCO_PHP_LIBRARY_PATH', 'php-sdk');
+  define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-sdk');
 }
 
 // Default value for alfresco_debug_output variable.
