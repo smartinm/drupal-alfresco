@@ -16,3 +16,328 @@ function alfresco_attach_help($path, $arg) {
       return '<p>'. t('Allows users to upload and attach Alfresco files to content.') .'</p>';
   }
 }
+
+/**
+ * Implementation of hook_theme()
+ */
+function alfresco_attach_theme() {
+  return array(
+  /*
+    'alfresco_attach_attachments' => array(
+      'arguments' => array('files' => NULL),
+    ),
+    */
+    'alfresco_attach_form_current' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'alfresco_attach_form_new' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
+ * Theme the attachments list.
+ *
+ * @ingroup themeable
+ */
+function theme_alfresco_attach_form_current(&$form) {
+  $header = array('', t('Delete'), t('List'), t('Description'), t('Weight'));
+  drupal_add_tabledrag('alfresco-attachments', 'order', 'sibling', 'alfresco-weight');
+
+  foreach (element_children($form) as $key) {
+    // Add class to group weight fields for drag and drop.
+    $form[$key]['weight']['#attributes']['class'] = 'alfresco-weight';
+
+    $row = array('');
+    $row[] = drupal_render($form[$key]['remove']);
+    $row[] = drupal_render($form[$key]['list']);
+    $row[] = drupal_render($form[$key]['description']);
+    $row[] = drupal_render($form[$key]['weight']);
+    //$row[] = drupal_render($form[$key]['size']);
+    $rows[] = array('data' => $row, 'class' => 'draggable');
+  }
+  $output = theme('table', $header, $rows, array('id' => 'alfresco-attachments'));
+  $output .= drupal_render($form);
+  return $output;
+}
+
+/**
+ * Theme the attachment form.
+ * Note: required to output prefix/suffix.
+ *
+ * @ingroup themeable
+ */
+function theme_alfresco_attach_form_new($form) {
+  drupal_add_tabledrag('alfresco-attachments', 'order', 'sibling', 'alfresco-weight');
+  $output = drupal_render($form);
+  return $output;
+} 
+
+/**
+ * Implementation of hook_perm().
+ */
+function alfresco_attach_perm2() {
+  //return array('upload files', 'view uploaded files');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function alfresco_attach_menu2() {
+  $items['alfresco-attach/js'] = array(
+    'page callback' => 'alfresco_attach_js',
+    //'access arguments' => array('upload files'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Save new uploads and store them in the session to be associated to the node
+ * on upload_save.
+ *
+ * @param $node
+ *   A node object to associate with uploaded files.
+ */
+function alfresco_attach_node_form_submit(&$form, &$form_state) {
+  dpm("alfresco_attach_node_form_submit");
+  
+  // Save new file uploads.
+  if (user_access('create alfresco content') && ($alf_node = alfresco_create_node($form_state['values']['reference']))) {
+    
+    $attach = new stdClass();
+    $attach->aid = $alf_node->nid;
+    $attach->description = $alf_node->title;
+    $attach->list = TRUE;
+    $attach->weight = 0;
+    $attach->new = TRUE;
+    
+    $form['#node']->alfresco[$attach->aid] = $attach;
+    $form_state['values']['alfresco'][$attach->aid] = (array)$attach;
+  }
+  
+  if (isset($form_state['values']['alfresco'])) {
+    foreach ($form_state['values']['alfresco'] as $key => $attach) {
+      $form_state['values']['alfresco'][$key]['new'] = !empty($form['#node']->alfresco[$key]->new);
+    }
+  }
+  
+  // Order the form according to the set file weight values.
+  if (!empty($form_state['values']['alfresco'])) {
+    $microweight = 0.001;
+    foreach ($form_state['values']['alfresco'] as $aid => $attach) {
+      if (is_numeric($aid)) {
+        $form_state['values']['alfresco'][$aid]['#weight'] = $attach['weight'] + $microweight;
+        $microweight += 0.001;
+      }
+    }
+    uasort($form_state['values']['alfresco'], 'element_sort');
+  }
+}
+
+/**
+ * 
+ */
+function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
+  
+  if (isset($form['type']) && isset($form['#node'])) {
+    $node = $form['#node'];
+    if ($form['type']['#value'] .'_node_form' == $form_id && $node->type != 'alfresco_item') {
+      
+      // Attachments fieldset
+      $form['alfresco_attachments'] = array(
+        '#type'        => 'fieldset',
+        '#access'      => user_access('create alfresco content'),
+        '#title'       => t('Alfresco attachments'),
+        '#collapsible' => TRUE,
+        '#collapsed'   => empty($node->alfresco),
+        '#description' => t(''),
+        '#prefix'      => '<div class="alfresco-attachments">',
+        '#suffix'      => '</div>',
+        '#weight'      => 20,
+      );
+
+      // Wrapper for fieldset contents (used by ahah.js).
+      $form['alfresco_attachments']['wrapper'] = array(
+        '#prefix' => '<div id="alfresco-attach-wrapper">',
+        '#suffix' => '</div>',
+      );
+      
+      // Attach form
+      $form['alfresco_attachments']['wrapper'] += _alfresco_attach_form($node);
+      
+      // Submit handler for alfresco attachments
+      $form['#submit'][] = 'alfresco_attach_node_form_submit';
+    }
+  }
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function alfresco_attach_nodeapi(&$node, $op, $teaser) {
+  
+  switch ($op) {
+    case 'load':
+      $output['alfresco'] = alfresco_attach_load($node);
+      if (count($output['alfresco'])) {
+        return $output;
+      }
+      break;
+
+    case 'view':
+      break;
+
+    case 'insert':
+    case 'update':
+      if (user_access('create alfresco content')) {
+        alfresco_attach_save($node);
+      }      
+      break;
+
+    case 'delete':
+      break;
+
+    case 'delete revision':
+      break;
+
+    case 'search result':
+      break;
+
+    case 'rss item':
+      break;
+  }
+}
+
+function _alfresco_attach_form($node) {
+  global $user;
+
+  $form = array(
+    '#theme' => 'alfresco_attach_form_new',
+    '#cache' => TRUE,
+  );
+
+  if (!empty($node->alfresco) && is_array($node->alfresco)) {
+    $form['alfresco']['#theme'] = 'alfresco_attach_form_current';
+    $form['alfresco']['#tree'] = TRUE;
+    
+    foreach ($node->alfresco as $key => $attach) {
+      $attach = (object)$attach;
+      
+      $description = l('filaname.pdf', 'node/'. $attach->aid);
+      $description = '<small>'. check_plain($description) .'</small>';
+      
+      $form['alfresco'][$key]['description'] = array(
+        '#type'          => 'textfield',
+        '#default_value' => !empty($attach->description) ? $attach->description : NULL,
+        '#maxlength'     => 256,
+        '#description'   => $description
+      );
+      $form['alfresco'][$key]['remove'] = array(
+        '#type'          => 'checkbox',
+        '#default_value' => !empty($attach->remove),
+      );
+      $form['alfresco'][$key]['list'] = array(
+        '#type'          => 'checkbox',
+        '#default_value' => $attach->list,
+      );
+      $form['alfresco'][$key]['weight'] = array(
+        '#type'          => 'weight',
+        '#delta'         => count($node->alfresco),
+        '#default_value' => $attach->weight,
+      );
+      $form['alfresco'][$key]['aid'] = array(
+        '#type'  => 'value', 
+        '#value' => $attach->aid,
+      );
+      $form['alfresco'][$key]['new'] = array(
+        '#type'  => 'value',
+        '#value' => FALSE,
+      );
+    }
+  }
+
+  if (user_access('create alfresco content')) {
+    $form['new']['#weight'] = 10;
+    $form['new']['reference'] = array(
+      '#type'        => 'textfield',
+      '#title'       => t('Attach new Alfresco item'),
+      '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
+    );
+    $form['new']['attach_button'] = array(
+      '#type'  => 'submit',
+      '#value' => t('Attach'),
+      '#name'  => 'attach',
+      '#ahah'  => array(
+        'path'     => 'alfresco-attach/js',
+        'wrapper'  => 'alfresco-attach-wrapper',
+        'progress' => array('type' => 'bar', 'message' => t('Please wait...')),
+      ),
+      '#submit' => array('node_form_submit_build_node'),
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Menu-callback for JavaScript-based uploads.
+ */
+function alfresco_attach_js() {
+  dpm('alfresco_attach_js');
+  exit;
+}
+
+function alfresco_attach_load($node) {
+  $alfresco = array();
+
+  if ($node->vid) {
+    $result = db_query('SELECT * FROM {alfresco_attach} WHERE vid = %d ORDER BY weight, aid', $node->vid);
+    while ($attach = db_fetch_object($result)) {
+      $alfresco[$attach->aid] = $attach;
+    }
+  }
+
+  return $alfresco;
+}
+
+function alfresco_attach_save(&$node) {
+  if (empty($node->alfresco) || !is_array($node->alfresco)) {
+    return;
+  }
+  
+  foreach ($node->alfresco as $aid => $attach) {
+    // Convert file to object for compatibility
+    $attach = (object)$attach;
+
+    // Remove file. Process removals first since no further processing
+    // will be required.
+    if (!empty($attach->remove)) {
+      db_query('DELETE FROM {alfresco_attach} WHERE aid = %d AND vid = %d', $aid, $node->vid);
+
+      // If the file isn't used by any other revisions delete it.
+      $count = db_result(db_query('SELECT COUNT(aid) FROM {alfresco_attach} WHERE aid = %d', $aid));
+      if ($count < 1) {
+        node_delete($aid);
+      }
+
+      // Remove it from the session in the case of new uploads,
+      // that you want to disassociate before node submission.
+      unset($node->alfresco[$aid]);
+      // Move on, so the removed file won't be added to new revisions.
+      continue;
+    }
+
+    // Create a new revision, or associate a new file needed.
+    if (!empty($node->old_vid) || $attach->new) {
+      db_query("INSERT INTO {alfresco_attach} (aid, nid, vid, list, description, weight) VALUES (%d, %d, %d, %d, '%s', %d)",
+        $attach->aid, $node->nid, $node->vid, $attach->list, $attach->description, $attach->weight);
+    }
+    // Update existing revision.
+    else {
+      db_query("UPDATE {alfresco_attach} SET list = %d, description = '%s', weight = %d WHERE fid = %d AND vid = %d",
+        $attach->list, $attach->description, $attach->weight, $attach->fid, $node->vid);
+    }
+  }
+}

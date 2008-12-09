@@ -5,14 +5,22 @@
  * @file
  * Enables Alfresco and Drupal integration.
  * 
- * - Alfresco help hooks
- * - Alfresco node and permissions hooks
- * - Alfresco menu hooks
- * - Alfresco theme hooks
- * - Alfresco files helper functions
- * - Alfresco util helper functions
- * - Alfresco debug helper functions
+ * Contents of this file
+ * =====================
+ * 0. Constants 
+ * 1. Help hooks
+ * 2. Node info and permissions
+ * 3. Menu hooks
+ * 4. Cron hooks
+ * 5. Theme hooks
+ * 6. Files helper functions
+ * 7. Utils helper functions
+ * 8. Debug helper functions
  */
+
+// ------------------------------------------------------------------
+// =0 Constants
+// ------------------------------------------------------------------
 
 if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
   // Relative path to Alfresco PHP Library
@@ -47,7 +55,7 @@ if (function_exists('drupal_get_path')) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco help hooks
+// =1 Help hooks
 // ------------------------------------------------------------------
 
 /**
@@ -62,13 +70,13 @@ function alfresco_help($path, $arg) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco node and permissions hooks
+// =2 Node info and permissions hooks
 // ------------------------------------------------------------------
 
 /**
  * Implementation of hook_node_info().
  * 
- * Provides a new "alfresco_item" node content type.
+ * Provides a new 'alfresco_item' node content type.
  */
 function alfresco_node_info() {
 
@@ -131,7 +139,7 @@ function alfresco_access($op, $node, $account) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco menu hooks
+// =3 Menu hooks
 // ------------------------------------------------------------------
 
 /**
@@ -261,7 +269,7 @@ function alfresco_name_to_arg($arg) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco cron hooks
+// =4 Cron hooks
 // ------------------------------------------------------------------
 
 /**
@@ -281,7 +289,7 @@ function alfresco_cron() {
 }
 
 // ------------------------------------------------------------------
-// Alfresco theme hooks
+// =5 Theme hooks
 // ------------------------------------------------------------------
 
 /**
@@ -297,7 +305,7 @@ function alfresco_theme() {
 }
 
 // ------------------------------------------------------------------
-// Alfresco files helper functions
+// =6 Files helper functions
 // ------------------------------------------------------------------
 
 /**
@@ -320,14 +328,17 @@ function alfresco_url_download($node) {
  * @see http://htmlblog.net/10-code-snippets-for-php-developers/
  */
 function alfresco_file_transfer($node) {
+  if (ob_get_level()) {
+    ob_end_clean();
+  }
   
   $alf_node = alfresco_service_load_node($node->reference);
   if (!$alf_node) {
     drupal_not_found();
     exit();
   }
-  $alf_data = $alf_node->cm_content;
   
+  $alf_data = $alf_node->cm_content;
   if (!$alf_data) {
     drupal_not_found();
     exit();
@@ -338,10 +349,6 @@ function alfresco_file_transfer($node) {
   $size = $alf_data->size;
   $mime = $alf_data->mimetype;
   
-  if (ob_get_level()) {
-    ob_end_clean();
-  }
-
   drupal_set_header('Content-Type: '. $mime);
   drupal_set_header('Content-Length: '. $size);
   //drupal_set_header('Content-Disposition: attachment; filename="' . $name . '"');
@@ -360,7 +367,7 @@ function alfresco_file_transfer($node) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco util helper functions
+// =7 Utils helper functions
 // ------------------------------------------------------------------
 
 /**
@@ -437,7 +444,7 @@ function alfresco_size_to_string($size, $precision = 0) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco debug helper functions
+// =8 Debug helper functions
 // ------------------------------------------------------------------
 
 /**

@@ -41,7 +41,7 @@ function alfresco_requirements($phase) {
     // Check Alfresco PHP Library
     $result = _alfresco_check_php_library();
     $requirements['alfresco_php_library'] = array(
-      'title'       => $t('Alfresco PHP Library'),
+      'title'       => $t('Alfresco PHP library'),
       'value'       => $result['value'],
       'severity'    => $result['severity'],
       'description' => isset($result['description']) ? $result['description'] : NULL,
@@ -61,10 +61,9 @@ function alfresco_requirements($phase) {
   elseif ($phase == 'install') {
     // Check Alfresco PHP Library
     $result = _alfresco_check_php_library();
-    
     if ($result['severity'] == REQUIREMENT_ERROR) { 
       $requirements['alfresco_php_library'] = array(
-        'title'       => $t('Alfresco PHP Library'),
+        'title'       => $t('Alfresco PHP library'),
         'severity'    => $result['severity'],
         'description' => $result['description'],
       );

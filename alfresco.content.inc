@@ -4,17 +4,19 @@
 /**
  * @file
  * Alfresco node content type implementation.
- * 
- * - Alfresco edit page node functions
- * - Alfresco validate node functions
- * - Alfresco submit node functions
- * - Alfresco database functions
- * - Alfresco view functions
- * - Alfresco external API
+ *
+ * Contents of this file
+ * =====================
+ * 1. Edit node form
+ * 2. Validate node functions
+ * 3. Submit node functions
+ * 4. Database functions
+ * 5. View functions
+ * 6. External API
  */
 
 // ------------------------------------------------------------------
-// Alfresco edit page node functions
+// =1 Edit node form
 // ------------------------------------------------------------------
 
 /**
@@ -76,7 +78,7 @@ function alfresco_form(&$node, $form_state) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco validate node functions
+// =2 Validate node functions
 // ------------------------------------------------------------------
 
 /**
@@ -135,7 +137,7 @@ function alfresco_validate($node, &$form) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco submit node functions
+// =3 Submit node functions
 // ------------------------------------------------------------------
 
 /**
@@ -160,7 +162,7 @@ function alfresco_form_submit($form, &$form_state) {
 }
 
 // -----------------------------------------------------------------------
-// Alfresco database functions 
+// =4 Database functions 
 // -----------------------------------------------------------------------
 
 /**
@@ -279,7 +281,7 @@ function alfresco_load($node) {
 }
 
 // -----------------------------------------------------------------------
-// Alfresco view functions 
+// =5 View functions 
 // -----------------------------------------------------------------------
 
 /**
@@ -360,11 +362,11 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
 }
 
 // ------------------------------------------------------------------
-// Alfresco external API
+// =6 External API
 // ------------------------------------------------------------------
 
 /**
- * 
+ * Synchronize the alfresco_item node with Alfresco Node.
  */
 function alfresco_sync_node($node) {
   global $user;
@@ -411,7 +413,7 @@ function alfresco_sync_node($node) {
 }
 
 /**
- * Function to other modules to use to create image nodes.
+ * Create an alfresco_item node.
  *
  * @param $reference
  *   String Alfresco Node Reference. 
@@ -460,8 +462,8 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
 
   drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
   if (form_get_errors()) {
-    return FALSE;  
+    return FALSE;
   }
   
-  return $node;
+  return node_load($form_state['nid']);
 }
