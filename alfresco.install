@@ -46,7 +46,7 @@ function alfresco_requirements($phase) {
       'severity'    => $result['severity'],
       'description' => isset($result['description']) ? $result['description'] : NULL,
     );
-    
+
     // Check connection Alfresco Repository only if Alfresco PHP Library is installed
     if ($result['severity'] == REQUIREMENT_OK) {
       $result = _alfresco_check_connection_repository();
@@ -61,7 +61,7 @@ function alfresco_requirements($phase) {
   elseif ($phase == 'install') {
     // Check Alfresco PHP Library
     $result = _alfresco_check_php_library();
-    if ($result['severity'] == REQUIREMENT_ERROR) { 
+    if ($result['severity'] == REQUIREMENT_ERROR) {
       $requirements['alfresco_php_library'] = array(
         'title'       => $t('Alfresco PHP library'),
         'severity'    => $result['severity'],
@@ -89,7 +89,7 @@ function alfresco_uninstall() {
   foreach ($variables as $variable) {
     variable_del($variable);
   }
-  
+
   // Eliminamos todo los nodos de tipo alfresco_item
   $result = db_query("SELECT nid FROM {node} WHERE type = 'alfresco_item'");
   while ($obj = db_fetch_object($result)) {
@@ -106,14 +106,14 @@ function alfresco_uninstall() {
  * Implementation of hook_schema().
  */
 function alfresco_schema() {
-  
+
   $schema['alfresco_node'] = array(
     'fields' => array(
 
       /* Drupal node identifications */
       'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-  
+
       /* The Alfresco node reference */
       'reference' => array(
         'type'     => 'varchar',
@@ -129,7 +129,7 @@ function alfresco_schema() {
         'not null' => TRUE,
         'default'  => 0
       ),
-  
+
       /*********************************
        * Alfresco Content Domain Model *
        *********************************/
@@ -142,7 +142,7 @@ function alfresco_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
-      
+
       // Title (Titled aspect)
       'cm_title' => array(
         'description' => 'cm:title property from cm:titled',
@@ -157,7 +157,7 @@ function alfresco_schema() {
         'type'        => 'text',
         'not null'    => FALSE,
       ),
-      
+
       // Author (Author aspect)
       'cm_author' => array(
         'description' => 'cm:author property from cm:author',
@@ -166,7 +166,7 @@ function alfresco_schema() {
         'not null'    => FALSE,
         'default'     => '',
       ),
-      
+
       // Created (Auditable aspect)
       'cm_created' => array(
         'description' => 'cm:created property from cm:auditable',
@@ -228,7 +228,7 @@ function alfresco_schema() {
       ),
       'size' => array(
         'type'        => 'int',
-        'unsigned'    => TRUE, 
+        'unsigned'    => TRUE,
         'not null'    => TRUE,
         'default'     => 0,
       ),
@@ -241,7 +241,7 @@ function alfresco_schema() {
     ),
     'primary key' => array('vid'),
   );
-  
+
   return $schema;
 }
 
@@ -257,7 +257,7 @@ function _alfresco_check_php_library() {
       'severity'    => REQUIREMENT_ERROR,
     );
   }
-  
+
   @include_once "Alfresco/Service/Repository.php";
   if (class_exists('Repository')) {
     return array(
@@ -265,12 +265,12 @@ function _alfresco_check_php_library() {
       'severity' => REQUIREMENT_OK,
     );
   }
-  
+
   // Add the Alfresco PHP library directory to include path if exists
-  $lib_path = drupal_get_path('module', 'alfresco') . '/'. ALFRESCO_PHP_LIBRARY_PATH;
+  $lib_path = drupal_get_path('module', 'alfresco') .'/'. ALFRESCO_PHP_LIBRARY_PATH;
   if (is_dir($lib_path)) {
     set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
-    
+
     @include_once "Alfresco/Service/Repository.php";
     if (class_exists('Repository')) {
       return array(

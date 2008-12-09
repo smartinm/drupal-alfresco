@@ -1,17 +1,18 @@
 <?php
 // $Id$
+
 /**
  * @file
  *
  * Provide views data and handlers for alfresco module.
- * 
+ *
  * @see http://views-help.doc.logrus.com/help/views/api
  */
 
 /**
  * Implementation of hook_views_data()
  */
-function system_views_data() {
+function alfresco_views_data() {
   $data = array();
 
   // ----------------------------------------------------------------------
@@ -29,19 +30,14 @@ function system_views_data() {
       'left_field' => 'vid',
       'field' => 'vid',
     ),
-    'users' => array(
-      // direct join to the users table via 'uid' field.
-      'left_field' => 'uid',
-      'field' => 'uid',
-     ),
   );
 
   // cm_name (filename)
   $data['alfresco_node']['cm_name'] = array(
     'title' => t('Name'),
-    'help' => t('The name of the alfresco item.'),
+    'help' => t('The name of the alfresco item (or the filename if alfresco item is a file).'),
     'field' => array(
-      'handler' => 'views_handler_field_file',
+      'handler' => 'views_handler_field',
       'click sortable' => TRUE,
      ),
     'sort' => array(
@@ -54,11 +50,11 @@ function system_views_data() {
       'handler' => 'views_handler_argument_string',
     ),
   );
-  
+
   // timestamp field
   $data['alfresco_node']['timestamp'] = array(
     'title' => t('Upload date'),
-    'help' => t('The date the file was uploaded.'),
+    'help' => t('The date the file was saved/synchronized.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,
@@ -70,7 +66,7 @@ function system_views_data() {
       'handler' => 'views_handler_filter_date',
     ),
   );
-  
+
   // ----------------------------------------------------------------------
   // alfresco_content table
 
@@ -87,7 +83,7 @@ function system_views_data() {
       'field' => 'vid',
     ),
   );
-  
+
   // url
   $data['alfresco_content']['url'] = array(
     'title' => t('URL'),
@@ -112,7 +108,7 @@ function system_views_data() {
     'title' => t('Mime type'),
     'help' => t('The mime type of the alfresco file.'),
     'field' => array(
-      'handler' => 'views_handler_field_file',
+      'handler' => 'views_handler_field',
       'click sortable' => TRUE,
      ),
     'sort' => array(
@@ -144,47 +140,3 @@ function system_views_data() {
 
   return $data;
 }
-
-/**
- * Implementation of hook_views_handlers() to register all of the basic handlers
- * views uses.
- */
-function system_views_handlers() {
-  return array(
-    'info' => array(
-      'path' => drupal_get_path('module', 'views') . '/modules/system',
-    ),
-    'handlers' => array(
-      'views_handler_field_file' => array(
-        'parent' => 'views_handler_field',
-      ),
-      'views_handler_field_file_status' => array(
-        'parent' => 'views_handler_field',
-      ),
-      'views_handler_filter_file_status' => array(
-        'parent' => 'views_handler_filter_in_operator',
-      ),
-      'views_handler_argument_file_fid' => array(
-        'parent' => 'views_handler_argument',
-      ),
-    ),
-  );
-}
-
-function _views_file_status($choice = NULL) {
-  $status = array(
-    FILE_STATUS_TEMPORARY => t('Temporary'),
-    FILE_STATUS_PERMANENT => t('Permanent'),
-  );
-
-  if (isset($choice)) {
-    return isset($status[$choice]) ? $status[$choice] : t('Unknown');
-  }
-
-  return $status;
-}
-
-
-/**
- * @}
- */
