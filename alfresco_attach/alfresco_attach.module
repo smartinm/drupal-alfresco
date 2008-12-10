@@ -185,7 +185,6 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
  *
  */
 function alfresco_attach_form_validate(&$form, &$form_state) {
-  dpm("alfresco_attach_form_validate");
 
   // Save new alfresco items.
   if (user_access('create alfresco content')) {
@@ -212,7 +211,6 @@ function alfresco_attach_form_validate(&$form, &$form_state) {
  *
  */
 function alfresco_attach_form_submit(&$form, &$form_state) {
-  dpm("alfresco_attach_form_submit");
 
   // Save new file uploads.
   if (user_access('create alfresco content') && !empty($form_state['alfresco_node'])) {
