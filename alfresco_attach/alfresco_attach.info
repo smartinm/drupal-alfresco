@@ -1,6 +1,6 @@
 ; $Id$
 name = "Alfresco attach"
-description = "Allows users to upload and attach alfresco nodes to content."
+description = "Allows users to create and attach alfresco items to content."
 package = "Alfresco"
 dependencies[] = "alfresco"
 core = "6.x"
