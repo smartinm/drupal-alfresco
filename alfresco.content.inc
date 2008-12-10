@@ -184,9 +184,6 @@ function alfresco_update($node) {
   _alfresco_save($node);
 }
 
-function _alfresco_presave($node) {
-}
-
 /**
  * Save an alfresco node in database.
  */
@@ -232,12 +229,6 @@ function alfresco_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       db_query('DELETE FROM {alfresco_node} WHERE vid = %d', $node->vid);
       db_query('DELETE FROM {alfresco_content} WHERE vid = %d', $node->vid);
       break;
-
-    case 'presave':
-      if ($node && $node->type == 'alfresco_item') {
-        _alfresco_presave($node);
-      }
-      break;
   }
 }
 
@@ -276,6 +267,7 @@ function alfresco_load($node) {
   $sql = "SELECT $fields FROM {alfresco_content} WHERE vid = %d";
   $content_data = db_fetch_array(db_query($sql, $node->vid));
   if ($content_data) {
+    $alfresco_node->is_file = TRUE;
     $alfresco_node->cm_content = $content_data;
   }
 

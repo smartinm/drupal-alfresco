@@ -37,12 +37,12 @@ define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
 /**
- *
+ * @todo config
  */
 define('ALFRESCO_SYNC_TIME', 21600);
 
 /**
- *
+ * @todo config
  */
 define('ALFRESCO_SYNC_LIMIT', 10);
 
@@ -318,7 +318,7 @@ function alfresco_theme() {
 // ------------------------------------------------------------------
 
 /**
- * Return URL for download the alfresco file.
+ * Return The URL for download the alfresco file.
  */
 function alfresco_url_download($node) {
 
