@@ -35,9 +35,9 @@ function alfresco_views_data() {
   // cm_name (filename)
   $data['alfresco_node']['cm_name'] = array(
     'title' => t('Name'),
-    'help' => t('The name of the alfresco item (or the filename if alfresco item is a file).'),
+    'help' => t('The name of the alfresco item (or the filename if is a file).'),
     'field' => array(
-      'handler' => 'views_handler_field',
+      'handler' => 'alfresco_handler_field_url_download',
       'click sortable' => TRUE,
      ),
     'sort' => array(
@@ -139,4 +139,21 @@ function alfresco_views_data() {
   );
 
   return $data;
+}
+
+/**
+ * Implementation of hook_views_handlers().
+ * Register all of the basic handlers views uses.
+ */
+function alfresco_views_handlers() {
+  return array(
+    'info' => array(
+      'path' => drupal_get_path('module', 'alfresco') . '/views',
+    ),
+    'handlers' => array(
+      'alfresco_handler_field_url_download' => array(
+        'parent' => 'views_handler_field',
+      ),
+    ),
+  );
 }
