@@ -1,0 +1,567 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  alfresco.admin.inc: n/a
+#  alfresco.module: n/a
+#  alfresco_attach/alfresco_attach.module: n/a
+#  alfresco.pages.inc: n/a
+#  alfresco.content.inc: n/a
+#  alfresco.views.inc: n/a
+#  alfresco.ws.inc: n/a
+#  alfresco.info: n/a
+#  alfresco_attach/alfresco_attach.info: n/a
+#  alfresco_import/alfresco_import.info: n/a
+#  alfresco.install: n/a
+#  alfresco_attach/alfresco_attach.install: n/a
+#  alfresco_import/alfresco_import.module: n/a
+#  views/alfresco_handler_field_url_download.inc: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2008-12-16 19:44+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: alfresco.admin.inc:22 alfresco.module:157
+msgid "Repository"
+msgstr ""
+
+#: alfresco.admin.inc:27
+msgid "The web service end point URL for the Alfresco repository. Example: http://localhost:8080/alfresco/api"
+msgstr ""
+
+#: alfresco.admin.inc:28
+msgid "URL repository"
+msgstr ""
+
+#: alfresco.admin.inc:35
+msgid "Username"
+msgstr ""
+
+#: alfresco.admin.inc:36;108 alfresco_attach/alfresco_attach.module:149
+msgid ""
+msgstr ""
+
+#: alfresco.admin.inc:42
+msgid "To change the current password, enter the new password in both fields. Default password is <em>guest</em>"
+msgstr ""
+
+#: alfresco.admin.inc:46
+msgid "Select the download method of the files stored in Alfresco repository:"
+msgstr ""
+
+#: alfresco.admin.inc:48
+msgid "<strong>Module method</strong>, use this method if you Alfresco repository is not publicly accessible (default)."
+msgstr ""
+
+#: alfresco.admin.inc:49
+msgid "<strong>Direct guest method</strong>, this method use <em>URL Guest Access</em>, the <em>guest</em> Alfresco user must have access to the item referenced."
+msgstr ""
+
+#: alfresco.admin.inc:50
+msgid "<strong>Direct ticket method</strong>, this method use <em>Ticket URL Argument</em> to provide authentication without login."
+msgstr ""
+
+#: alfresco.admin.inc:52
+msgid "For more info, visit <a href=\"@url\">URL Addressability page</a> on Alfresco Wiki."
+msgstr ""
+
+#: alfresco.admin.inc:56
+msgid "File downloads"
+msgstr ""
+
+#: alfresco.admin.inc:62
+msgid "Download method"
+msgstr ""
+
+#: alfresco.admin.inc:65
+msgid "Module - files are transferred by Drupal's alfresco module using <em>Ticket URL Argument</em> transparently."
+msgstr ""
+
+#: alfresco.admin.inc:66
+msgid "Direct guest - files are available using Alfresco <em>URL Guest Access</em>."
+msgstr ""
+
+#: alfresco.admin.inc:67
+msgid "Direct ticket - files are available using Alfresco <em>Ticket URL Argument</em>."
+msgstr ""
+
+#: alfresco.admin.inc:107 alfresco.pages.inc:111
+msgid "Properties"
+msgstr ""
+
+#: alfresco.admin.inc:114;211 alfresco.content.inc:295 alfresco.views.inc:37
+msgid "Name"
+msgstr ""
+
+#: alfresco.admin.inc:115;211 alfresco.content.inc:296 alfresco.module:87
+msgid "Title"
+msgstr ""
+
+#: alfresco.admin.inc:116 alfresco.content.inc:297 alfresco_attach/alfresco_attach.module:380
+msgid "Description"
+msgstr ""
+
+#: alfresco.admin.inc:118 alfresco.content.inc:299
+msgid "Mimetype"
+msgstr ""
+
+#: alfresco.admin.inc:119 alfresco.content.inc:300
+msgid "Encoding"
+msgstr ""
+
+#: alfresco.admin.inc:120 alfresco.content.inc:301 alfresco.views.inc:127 alfresco_attach/alfresco_attach.module:355;380
+msgid "Size"
+msgstr ""
+
+#: alfresco.admin.inc:122 alfresco.content.inc:303
+msgid "Author"
+msgstr ""
+
+#: alfresco.admin.inc:123 alfresco.content.inc:304
+msgid "Creator"
+msgstr ""
+
+#: alfresco.admin.inc:124 alfresco.content.inc:305
+msgid "Created date"
+msgstr ""
+
+#: alfresco.admin.inc:125 alfresco.content.inc:306
+msgid "Modifier"
+msgstr ""
+
+#: alfresco.admin.inc:126 alfresco.content.inc:307
+msgid "Modified date"
+msgstr ""
+
+#: alfresco.admin.inc:211 alfresco.content.inc:342
+msgid "Property"
+msgstr ""
+
+#: alfresco.admin.inc:211 alfresco.module:163
+msgid "Display"
+msgstr ""
+
+#: alfresco.admin.inc:211 alfresco.module:89
+msgid "Body"
+msgstr ""
+
+#: alfresco.admin.inc:211
+msgid "Show"
+msgstr ""
+
+#: alfresco.admin.inc:232
+msgid "Enable debug output via the Devel module"
+msgstr ""
+
+#: alfresco.admin.inc:233
+msgid "Check this to enable Alfresco debug messages <em>if Devel is installed</em>."
+msgstr ""
+
+#: alfresco.admin.inc:242
+msgid "Synchronizing"
+msgstr ""
+
+#: alfresco.admin.inc:247
+msgid "Enable node synchronize"
+msgstr ""
+
+#: alfresco.admin.inc:248
+msgid "Check this to enable Alfresco-Drupal node synchronizing. (<strong>Experimental</strong>)"
+msgstr ""
+
+#: alfresco.admin.inc:255
+msgid "Number of items to synchronize per cron run"
+msgstr ""
+
+#: alfresco.admin.inc:258
+msgid "The maximum number of items synchronized in each pass of a <a href=\"@cron\">cron maintenance task</a>. If necessary, reduce the number of items to prevent timeouts and memory errors while synchronizing."
+msgstr ""
+
+#: alfresco.admin.inc:264
+msgid "Synchronize interval"
+msgstr ""
+
+#: alfresco.admin.inc:267
+msgid "The length of time between node synchronizes. (Requires a correctly configured <a href=\"@cron\">cron maintenance task</a>)"
+msgstr ""
+
+#: alfresco.content.inc:40
+msgid "Node Reference"
+msgstr ""
+
+#: alfresco.content.inc:44 alfresco_attach/alfresco_attach.module:187
+msgid "Alfresco Node Reference. Example: workspace://SpacesStore/uuid"
+msgstr ""
+
+#: alfresco.content.inc:50
+msgid "Use Alfresco node title."
+msgstr ""
+
+#: alfresco.content.inc:51
+msgid "Deje esta campo marcado para obtener el título automáticamente del nodo de Alfresco, si desea indicar un título desmárquelo."
+msgstr ""
+
+#: alfresco.content.inc:96
+msgid "Alfresco Node Reference is in an invalid format."
+msgstr ""
+
+#: alfresco.content.inc:113
+msgid "No such node in Alfresco repository. <a href=\"@url_edit\">Edit Alfresco node reference</a> or <a href=\"@url_delete\">delete this node</a>."
+msgstr ""
+
+#: alfresco.content.inc:120;116
+msgid "No such node in Alfresco repository."
+msgstr ""
+
+#: alfresco.content.inc:134
+msgid "The <a href=\"!url\">Alfresco node</a> already exists."
+msgstr ""
+
+#: alfresco.content.inc:321
+msgid "n/a"
+msgstr ""
+
+#: alfresco.content.inc:325
+msgid "Download file"
+msgstr ""
+
+#: alfresco.content.inc:342 alfresco.pages.inc:111
+msgid "Value"
+msgstr ""
+
+#: alfresco.content.inc:455
+msgid "Save"
+msgstr ""
+
+#: alfresco.content.inc:116 alfresco.pages.inc:24;66 alfresco.ws.inc:47;81;88;130 alfresco.module:0
+msgid "alfresco"
+msgstr ""
+
+#: alfresco.pages.inc:22;62
+msgid "view"
+msgstr ""
+
+#: alfresco.pages.inc:67
+msgid "@type %title has been synchronized."
+msgstr ""
+
+#: alfresco.pages.inc:93
+msgid "Type"
+msgstr ""
+
+#: alfresco.pages.inc:102
+msgid "Aspects"
+msgstr ""
+
+#: alfresco.pages.inc:24
+msgid "@type: downloaded %title."
+msgstr ""
+
+#: alfresco.pages.inc:66
+msgid "@type: synchronized %title."
+msgstr ""
+
+#: alfresco.views.inc:21;73 alfresco.module:148 alfresco.info:0;0 alfresco_attach/alfresco_attach.info:0 alfresco_import/alfresco_import.info:0
+msgid "Alfresco"
+msgstr ""
+
+#: alfresco.views.inc:38
+msgid "The name of the alfresco item (or the filename if is a file)."
+msgstr ""
+
+#: alfresco.views.inc:56
+msgid "Upload date"
+msgstr ""
+
+#: alfresco.views.inc:57
+msgid "The date the file was saved/synchronized."
+msgstr ""
+
+#: alfresco.views.inc:89
+msgid "URL"
+msgstr ""
+
+#: alfresco.views.inc:90
+msgid "The Guest URL of the alfresco file."
+msgstr ""
+
+#: alfresco.views.inc:108
+msgid "Mime type"
+msgstr ""
+
+#: alfresco.views.inc:109
+msgid "The mime type of the alfresco file."
+msgstr ""
+
+#: alfresco.views.inc:128
+msgid "The size of the alfresco file."
+msgstr ""
+
+#: alfresco.ws.inc:46
+msgid "Error connecting to alfresco repository."
+msgstr ""
+
+#: alfresco.ws.inc:87
+msgid "Error loading node from alfresco repository."
+msgstr ""
+
+#: alfresco.ws.inc:129
+msgid "Error loading properties from alfresco node."
+msgstr ""
+
+#: alfresco.ws.inc:47
+msgid "Error connecting to alfresco repository. URL=%url, Exception=%msg"
+msgstr ""
+
+#: alfresco.ws.inc:81
+msgid "Se ha obtenido más de un nodo con la misma referencia %reference"
+msgstr ""
+
+#: alfresco.ws.inc:88
+msgid "Error loading node from alfresco repository, with reference %reference. Exception=%msg"
+msgstr ""
+
+#: alfresco.ws.inc:130
+msgid "Error loading properties from alfresco node, with reference %reference. Exception=%msg"
+msgstr ""
+
+#: alfresco.module:66
+msgid "Alfresco and Drupal integration."
+msgstr ""
+
+#: alfresco.module:83
+msgid "Alfresco item"
+msgstr ""
+
+#: alfresco.module:85
+msgid "An <em>alfresco item</em> is a reference to node stored in Alfresco repository. Alfresco node can be content items o spaces."
+msgstr ""
+
+#: alfresco.module:104
+msgid "administer alfresco"
+msgstr ""
+
+#: alfresco.module:105
+msgid "create alfresco content"
+msgstr ""
+
+#: alfresco.module:106
+msgid "delete own alfresco content"
+msgstr ""
+
+#: alfresco.module:107
+msgid "delete any alfresco content"
+msgstr ""
+
+#: alfresco.module:108
+msgid "download alfresco content"
+msgstr ""
+
+#: alfresco.module:109
+msgid "edit own alfresco content"
+msgstr ""
+
+#: alfresco.module:110
+msgid "edit any alfresco content"
+msgstr ""
+
+#: alfresco.module:149
+msgid "Configure Alfresco."
+msgstr ""
+
+#: alfresco.module:174
+msgid "Advanced"
+msgstr ""
+
+#: alfresco.module:185
+msgid "Download"
+msgstr ""
+
+#: alfresco.module:196
+msgid "Synchronize"
+msgstr ""
+
+#: alfresco.module:207 alfresco_attach/alfresco_attach.module:355
+msgid "Details"
+msgstr ""
+
+#: (duplicate) alfresco.install:44 ;66 
+msgid "Alfresco PHP library"
+msgstr ""
+
+#: (duplicate) alfresco.install:54 
+msgid "Alfresco repository"
+msgstr ""
+
+#: (duplicate) alfresco.install:258 
+msgid "The PHP SOAP extension is no available"
+msgstr ""
+
+#: (duplicate) alfresco.install:267 
+msgid "Available via the system's include_path"
+msgstr ""
+
+#: (duplicate) alfresco.install:280 
+msgid "Available via module (%path)."
+msgstr ""
+
+#: (duplicate) alfresco.install:292 
+msgid "No available"
+msgstr ""
+
+#: (duplicate) alfresco.install:303 
+msgid "<a href=\"@url\">Alfresco Labs - v3.0.0 (b 1164)</a>"
+msgstr ""
+
+#: alfresco.info:0
+msgid "Alfresco and Drupal integration, this module define a new alfresco node content type."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:33 alfresco_attach/alfresco_attach.info:0
+msgid "Allows users to create and attach alfresco items to content."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:86
+msgid "Read full article to view attachments."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:127;146
+msgid "Alfresco attachments"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:129
+msgid "Disabled"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:129
+msgid "Enabled"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:170
+msgid "Attach existing alfresco item"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:173
+msgid "Choose an alfresco item already existing on the server if you do not create a new one."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:177
+msgid "-or-"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:185
+msgid "Attach new alfresco item"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:212
+msgid "Error loading alfresco node."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:303
+msgid "View alfresco node"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:355
+msgid "Attachment"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:380
+msgid "Delete"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:380
+msgid "List"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:380
+msgid "Node"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:380
+msgid "Weight"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:534
+msgid "None"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:84
+msgid "1 attachment"
+msgid_plural "@count attachments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: alfresco_attach/alfresco_attach.module:63
+msgid "view attached alfresco items"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:100
+msgid "Attachments"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:101
+msgid "Control how alfresco items may be attached to content."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:0
+msgid "alfresco_attach"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:34
+msgid "Stores attached alfresco item information and table associations."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:41
+msgid "Primary Key: The {alfresco_node}.nid."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:48
+msgid "Primary Key: The {node}.vid associated with the attached alfresco item."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:55
+msgid "The {node}.nid associated with the attached alfresco item."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:62
+msgid "Description of the attached alfresco item."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:70
+msgid "Whether the alfresco item should be visibly listed on the node: yes(1) or no(0)."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.install:77
+msgid "Weight of this attached alfresco item in relation to other attached in this node."
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.info:0
+msgid "Alfresco attach"
+msgstr ""
+
+#: alfresco_import/alfresco_import.module:16 alfresco_import/alfresco_import.info:0
+msgid "Allows importing multiple alfresco nodes from a space of Alfresco."
+msgstr ""
+
+#: alfresco_import/alfresco_import.module:0
+msgid "alfresco_import"
+msgstr ""
+
+#: alfresco_import/alfresco_import.info:0
+msgid "Alfresco import"
+msgstr ""
+
+#: views/alfresco_handler_field_url_download.inc:33
+msgid "Display as download link"
+msgstr ""
+
