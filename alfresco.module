@@ -22,8 +22,8 @@
 // =0 Constants, includes and views support
 // ------------------------------------------------------------------
 
+// Relative path to Alfresco PHP Library
 if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
-  // Relative path to Alfresco PHP Library
   define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-sdk');
 }
 
@@ -35,17 +35,6 @@ define('ALFRESCO_DEBUG_OUTPUT', TRUE);
 define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);  // Private transfer
 define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
-
-/**
- * @todo config
- */
-define('ALFRESCO_SYNC_TIME', 21600);
-
-/**
- * @todo config
- */
-define('ALFRESCO_SYNC_LIMIT', 10);
-
 
 // Include required files
 if (function_exists('drupal_get_path')) {
@@ -289,11 +278,14 @@ function alfresco_name_to_arg($arg) {
  */
 function alfresco_cron() {
 
-  // Sincronización de nodos de Alfresco
-  $result = db_query_range('SELECT nid FROM {alfresco_node} WHERE timestamp < %d ORDER BY timestamp DESC', time() - ALFRESCO_SYNC_TIME, 0, ALFRESCO_SYNC_LIMIT);
+  if (variable_get('alfresco_sync_enabled', FALSE)) {
+    $limit = (int)variable_get('alfresco_sync_cron_limit', 100);
+    $refresh = (int)variable_get('alfresco_sync_cron_refresh', 21600);
 
-  while ($node = db_fetch_object($result)) {
-    alfresco_sync_node($node);
+    $result = db_query_range('SELECT nid FROM {alfresco_node} WHERE timestamp < %d ORDER BY timestamp DESC', time() - $refresh, 0, $limit);
+    while ($node = db_fetch_object($result)) {
+      alfresco_sync_node($node);
+    }
   }
 }
 

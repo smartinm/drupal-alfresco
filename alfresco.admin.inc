@@ -234,5 +234,39 @@ function alfresco_admin_advanced(&$form_state) {
     '#default_value' => variable_get('alfresco_debug_output', ALFRESCO_DEBUG_OUTPUT),
   );
 
+  $limits = drupal_map_assoc(array(10, 20, 50, 100, 200, 500));
+  $period = drupal_map_assoc(array(900, 1800, 3600, 7200, 10800, 21600, 32400, 43200, 64800, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
+
+  $form['synchronizing'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Synchronizing'),
+  );
+
+  $form['synchronizing']['alfresco_sync_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable node synchronize'),
+    '#description' => t("Check this to enable Alfresco-Drupal node synchronizing. (<strong>Experimental</strong>)"),
+    '#default_value' => variable_get('alfresco_sync_enabled', FALSE),
+    '#disabled' => TRUE,  // @todo eliminar cuando sea estable
+  );
+
+  $form['synchronizing']['alfresco_sync_cron_limit'] = array(
+    '#type' => 'select',
+    '#title' => t('Number of items to synchronize per cron run'),
+    '#default_value' => variable_get('alfresco_sync_cron_limit', 100),
+    '#options' => $limits,
+    '#description' => t('The maximum number of items synchronized in each pass of a <a href="@cron">cron maintenance task</a>. If necessary, reduce the number of items to prevent timeouts and memory errors while synchronizing.', array('@cron' => url('admin/reports/status'))),
+    '#disabled' => TRUE,  // @todo eliminar cuando sea estable
+  );
+
+  $form['synchronizing']['alfresco_sync_cron_refresh'] = array(
+    '#type' => 'select',
+    '#title' => t('Synchronize interval'),
+    '#default_value' => variable_get('alfresco_sync_cron_refresh', 21600),
+    '#options' => $period,
+    '#description' => t('The length of time between node synchronizes. (Requires a correctly configured <a href="@cron">cron maintenance task</a>)', array('@cron' => url('admin/reports/status'))),
+    '#disabled' => TRUE,  // @todo eliminar cuando sea estable
+  );
+
   return system_settings_form($form);
 }
