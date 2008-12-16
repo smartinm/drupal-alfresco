@@ -18,6 +18,11 @@ function alfresco_attach_install() {
  */
 function alfresco_attach_uninstall() {
   drupal_uninstall_schema('alfresco_attach');
+
+  // Remove config variables.
+  foreach (node_get_types('names') as $type_name) {
+    variable_del('alfresco_attach_'. $type_name);
+  }
 }
 
 /**
