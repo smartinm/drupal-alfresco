@@ -22,7 +22,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2008-12-16 19:44+0100\n"
+"POT-Creation-Date: 2008-12-17 10:11+0100\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -403,24 +403,32 @@ msgstr ""
 msgid "Alfresco repository"
 msgstr ""
 
-#: (duplicate) alfresco.install:258 
+#: (duplicate) alfresco.install:256 
+msgid "Read <a href=\"@url\">SOAP manual</a> to find how to install and enable SOAP in your PHP setup."
+msgstr ""
+
+#: (duplicate) alfresco.install:259 
 msgid "The PHP SOAP extension is no available"
 msgstr ""
 
-#: (duplicate) alfresco.install:267 
+#: (duplicate) alfresco.install:268 
 msgid "Available via the system's include_path"
 msgstr ""
 
-#: (duplicate) alfresco.install:280 
+#: (duplicate) alfresco.install:281 
 msgid "Available via module (%path)."
 msgstr ""
 
-#: (duplicate) alfresco.install:292 
+#: (duplicate) alfresco.install:291 
+msgid "Read <a href=\"@url\">Alfresco PHP Library Installation Instructions</a> to find how to install and enable Alfresco PHP Library.<br />As an alternative, you can download and copy Alfresco PHP Library on %path"
+msgstr ""
+
+#: (duplicate) alfresco.install:294 
 msgid "No available"
 msgstr ""
 
-#: (duplicate) alfresco.install:303 
-msgid "<a href=\"@url\">Alfresco Labs - v3.0.0 (b 1164)</a>"
+#: (duplicate) alfresco.install:305 
+msgid "<a href=\"@url\">Alfresco Labs - vx.x.x (b xxxx)</a>"
 msgstr ""
 
 #: alfresco.info:0
