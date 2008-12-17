@@ -252,11 +252,12 @@ function _alfresco_check_php_library() {
   $t = get_t();
 
   if (!class_exists('SoapClient')) {
-    $msg = 'Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP in your PHP setup.';
     $arg = array('@url' => 'http://php.net/manual/en/book.soap.php');
+    $msg = $t('Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP in your PHP setup.', $arg);
+
     return array(
       'value'       => $t('The PHP SOAP extension is no available'),
-      'description' => $t($msg, $arg),
+      'description' => $msg,
       'severity'    => REQUIREMENT_ERROR,
     );
   }
@@ -283,14 +284,15 @@ function _alfresco_check_php_library() {
     }
   }
 
-  $msg = 'Read <a href="@url">Alfresco PHP Library Installation Instructions</a> to find how to install and enable Alfresco PHP Library.<br />As an alternative, you can download and copy Alfresco PHP Library on %path';
   $arg = array(
     '@url'  => 'http://wiki.alfresco.com/wiki/Alfresco_PHP_Library_Installation_Instructions',
     '%path' => $lib_path
   );
+  $msg = $t('Read <a href="@url">Alfresco PHP Library Installation Instructions</a> to find how to install and enable Alfresco PHP Library.<br />As an alternative, you can download and copy Alfresco PHP Library on %path', $arg);
+
   return array(
     'value'       => $t('No available'),
-    'description' => $t($msg, $arg),
+    'description' => $msg,
     'severity'    => REQUIREMENT_ERROR,
   );
 }
@@ -300,7 +302,7 @@ function _alfresco_check_connection_repository() {
   $t = get_t();
 
   return array(
-    'value' => $t('<a href="@url">Alfresco Labs - v3.0.0 (b 1164)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
+    'value' => $t('<a href="@url">Alfresco Labs - vx.x.x (b xxxx)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
     'severity' => REQUIREMENT_OK,
   );
 }
