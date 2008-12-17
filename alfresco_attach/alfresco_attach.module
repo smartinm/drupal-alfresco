@@ -352,7 +352,8 @@ function _alfresco_attach_form($node) {
  */
 function theme_alfresco_attach_attachments($files) {
 
-  $header = array(t('Attachment'), t('Details'), t('Size'));
+  //$header = array(t('Attachment'), t('Details'), t('Size'));
+  $header = array(t('Attachment'), t('Size'));
 
   $rows = array();
   foreach ($files as $file) {
@@ -364,7 +365,8 @@ function theme_alfresco_attach_attachments($files) {
       $text = !empty($file->description) ? $file->description : $alf_node->title;
       $node = l($alf_node->title, 'node/'. $alf_node->nid);
 
-      $rows[] = array(l($text, $href), $node, format_size($alf_node->cm_content['size']));
+      //$rows[] = array(l($text, $href), $node, format_size($alf_node->cm_content['size']));
+      $rows[] = array(l($text, $href), format_size($alf_node->cm_content['size']));
     }
   }
   if (count($rows)) {
