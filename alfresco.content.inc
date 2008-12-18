@@ -155,7 +155,11 @@ function alfresco_form_submit($form, &$form_state) {
       }
 
       if (!empty($form_state['values']['use_title'])) {
-        $form_state['values']['title'] = $properties['cm_title'];
+        $title = $properties['cm_title'];
+        if (drupal_strlen($title) > 255) {
+          $title = drupal_substr($title, 0, 255);
+        }
+        $form_state['values']['title'] = $title;
       }
     }
 
