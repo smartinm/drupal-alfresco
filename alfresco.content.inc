@@ -155,9 +155,9 @@ function alfresco_form_submit($form, &$form_state) {
       }
 
       if (!empty($form_state['values']['use_title'])) {
-        $title = $properties['cm_title'];
-        if (drupal_strlen($title) > 255) {
-          $title = drupal_substr($title, 0, 255);
+        $title = trim($properties['cm_title']);
+        if (drupal_strlen($title) > 254) {
+          $title = drupal_substr($title, 0, 250) .'...';
         }
         $form_state['values']['title'] = $title;
       }
@@ -291,6 +291,17 @@ function alfresco_load($node) {
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
 
   $node = node_prepare($node, $teaser);
+
+  if ($teaser) {
+    $url = alfresco_url_download($node);
+    $link = l($node->cm_name, $url, array('attributes' => array('title' => t('Download file'))));
+
+    $node->content['alfresco_download'] = array(
+      '#value' => '<p>'. $link .'</p>',
+      '#weight' => 1,
+    );
+    return $node;
+  }
 
   //$node->teaser = TRUE;
   //$node->readmore = TRUE;

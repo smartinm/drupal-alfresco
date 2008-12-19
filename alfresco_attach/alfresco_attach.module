@@ -283,8 +283,8 @@ function _alfresco_attach_form($node) {
       //$description = '<small>'. $url .'</small>';
 
       $title = $alfresco_node->title;
-      if (drupal_strlen($title) > 100) {
-        $title = drupal_substr($alfresco_node->title, 0, 95) .'...';
+      if (drupal_strlen($title) > 80) {
+        $title = drupal_substr($alfresco_node->title, 0, 75) .'...';
       }
       $link = l($title, 'node/'. $alfresco_node->nid, array('attributes' => array('title' => t('View alfresco node'))));
       $description = '<small>'. $link .'</small>';
@@ -546,12 +546,12 @@ function _alfresco_attach_delete_revision($node) {
  */
 function _alfresco_attach_get_alfresco_nodes() {
 
-  $result = db_query(db_rewrite_sql("SELECT n.nid, n.title FROM {node} n WHERE n.status=1 AND type='alfresco_item' ORDER BY n.sticky DESC, n.title ASC"));
-  $result_count = db_result(db_query("SELECT COUNT(*) FROM {node} n WHERE n.status=1 AND type='alfresco_item'"));
+  $result = db_query(db_rewrite_sql("SELECT n.nid, n.title FROM {node} n WHERE n.status = 1 AND type = 'alfresco_item' ORDER BY n.title ASC"));
+  $result_count = db_result(db_query("SELECT COUNT(*) FROM {node} n WHERE n.status = 1 AND type = 'alfresco_item'"));
   $rows = array(0 => t('None'));
   while ($node = db_fetch_object($result)) {
-    if (drupal_strlen($node->title) > 120) {
-      $rows[$node->nid] = drupal_substr($node->title, 0, 115) .'...';
+    if (drupal_strlen($node->title) > 100) {
+      $rows[$node->nid] = drupal_substr($node->title, 0, 95) .'...';
     }
     else {
       $rows[$node->nid] = $node->title;
