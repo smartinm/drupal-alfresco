@@ -20,9 +20,9 @@ with Alfresco Open Source Enterprise Content Management System (ECM).
 
 -- REQUIREMENTS --
 
-* Alfresco 3.x, 2.x (tested with Alfresco Labs and Alfresco Enterprise)
+* Alfresco 3.x or 2.x (tested with Alfresco Labs and Alfresco Enterprise)
 
-* Alfresco PHP Library (included in Alfresco bundle) 
+* Alfresco PHP Library (included in Alfresco module bundle) 
 
 * PHP 5 (5.2.0 or greater) with SOAP extension enabled
 
@@ -62,7 +62,16 @@ with Alfresco Open Source Enterprise Content Management System (ECM).
 -- CREDITS --
 
 Author and maintainer:
- * Sergio Martín Morillas <smartin@gmv.com>
-  
+* Sergio Martín Morillas <smartin@gmv.com> - http://drupal.org/user/191570
+
+Contributors:
+* Manuel Jesús Recena Soto <mjrecena@gmv.com>
+  Thanks for your helpful comments and encouragement.
+
 This project is sponsored by:
- * GMV <http://www.gmv.com>
+* GMV
+  Technological business group with an international presence. GMV offers its
+  solutions, services and products in very diverse sectors: Aeronautics,
+  Banking and Finances, Space, Defense, Health, Security, Transportation,
+  Telecommunications, and Information Technology for Public Administration and
+  large corporations. Visit http://www.gmv.com for more information. 
