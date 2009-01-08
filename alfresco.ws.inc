@@ -137,7 +137,7 @@ function alfresco_service_load_properties($node) {
 }
 
 /**
- * Include the relevant Alfresco PHP library and objets.
+ * Include the Alfresco PHP library.
  */
 function _alfresco_service_include_library() {
   static $included = FALSE;
@@ -157,8 +157,8 @@ function _alfresco_service_include_library() {
     }
 
     // Include the required Alfresco PHP API objects
-    @include_once "Alfresco/Service/Repository.php";
-    @include_once "Alfresco/Service/Session.php";
+    include_once "Alfresco/Service/Repository.php";
+    include_once "Alfresco/Service/Session.php";
   }
 
   $included = TRUE;

@@ -131,7 +131,7 @@ function alfresco_validate($node, &$form) {
 
   if (!empty($node->reference)) {
     if ($nid = db_result(db_query("SELECT nid FROM {alfresco_node} WHERE reference = '%s' AND nid <> %d", $node->reference, $node->nid))) {
-      form_set_error('reference', t('The <a href="!url">Alfresco node</a> already exists.', array('!url' => url('node/'. $nid))));
+      form_set_error('reference', t('This Alfresco node already exists in your Drupal site. <a href="!url">View node</a>', array('!url' => url('node/'. $nid))));
     }
   }
 }
@@ -447,11 +447,6 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
     return drupal_access_denied();
   }
 
-  // Ensure it's a valid alfresco node referente.
-//  if (!alfresco_valid_reference($reference)) {
-//    return FALSE;
-//  }
-
   // Import node functions.
   module_load_include('inc', 'node', 'node.pages');
 
@@ -469,7 +464,15 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
   $form_state['values']['reference'] = $reference;
   $form_state['values']['op']        = t('Save');
 
+  // workaround to disable drupal message "Your node has been created"
+  // $messages = drupal_get_messages();
+
   drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
+
+  //foreach ($messages as $type => $message) {
+  //  drupal_set_message($message, $type);
+  //}
+
   if (form_get_errors()) {
     return FALSE;
   }

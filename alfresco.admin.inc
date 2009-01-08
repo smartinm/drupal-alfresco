@@ -105,7 +105,7 @@ function alfresco_admin_display() {
     '#tree'        => TRUE,
     '#type'        => 'fieldset',
     '#title'       => t('Properties'),
-    '#description' => t(''),
+    '#description' => t('Sorry, this settings not working (under development).'),
     '#collapsible' => FALSE,
     '#theme'       => 'alfresco_properties_table'
   );
@@ -114,11 +114,13 @@ function alfresco_admin_display() {
     'name'        => t('Name'),
     'title'       => t('Title'),
     'description' => t('Description'),
+    /*
     'content'     => array(
       'mimetype'  => t('Mimetype'),
       'encoding'  => t('Encoding'),
       'size'      => t('Size'),
     ),
+    */
     'author'      => t('Author'),
     'creator'     => t('Creator'),
     'created'     => t('Created date'),
@@ -128,9 +130,11 @@ function alfresco_admin_display() {
 
   $count = count($mapping);
   for ($delta = 0; $delta < $count; $delta++) {
+    $key = key($mapping);
+
     $property['key'] = array(
       '#type'  => 'markup',
-      '#value' => 'cm:'. key($mapping),
+      '#value' => 'cm:'. $key,
     );
 
     $property['name'] = array(
@@ -138,12 +142,7 @@ function alfresco_admin_display() {
       '#maxlength'     => '255',
       '#default_value' => current($mapping),
       '#disabled'      => TRUE,
-      '#attributes'    => array('style' => 'width: 95%')
-    );
-
-    $property['display'] = array(
-      '#type'          => 'checkbox',
-      '#default_value' => TRUE,
+      //'#attributes'    => array('style' => 'width: 95%')
     );
 
     $property['display'] = array(
@@ -153,12 +152,16 @@ function alfresco_admin_display() {
 
     $property['title'] = array(
       '#type'          => 'radio',
-      //'#name'          => 'title',
+      '#name'          => 'title',
+      '#default_value' => NULL,
+      '#return_value'  => $key,
     );
 
     $property['body'] = array(
       '#type'          => 'radio',
-      //'#name'          => 'body',
+      '#name'          => 'body',
+      '#default_value' => NULL,
+      '#return_value'  => $key,
     );
 
     $property['show'] = array(
@@ -193,13 +196,13 @@ function theme_alfresco_properties_table($form) {
     $row = array();
 
     $row[] = drupal_render($form[$key]['key']);
-
-    $form[$key]['weight']['#attributes']['class'] = 'alfresco-properties-order-weight';
     $row[] = drupal_render($form[$key]['name']);
     $row[] = drupal_render($form[$key]['display']);
     $row[] = drupal_render($form[$key]['title']);
     $row[] = drupal_render($form[$key]['body']);
     $row[] = drupal_render($form[$key]['show']);
+
+    $form[$key]['weight']['#attributes']['class'] = 'alfresco-properties-order-weight';
     $row[] = drupal_render($form[$key]['weight']);
 
     $rows[] = array(
@@ -212,7 +215,7 @@ function theme_alfresco_properties_table($form) {
   $output = theme('table', $header, $rows, array('id' => 'alfresco-properties-table'));
   $output .= drupal_render($form);
 
-  drupal_add_tabledrag('imagecache-preset-actions', 'order', 'self', 'alfresco-properties-order-weight');
+  drupal_add_tabledrag('alfresco-properties-table', 'order', 'self', 'alfresco-properties-order-weight');
 
   return $output;
 }
