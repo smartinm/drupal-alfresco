@@ -16,6 +16,9 @@ if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
  */
 function alfresco_install() {
   drupal_install_schema('alfresco');
+
+  $link = array('!link' => l(t('Administer > Site configuration > Alfresco'), 'admin/settings/alfresco'));
+  drupal_set_message(t("Alfresco module settings are available under !link", $link));
 }
 
 /**

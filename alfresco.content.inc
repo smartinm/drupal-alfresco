@@ -439,43 +439,73 @@ function alfresco_sync_node($node) {
  * @see http://www.darrenmothersele.com/content/programmatically-creating-drupal-nodes
  * @see http://drupal.org/node/293663
  * @see drupal_execute()
+ * @see http://acquia.com/blog/migrating-drupal-way-part-i-creating-node
+ * @see http://drupal.org/node/178506#comment-895418
+ * @see image_create_node_from()
  */
 function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body = '', $taxonomy = NULL) {
-  global $user;
+  global $user, $language;
 
   if (!user_access('create alfresco content')) {
-    return drupal_access_denied();
-  }
-
-  // Import node functions.
-  module_load_include('inc', 'node', 'node.pages');
-
-  // Create a new alfresco_item node
-  $node = array(
-    'type'     => 'alfresco_item',
-    'name'     => $user->name,
-    'taxonomy' => $taxonomy,
-  );
-
-  $form_state = array();
-  $form_state['values']['use_title'] = $use_title;
-  $form_state['values']['title']     = $title;
-  $form_state['values']['body']      = $body;
-  $form_state['values']['reference'] = $reference;
-  $form_state['values']['op']        = t('Save');
-
-  // workaround to disable drupal message "Your node has been created"
-  // $messages = drupal_get_messages();
-
-  drupal_execute('alfresco_item_node_form', $form_state, (object)$node);
-
-  //foreach ($messages as $type => $message) {
-  //  drupal_set_message($message, $type);
-  //}
-
-  if (form_get_errors()) {
     return FALSE;
   }
 
-  return node_load($form_state['nid']);
+  // Ensure it's a valid alfresco node referente
+  if (!alfresco_valid_reference($reference)) {
+    return FALSE;
+  }
+
+  // Build the alfresco_item node
+  $node = new stdClass();
+  $node->type  = 'alfresco_item';
+  $node->uid   = $user->uid;
+  $node->name  = $user->name;
+  $node->language = $language->language;
+  $node->title = $title;
+  $node->body  = $body;
+
+  // Set the node's defaults... (copied this from node and comment.module)
+  $node_options  = variable_get('node_options_'. $node->type, array('status', 'promote'));
+  $node->status  = in_array('status', $node_options);
+  $node->promote = in_array('promote', $node_options);
+
+  if (module_exists('comment')) {
+    $node->comment = variable_get('comment_'. $node->type, COMMENT_NODE_READ_WRITE);
+  }
+
+  if (module_exists('taxonomy')) {
+    $node->taxonomy = $taxonomy;
+  }
+
+  // Alfresco node stuff
+  $node->reference = $reference;
+
+  $alf_node = alfresco_service_load_node($reference);
+  if (!$alf_node) {
+    return FALSE;
+  }
+
+  $properties = alfresco_service_load_properties($alf_node);
+  if ($properties) {
+    foreach ($properties as $key => $value) {
+      $node->$key = $value;
+    }
+
+    if ($use_title) {
+      $title = trim($properties['cm_title']);
+      if (drupal_strlen($title) > 254) {
+        $title = drupal_substr($title, 0, 250) .'...';
+      }
+      $node->title = $title;
+    }
+    else {
+      $node->title = $title;
+    }
+  }
+
+  // Save the node.
+  $node = node_submit($node);
+  node_save($node);
+
+  return $node;
 }

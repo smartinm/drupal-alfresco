@@ -39,6 +39,13 @@ function alfresco_import_menu() {
     'file' => 'alfresco_import.pages.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['admin/content/alfresco_test'] = array(
+    'title' => 'Alfresco test',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_import_test'),
+    'access arguments' => array('import alfresco contents'),
+    'type' => MENU_NORMAL_ITEM,
+  );
   return $items;
 }
 
@@ -52,4 +59,19 @@ function alfresco_import_theme() {
       'file' => 'alfresco_import.pages.inc',
     ),
   );
+}
+
+function alfresco_import_test() {
+  $node = alfresco_create_node(
+    'workspace://SpacesStore/2eb6ea26-cce1-11dd-962b-337df3af8629', TRUE,
+    'Decreto 141/2006 de 18 de Julio de ordenación de la actividad cartográfica de Andalucía',
+    '',
+    array(52 => '')
+  );
+
+  dpm($node);
+
+  $form = array();
+
+  return $form;
 }
