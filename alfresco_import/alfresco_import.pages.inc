@@ -151,7 +151,6 @@ function alfresco_import_form($form_state) {
 }
 
 function alfresco_import_load_space_validate($form, &$form_state) {
-  dpm('alfresco_import_load_space_validate');
 
   if (empty($form_state['values']['reference'])) {
     form_set_error('reference', t('You must set an Alfresco Space Reference.'));
@@ -171,15 +170,12 @@ function alfresco_import_load_space_validate($form, &$form_state) {
 }
 
 function alfresco_import_load_space_submit($form, &$form_state) {
-  dpm('alfresco_import_load_space_submit');
 }
 
 function alfresco_import_form_validate($form, &$form_state) {
-  dpm('alfresco_import_form_validate');
 }
 
 function alfresco_import_form_submit($form, &$form_state) {
-  dpm('alfresco_import_form_submit');
 
   $batch = array(
     'title' => t('Importing alfresco content'),
@@ -247,7 +243,7 @@ function _alfresco_import_batch_finished($success, $results, $operations) {
 function theme_alfresco_import_table($form) {
 
   $type = node_get_types('type', 'alfresco_item');
-  $header = array(theme('table_select_header_cell'), t('Name'), t('Size'), check_plain($type->title_label), check_plain($type->body_label));
+  $header = array(theme('table_select_header_cell'), t('Name'), t('Size')/*, check_plain($type->title_label), check_plain($type->body_label)*/);
   $rows = array();
   foreach (element_children($form['import']) as $key) {
     $filename = $form['import'][$key]['#title'];
@@ -257,6 +253,7 @@ function theme_alfresco_import_table($form) {
       array('data' => $filename),
       array('data' => drupal_render($form['filesize'][$key])),
     );
+    /*
     if (!isset($form['errors'][$key])) {
       $row[] = array('data' => drupal_render($form['title'][$key]));
       $row[] = array('data' => drupal_render($form['body'][$key]));
@@ -264,6 +261,7 @@ function theme_alfresco_import_table($form) {
     else {
       $row[] = array('colspan' => 2, 'data' => drupal_render($form['errors'][$key]));
     }
+    */
     $rows[] = $row;
   }
   return theme('table', $header, $rows);

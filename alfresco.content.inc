@@ -437,11 +437,11 @@ function alfresco_sync_node($node) {
  *   A node object if the node is created successfully or FALSE on error.
  *
  * @see http://www.darrenmothersele.com/content/programmatically-creating-drupal-nodes
- * @see http://drupal.org/node/293663
- * @see drupal_execute()
  * @see http://acquia.com/blog/migrating-drupal-way-part-i-creating-node
+ * @see http://drupal.org/node/293663
  * @see http://drupal.org/node/178506#comment-895418
  * @see image_create_node_from()
+ * @see drupal_execute()
  */
 function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body = '', $taxonomy = NULL) {
   global $user, $language;
@@ -455,52 +455,51 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
     return FALSE;
   }
 
+  $alf_node = alfresco_service_load_node($reference);
+  if (!$alf_node) {
+    return FALSE;
+  }
+
   // Build the alfresco_item node
   $node = new stdClass();
   $node->type  = 'alfresco_item';
   $node->uid   = $user->uid;
   $node->name  = $user->name;
   $node->language = $language->language;
-  $node->title = $title;
+  $node->title = '';
   $node->body  = $body;
-
-  // Set the node's defaults... (copied this from node and comment.module)
-  $node_options  = variable_get('node_options_'. $node->type, array('status', 'promote'));
-  $node->status  = in_array('status', $node_options);
-  $node->promote = in_array('promote', $node_options);
-
-  if (module_exists('comment')) {
-    $node->comment = variable_get('comment_'. $node->type, COMMENT_NODE_READ_WRITE);
-  }
 
   if (module_exists('taxonomy')) {
     $node->taxonomy = $taxonomy;
   }
 
+  // For node_object_prepare()
+  module_load_include('inc', 'node', 'node.pages');
+
+  // Set the node's defaults
+  node_object_prepare($node);
+
   // Alfresco node stuff
   $node->reference = $reference;
-
-  $alf_node = alfresco_service_load_node($reference);
-  if (!$alf_node) {
-    return FALSE;
-  }
 
   $properties = alfresco_service_load_properties($alf_node);
   if ($properties) {
     foreach ($properties as $key => $value) {
       $node->$key = $value;
     }
+  }
 
-    if ($use_title) {
-      $title = trim($properties['cm_title']);
+  if ($use_title) {
+    if (isset($node->cm_title)) {
+      $title = trim($node->cm_title);
       if (drupal_strlen($title) > 254) {
         $title = drupal_substr($title, 0, 250) .'...';
       }
       $node->title = $title;
     }
-    else {
-      $node->title = $title;
-    }
+  }
+  else {
+    $node->title = $title;
   }
 
   // Save the node.
