@@ -291,82 +291,18 @@ function alfresco_load($node) {
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
 
   $node = node_prepare($node, $teaser);
-
   if ($teaser) {
-    $url = alfresco_url_download($node);
-    $link = l($node->cm_name, $url, array('attributes' => array('title' => t('Download file'))));
-
-    $node->content['alfresco_download'] = array(
-      '#value' => '<p>'. $link .'</p>',
-      '#weight' => 1,
+    $node->content['alfresco_info'] = array(
+      '#value'  => theme('alfresco_teaser', $node),
+      '#weight' => 0,
     );
-    return $node;
   }
-
-  //$node->teaser = TRUE;
-  //$node->readmore = TRUE;
-
-  $model = array(
-    'name'        => t('Name'),
-    'title'       => t('Title'),
-    'description' => t('Description'),
-    'content'     => array(
-      'mimetype'  => t('Mimetype'),
-      'encoding'  => t('Encoding'),
-      'size'      => t('Size'),
-    ),
-    'author'      => t('Author'),
-    'creator'     => t('Creator'),
-    'created'     => t('Created date'),
-    'modifier'    => t('Modifier'),
-    'modified'    => t('Modified date'),
-  );
-
-  /*
-    'node-uuid'        => t('Node UUID'),
-    'node-dbid'        => t('Node DBID'),
-    'store-protocol'   => t('Store protocol'),
-    'store-identifier' => t('Store identifier'),
-   */
-
-  $properties = array();
-  foreach ($model as $key => $name) {
-    $property = 'cm_'. $key;
-    if (isset($node->$property)) {
-      $value = empty($node->$property) ? t('n/a') : $node->$property;
-
-      if ($key == 'name' && isset($node->cm_content) && user_access('download alfresco content')) {
-        $url = alfresco_url_download($node);
-        $properties[] = array($name, l($value, $url, array('attributes' => array('title' => t('Download file')))));
-      }
-      elseif ($key == 'content') {
-        $content = $node->cm_content;
-        $properties[] = array($model['content']['mimetype'], $content['mimetype']);
-        $properties[] = array($model['content']['size'], format_size($content['size']));
-        $properties[] = array($model['content']['encoding'], $content['encoding']);
-      }
-      elseif ($key == 'created' || $key == 'modified') {
-        $properties[] = array($name, format_date(strtotime($value), 'large'));
-      }
-      else {
-        $properties[] = array($name, $value);
-      }
-    }
+  else {
+    $node->content['alfresco_info'] = array(
+      '#value'  => theme('alfresco_display', $node),
+      '#weight' => -1,
+    );
   }
-
-  $header = array(t('Property'), t('Value'));
-  $table_properties = theme('table', $header, $properties, NULL);
-
-  $node->content['alfresco_properties'] = array(
-    '#value' => $table_properties,
-    '#weight' => 1,
-  );
-
-  /*
-  apm($alf_node->getChildren());
-  apm($alf_node->getParents());
-  apm($alf_node->getPrimaryParent());
-  */
   return $node;
 }
 
@@ -444,7 +380,7 @@ function alfresco_sync_node($node) {
  * @see drupal_execute()
  */
 function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body = '', $taxonomy = NULL) {
-  global $user, $language;
+  global $user;
 
   if (!user_access('create alfresco content')) {
     return FALSE;
@@ -465,12 +401,16 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
   $node->type  = 'alfresco_item';
   $node->uid   = $user->uid;
   $node->name  = $user->name;
-  $node->language = $language->language;
   $node->title = '';
   $node->body  = $body;
 
   if (module_exists('taxonomy')) {
     $node->taxonomy = $taxonomy;
+  }
+
+  if (module_exists('locale')) {
+    global $language;
+    $node->language = $language->language;
   }
 
   // For node_object_prepare()

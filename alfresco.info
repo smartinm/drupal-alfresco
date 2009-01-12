@@ -1,9 +1,9 @@
 ; $Id$
 name = "Alfresco"
-description = "Alfresco and Drupal integration, this module define a new alfresco node content type."
+description = "Alfresco and Drupal integration, this module provides a new node content type that embeds Alfresco items inside your Drupal site."
 package = "Alfresco" 
 core = "6.x"
 php = "5.2"
 
 ; Information added for OVC-TIC
-version = "6.x-1.0-dev"
+version = "6.x-1.x-dev"

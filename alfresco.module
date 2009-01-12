@@ -302,6 +302,14 @@ function alfresco_theme() {
       'arguments' => array('form' => NULL),
       'file' => 'alfresco.admin.inc',
     ),
+    'alfresco_teaser' => array(
+      'arguments' => array('node'),
+      'file' => 'alfresco.theme.inc',
+    ),
+    'alfresco_display' => array(
+      'arguments' => array('node'),
+      'file' => 'alfresco.theme.inc',
+    ),
   );
 }
 
