@@ -6,11 +6,15 @@
  *
  */
 
+/**
+ *
+ */
 function alfresco_import_validate_item($item) {
   $errors = array();
   $reference = strval($item);
-  if ($count = db_result(db_query("SELECT COUNT(*) FROM {alfresco_node} WHERE reference = '%s'", $reference))) {
-    $errors[] = t('Already exists in your Drupal site.');
+  if ($nid = alfresco_exists_node($reference)) {
+    $errors[] = t('Already exists in your Drupal site. [<a href="!url">View</a>]',
+      array('!url' => url('node/'. $nid)));
   }
   return $errors;
 }
@@ -21,143 +25,112 @@ function alfresco_import_validate_item($item) {
 function alfresco_import_form($form_state) {
   $form = array();
 
+  $reference = isset($form_state['values']['reference']) ? $form_state['values']['reference'] : '';
+
   $form['space'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Alfresco Space'),
-    '#weight' => -10,
+    '#type'   => 'fieldset',
+    '#title'  => t('Alfresco Space'),
+    '#weight' => -30,
   );
   $form['space']['reference'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Space Reference'),
-    '#required' => TRUE,
-    '#description' => t('Alfresco Space Reference. Example: workspace://SpacesStore/uuid'),
-    '#default_value' => isset($form_state['values']['reference']) ? $form_state['values']['reference'] : '',
-    '#attributes' => array('style' => 'width: 95%'),
+    '#type'          => 'textfield',
+    '#title'         => t('Space Reference'),
+    '#required'      => TRUE,
+    '#description'   => t('Alfresco Space Reference. Example: workspace://SpacesStore/uuid'),
+    '#default_value' => $reference,
+    '#attributes'    => array('style' => 'width: 95%'),
   );
-  $form['space']['load'] = array(
-    '#type' => 'submit',
-    '#value' => t('View items'),
-    '#submit' => array('alfresco_import_load_space_submit'),
-    '#validate' => array('alfresco_import_load_space_validate'),
+  $form['space']['view'] = array(
+    '#type'     => 'submit',
+    '#value'    => t('View items'),
+    '#submit'   => array('alfresco_import_space_form_submit'),
+    '#validate' => array('alfresco_import_space_form_validate'),
   );
 
-  if (isset($form_state['values']['reference'])) {
-    $alf_node = alfresco_service_load_node($form_state['values']['reference']);
+  if (!empty($reference)) {
+    $alf_node = alfresco_service_load_node($reference);
+
+    if (!$alf_node) {
+      $form['none_found'] = array(
+        '#type'  => 'item',
+        '#value' => '<em>'. t('Alfresco item does not exist.') .'</em>',
+      );
+      return $form;
+    }
+    if ($alf_node->type != ALFRESCO_TYPE_FOLDER) {
+      $form['none_found'] = array(
+        '#type'  => 'item',
+        '#value' => t('Alfresco item "%name" is not a space.', array('%name' => $alf_node->cm_title)),
+      );
+      return $form;
+    }
 
     $items = array();
-    foreach ($alf_node->children as $child) {
-      if ($child->child->type == '{http://www.alfresco.org/model/content/1.0}content') {
-        $items[] = $child->child;
-      }
-    }
-
-    if ($items) {
-      $form['#node_type'] = 'alfresco_item';
-
-      if (module_exists('taxonomy')) {
-        // here's a little hack to get the taxonomy controls onto our form
-        $form['type'] = array('#type' => 'value', '#value' => $form['#node_type']);
-        $form['#node'] = new stdClass();
-        $form['#node']->type = $form['#node_type'];
-        taxonomy_form_alter($form, array(), $form['#node_type'] .'_node_form');
-        unset($form['type']);
-        unset($form['#node']);
-
-        $form['taxonomy']['#type'] = 'fieldset';
-        $form['taxonomy']['#title'] = t('Vocabularies');
-        $form['taxonomy']['#collapsible'] = TRUE;
-        $form['taxonomy']['#collapsed'] = FALSE;
-        $form['taxonomy']['#weight'] = 5;
-      }
-
-      // Put the alfresco items into an array for the checkboxes and gather
-      // additional information.
-      // Make sure that there's no 0th element, because a checkbox with a zero
-      // value is seen as unchecked and won't be imported.
-      $index = 0;
-      foreach ($items as $item) {
-        $index++;
-        $itemlist[$index] = strval($item);
-
-        $problems = alfresco_import_validate_item($item);
-
-        // Spit out the import form elements.
-        $form['files']['import'][$index] = array(
-          '#type' => 'checkbox',
-          '#title' => $item->cm_name,
-        );
-        $form['files']['filesize'][$index] = array(
-          '#type' => 'item',
-          '#value' => format_size($item->cm_content->size),
-        );
-        $form['files']['title'][$index] = array(
-          '#type' => 'textfield',
-          '#size' => 20,
-          '#maxlength' => 255,
-          '#default_value' => $item->cm_title,
-        );
-        $form['files']['body'][$index] = array(
-          '#type' => 'textfield',
-          '#size' => 20,
-        );
-
-        // If there were problems don't let them import it
-        if (count($problems)) {
-          $form['files']['import'][$index]['#type'] = 'item';
-          $form['files']['errors'][$index] = array(
-            '#type' => 'markup',
-            '#value' => '<em>'. implode(' ', $problems) .'</em>',
-          );
-          unset($form['files']['title'][$index]);
-          unset($form['files']['body'][$index]);
+    if (is_array($alf_node->children)) {
+      foreach ($alf_node->children as $child) {
+        if ($child->child->type != ALFRESCO_TYPE_FOLDER) {
+          $items[] = $child->child;
         }
       }
-
-      // Put the titles into an array.
-      $form['files']['import']['#tree'] = TRUE;
-      $form['files']['title']['#tree'] = TRUE;
-      $form['files']['body']['#tree'] = TRUE;
-
-      // Table theme
-      $form['files']['#theme'] = 'alfresco_import_table';
-      $form['files']['#title'] = t('The items in this space: %space', array('%space' => $alf_node->cm_name));
-
-      // Store a copy of the list into a form value so we can compare it to what
-      // they submit and not have to worry about files being added or removed
-      // from the filesystem.
-      $form['file_list'] = array(
-        '#type' => 'value',
-        '#value' => $itemlist,
-      );
-
-      $form['buttons']['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Import'),
-      );
-      $form['buttons']['reset'] = array(
-        '#type'   => 'markup',
-        '#value'  => '<input '. drupal_attributes(array('type' => 'button', 'value' => t('Reset'))) .' onClick="window.location=\''. url('admin/content/alfresco_import') .'\';" />',
-      );
-      $form['buttons']['#weight'] = 10;
     }
-    else {
-      if ($alf_node->type != '{http://www.alfresco.org/model/content/1.0}folder') {
-        $msg = t('Alfresco Reference is not a Space.');
-      }
-      else {
-        $msg = t('No Alfresco content items were found.');
-      }
+
+    if (count($items) == 0) {
       $form['none_found'] = array(
-        '#type' => 'item',
-        '#value' => '<em>'. $msg .'</em>',
+        '#type'  => 'item',
+        '#value' => t('No Alfresco content items were found on "%name"', array('%name' => $alf_node->cm_title)),
       );
+      return $form;
     }
+
+    $form['#node_type'] = 'alfresco_item';
+
+    if (user_access('administer nodes')) {
+      global $user;
+
+      $dummy_node = new stdClass();
+      $dummy_node->type = 'alfresco_item';
+      $dummy_node->name = $user->name;
+
+      $form_state = array();
+      module_load_include('inc', 'node', 'node.pages');
+      $node_form = node_form($form_state, $dummy_node);
+
+      if (isset($node_form['author'])) {
+        $form['author'] = $node_form['author'];
+      }
+      if (isset($node_form['options'])) {
+        $form['options'] = $node_form['options'];
+      }
+    }
+
+    if (module_exists('taxonomy') || module_exists('comment')) {
+      $form['type'] = array('#type' => 'value', '#value' => $form['#node_type']);
+      $form['#node'] = new stdClass();
+      $form['#node']->type = $form['#node_type'];
+      if (module_exists('taxonomy')) {
+        taxonomy_form_alter($form, array(), $form['#node_type'] .'_node_form');
+      }
+      if (module_exists('comment')) {
+        $form['#node']->comment = variable_get('comment_'. $form['#node_type'], COMMENT_NODE_READ_WRITE);
+        comment_form_alter($form, array(), $form['#node_type'] .'_node_form');
+      }
+      unset($form['type']);
+      unset($form['#node']);
+    }
+
+    _alfresco_import_add_table_form($form, $items, $alf_node->cm_name);
+
+    $form['submit'] = array(
+      '#type'   => 'submit',
+      '#value'  => t('Import'),
+      '#weight' => 30,
+    );
   }
 
   return $form;
 }
 
-function alfresco_import_load_space_validate($form, &$form_state) {
+function alfresco_import_space_form_validate($form, &$form_state) {
 
   if (empty($form_state['values']['reference'])) {
     form_set_error('reference', t('You must set an Alfresco Space Reference.'));
@@ -167,13 +140,10 @@ function alfresco_import_load_space_validate($form, &$form_state) {
     if (!alfresco_valid_reference($reference)) {
       form_set_error('reference', t('Invalid Alfresco Space Reference.'));
     }
-    elseif (!alfresco_service_load_node($reference)) {
-      form_set_error('reference', t('Error loading Alfresco Space.'));
-    }
   }
 }
 
-function alfresco_import_load_space_submit($form, &$form_state) {
+function alfresco_import_space_form_submit($form, &$form_state) {
 
   $form_state['rebuild'] = TRUE;
 }
@@ -200,12 +170,21 @@ function alfresco_import_form_submit($form, &$form_state) {
   foreach (array_filter($form_state['values']['import']) as $index => $true) {
     $reference = $form_state['values']['file_list'][$index];
     if (alfresco_valid_reference($reference)) {
+      $options = array(
+        'name'     => isset($form_state['values']['name'])     ? $form_state['values']['name']     : NULL,
+        'date'     => isset($form_state['values']['date'])     ? $form_state['values']['date']     : NULL,
+        'status'   => isset($form_state['values']['status'])   ? $form_state['values']['status']   : NULL,
+        'promote'  => isset($form_state['values']['name'])     ? $form_state['values']['promote']  : NULL,
+        'sticky'   => isset($form_state['values']['sticky'])   ? $form_state['values']['sticky']   : NULL,
+        'taxonomy' => isset($form_state['values']['taxonomy']) ? $form_state['values']['taxonomy'] : NULL,
+        'comment'  => isset($form_state['values']['comment'])  ? $form_state['values']['comment']  : NULL,
+      );
       $args = array(
         'node_type' => $form['#node_type'],
-        'title' => isset($form_state['values']['title'][$index]) ? $form_state['values']['title'][$index] : NULL,
-        'body' => isset($form_state['values']['body'][$index]) ? $form_state['values']['body'][$index] : NULL,
-        'taxonomy' => isset($form_state['values']['taxonomy']) ? $form_state['values']['taxonomy'] : array(),
+        'title'     => isset($form_state['values']['title'][$index]) ? $form_state['values']['title'][$index] : '',
+        'body'      => isset($form_state['values']['body'][$index])  ? $form_state['values']['body'][$index]  : '',
         'reference' => $reference,
+        'options'   => $options,
       );
       $batch['operations'][] = array('_alfresco_import_batch_op', array($args));
     }
@@ -217,14 +196,13 @@ function alfresco_import_form_submit($form, &$form_state) {
 function _alfresco_import_batch_op($args, &$context) {
 
   // Create the node object.
-  if ($node = alfresco_create_node($args['reference'], TRUE, $args['title'], $args['body'], $args['taxonomy'])) {
-
+  if ($node = alfresco_create_node($args['reference'], $args['title'], $args['body'], $args['options'])) {
     $context['results']['good'][] = t('Imported %reference as <a href="!node-link">@node-title</a> @status <a href="!edit-link">[edit]</a>.', array(
-      '%reference' => $args['reference'],
-      '!node-link' => url('node/'. $node->nid),
+      '%reference'  => $args['reference'],
+      '!node-link'  => url('node/'. $node->nid),
       '@node-title' => $node->title,
-      '@status' => $node->status ? '' : t('(Unpublished)'),
-      '!edit-link' => url('node/'. $node->nid .'/edit'),
+      '@status'     => $node->status ? '' : t('(Unpublished)'),
+      '!edit-link'  => url('node/'. $node->nid .'/edit'),
     ));
   }
   else {
@@ -232,17 +210,16 @@ function _alfresco_import_batch_op($args, &$context) {
     $context['results']['bad'][] = t('Error importing %reference.', array('%reference' => $args['reference']));
   }
 
-  $context['finished'] = 1;
+  $context['finished'] = TRUE;
 }
 
 function _alfresco_import_batch_finished($success, $results, $operations) {
+
   if (!$success) {
-    if (isset($results['bad']) && count($results['bad'])) {
-      drupal_set_message(t('There was a problem importing files: !bad-list', array('!bad-list' => theme('item_list', $results['bad']))), 'error');
-    }
-    else {
-      drupal_set_message(t('There was a problem importing the files.'), 'error');
-    }
+    drupal_set_message(t('There was a problem importing the files.'), 'error');
+  }
+  if (isset($results['bad']) && count($results['bad'])) {
+    drupal_set_message(t('There was a problem importing files: !bad-list', array('!bad-list' => theme('item_list', $results['bad']))), 'error');
   }
   if (isset($results['good']) && count($results['good'])) {
     drupal_set_message(t('Successfully imported: !good-list', array('!good-list' => theme('item_list', $results['good']))));
@@ -276,4 +253,75 @@ function theme_alfresco_import_table($form) {
   }
   $caption = !empty($form['#title']) ? $form['#title'] : NULL;
   return theme('table', $header, $rows, array(), $caption);
+}
+
+/**
+ * Put the alfresco items into an array for the checkboxes and gather
+ * additional information.
+ * Make sure that there's no 0th element, because a checkbox with a zero value
+ * is seen as unchecked and won't be imported.
+ */
+function _alfresco_import_add_table_form(&$form, $items, $space_name) {
+
+  // Put the alfresco items into an array for the checkboxes and gather
+  // additional information.
+  // Make sure that there's no 0th element, because a checkbox with a zero
+  // value is seen as unchecked and won't be imported.
+  $index = 0;
+  $itemlist = array();
+  $form['files'] = array();
+
+  foreach ($items as $item) {
+    $index++;
+    $itemlist[$index] = strval($item);
+
+    $problems = alfresco_import_validate_item($item);
+
+    // Spit out the import form elements.
+    $form['files']['import'][$index] = array(
+      '#type'  => 'checkbox',
+      '#title' => $item->cm_name,
+    );
+    $form['files']['filesize'][$index] = array(
+      '#type'  => 'item',
+      '#value' => format_size($item->cm_content->size),
+    );
+    $form['files']['title'][$index] = array(
+      '#type'      => 'textfield',
+      '#size'      => 20,
+      '#maxlength' => 255,
+    );
+    $form['files']['body'][$index] = array(
+      '#type' => 'textfield',
+      '#size' => 20,
+    );
+
+    // If there were problems don't let them import it
+    if (count($problems)) {
+      $form['files']['import'][$index]['#type'] = 'item';
+      $form['files']['errors'][$index] = array(
+        '#type' => 'markup',
+        '#value' => '<em>'. implode(' ', $problems) .'</em>',
+      );
+      unset($form['files']['title'][$index]);
+      unset($form['files']['body'][$index]);
+    }
+  }
+
+  // Put the titles into an array.
+  $form['files']['import']['#tree'] = TRUE;
+  $form['files']['title']['#tree']  = TRUE;
+  $form['files']['body']['#tree']   = TRUE;
+
+  $form['files']['#theme']  = 'alfresco_import_table';
+  $form['files']['#title']  = t('The items in this space: %space', array('%space' => $space_name));
+  $form['files']['#weight'] = -10;
+
+  // Store a copy of the list into a form value so we can compare it to what
+  // they submit and not have to worry about files being added or removed
+  // from the filesystem.
+  $form['file_list'] = array(
+    '#type' => 'value',
+    '#value' => $itemlist,
+  );
 }

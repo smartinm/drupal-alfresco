@@ -130,8 +130,8 @@ function alfresco_form_validate($form, &$form_state) {
 function alfresco_validate($node, &$form) {
 
   if (!empty($node->reference)) {
-    if ($nid = db_result(db_query("SELECT nid FROM {alfresco_node} WHERE reference = '%s' AND nid <> %d", $node->reference, $node->nid))) {
-      form_set_error('reference', t('This Alfresco node already exists in your Drupal site. <a href="!url">View node</a>', array('!url' => url('node/'. $nid))));
+    if (alfresco_exists_node($node->reference, $node->nid)) {
+      form_set_error('reference', t('This Alfresco node already exists in your Drupal site. [<a href="!url">View</a>]', array('!url' => url('node/'. $nid))));
     }
   }
 }
@@ -358,17 +358,34 @@ function alfresco_sync_node($node) {
 }
 
 /**
- * Create an alfresco_item node.
+ * Create an alfresco_item node from a reference.
  *
  * @param $reference
  *   String Alfresco Node Reference.
  * @param $title
- *   String to be used as the node's title. If this is ommitted the filename
- *   will be used.
+ *   String to be used as the node's title. If this is ommitted the title of
+ *   Alfresco item will be used.
  * @param $body
  *   String to be used as the node's body.
- * @param $taxonomy
- *   Taxonomy terms to assign to the node if the taxonomy.module is installed.
+ * @param $options
+ *   An associative array of additional options, with the following keys:
+ *     - 'name'
+ *       Authored by field. Leave blank to use the current user.
+ *     - 'date'
+ *       Authored on field. Leave blank to use the current time.
+ *     - 'status'
+ *       Published field.
+ *     - 'promote'
+ *       Promoted to front page field.
+ *     - 'sticky'
+ *       Sticky at top of lists field.
+ *     - 'language'
+ *       Language code if the locale.module is installed.
+ *     - 'comment'
+ *       Comment settings if the comment.module is installed.
+ *     - 'taxonomy'
+ *       Taxonomy terms to assign to the node if the taxonomy.module is
+ *       installed.
  * @return
  *   A node object if the node is created successfully or FALSE on error.
  *
@@ -379,7 +396,7 @@ function alfresco_sync_node($node) {
  * @see image_create_node_from()
  * @see drupal_execute()
  */
-function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body = '', $taxonomy = NULL) {
+function alfresco_create_node($reference, $title = '', $body = '', $options = array()) {
   global $user;
 
   if (!user_access('create alfresco content')) {
@@ -391,6 +408,10 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
     return FALSE;
   }
 
+  if (alfresco_exists_node($reference)) {
+    return FALSE;
+  }
+
   $alf_node = alfresco_service_load_node($reference);
   if (!$alf_node) {
     return FALSE;
@@ -399,25 +420,43 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
   // Build the alfresco_item node
   $node = new stdClass();
   $node->type  = 'alfresco_item';
-  $node->uid   = $user->uid;
   $node->name  = $user->name;
-  $node->title = '';
+  $node->title = $title;
   $node->body  = $body;
 
-  if (module_exists('taxonomy')) {
-    $node->taxonomy = $taxonomy;
-  }
-
-  if (module_exists('locale')) {
-    global $language;
-    $node->language = $language->language;
-  }
-
-  // For node_object_prepare()
-  module_load_include('inc', 'node', 'node.pages');
-
   // Set the node's defaults
+  module_load_include('inc', 'node', 'node.pages');
   node_object_prepare($node);
+
+  // Node author information and options for administrators
+  if (user_access('administer nodes')) {
+    foreach (array('name', 'date', 'status', 'promote', 'sticky') as $key) {
+      if (isset($options[$key])) {
+        $node->$key = $options[$key];
+      }
+    }
+  }
+
+  // Locale settings
+  if (module_exists('locale')) {
+    if (isset($options['language'])) {
+      $node->language = $options['language'];
+    }
+    else {
+      global $language;
+      $node->language = $language->language;
+    }
+  }
+
+  // Taxonomy
+  if (module_exists('taxonomy') && isset($options['taxonomy'])) {
+    $node->taxonomy = $options['taxonomy'];
+  }
+
+  // Comment
+  if (module_exists('comment') && isset($options['comment'])) {
+    $node->comment = $options['comment'];
+  }
 
   // Alfresco node stuff
   $node->reference = $reference;
@@ -429,16 +468,11 @@ function alfresco_create_node($reference, $use_title = TRUE, $title = '', $body 
     }
   }
 
-  if ($use_title) {
-    if (isset($node->cm_title)) {
-      $title = trim($node->cm_title);
-      if (drupal_strlen($title) > 254) {
-        $title = drupal_substr($title, 0, 250) .'...';
-      }
-      $node->title = $title;
+  if (empty($title) && isset($node->cm_title)) {
+    $title = trim($node->cm_title);
+    if (drupal_strlen($title) > 254) {
+      $title = drupal_substr($title, 0, 250) .'...';
     }
-  }
-  else {
     $node->title = $title;
   }
 

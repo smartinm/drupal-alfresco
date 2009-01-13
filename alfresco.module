@@ -36,6 +36,10 @@ define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);  // Private transfer
 define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
+// Alfresco types
+define('ALFRESCO_TYPE_CONTENT', '{http://www.alfresco.org/model/content/1.0}content');
+define('ALFRESCO_TYPE_FOLDER',  '{http://www.alfresco.org/model/content/1.0}folder');
+
 // Include required files
 if (function_exists('drupal_get_path')) {
   $path = drupal_get_path('module', 'alfresco');
@@ -422,6 +426,34 @@ function alfresco_parse_reference($reference, $component = '') {
       return $info[$component];
     }
     return $info;
+  }
+  return FALSE;
+}
+
+/**
+ * Checks whether the alfresco_item node specified by reference exists.
+ *
+ * @param $reference
+ *   A string containing an Alfresco Node Reference.
+ * @param $exclude
+ *   An optional Node ID (nid) to be excluded.
+ * @return
+ *  Returns Node ID (nid) if the alfresco_item node specified by reference
+ *  exists; FALSE otherwise.
+ */
+function alfresco_exists_node($reference, $exclude = NULL) {
+
+  if (!empty($exclude)) {
+    $sql = "SELECT nid FROM {alfresco_node} WHERE reference = '%s' AND nid <> %d";
+    if ($nid = db_result(db_query($sql, $reference, $exclude))) {
+      return $nid;
+    }
+  }
+  else {
+    $sql = "SELECT nid FROM {alfresco_node} WHERE reference = '%s'";
+    if ($nid = db_result(db_query($sql, $reference))) {
+      return $nid;
+    }
   }
   return FALSE;
 }
