@@ -4,6 +4,3 @@ description = "Allows users to create and attach alfresco items to content."
 package = "Alfresco"
 dependencies[] = "alfresco"
 core = "6.x"
-
-; Information added for OVC-TIC
-version = "6.x-1.x-dev"

@@ -4,6 +4,3 @@ description = "Alfresco and Drupal integration, this module provides a new node 
 package = "Alfresco" 
 core = "6.x"
 php = "5.2"
-
-; Information added for OVC-TIC
-version = "6.x-1.x-dev"
