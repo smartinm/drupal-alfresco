@@ -130,8 +130,9 @@ function alfresco_form_validate($form, &$form_state) {
 function alfresco_validate($node, &$form) {
 
   if (!empty($node->reference)) {
-    if (alfresco_exists_node($node->reference, $node->nid)) {
-      form_set_error('reference', t('This Alfresco node already exists in your Drupal site. [<a href="!url">View</a>]', array('!url' => url('node/'. $nid))));
+    if ($nid = alfresco_exists_node($node->reference, $node->nid)) {
+      form_set_error('reference', t('This Alfresco node already exists in your Drupal site. [<a href="!url">View</a>]',
+        array('!url' => url('node/'. $nid))));
     }
   }
 }

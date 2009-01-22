@@ -1,5 +1,10 @@
 // $Id$
 
-Alfresco 6.x-1.0-beta, 2009-01-14
----------------------------------
-Initial version.
+Alfresco 6.x-1.0-dev, xxxx-xx-xx
+----------------------------------
+Fixed message node link when save a duplicated node.  
+
+
+Alfresco 6.x-1.0-beta1, 2009-01-14
+----------------------------------
+Initial public version.
