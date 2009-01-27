@@ -40,6 +40,10 @@ define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 define('ALFRESCO_TYPE_CONTENT', '{http://www.alfresco.org/model/content/1.0}content');
 define('ALFRESCO_TYPE_FOLDER',  '{http://www.alfresco.org/model/content/1.0}folder');
 
+// Regex string for any variety of ISO and DATETIME formats
+// (from date_api.module)
+define('ALFRESCO_DATE_REGEX_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(\d{2}):?(\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:?\d{2})?)?/');
+
 // Include required files
 if (function_exists('drupal_get_path')) {
   $path = drupal_get_path('module', 'alfresco');
@@ -469,6 +473,34 @@ function alfresco_truncate_title($title, $max_length = 255) {
   }
 
   return $title;
+}
+
+/**
+ * Date conversion helper function (from date_api.module)
+ * No timezone conversion is done in this operation.
+ */
+function alfresco_date_convert($date) {
+
+  if (empty($date) && !$date === 0) {
+    return NULL;
+  }
+
+  if (!preg_match(ALFRESCO_DATE_REGEX_LOOSE, $date, $regs)) {
+    return NULL;
+  }
+
+  $date = array(
+    'year'   => isset($regs[1]) ? intval($regs[1]) : '',
+    'month'  => isset($regs[2]) ? intval($regs[2]) : '',
+    'day'    => isset($regs[3]) ? intval($regs[3]) : '',
+    'hour'   => isset($regs[5]) ? intval($regs[5]) : '',
+    'minute' => isset($regs[6]) ? intval($regs[6]) : '',
+    'second' => isset($regs[7]) ? intval($regs[7]) : '',
+  );
+
+  return sprintf("%04d-%02d-%02d %02d:%02d:%02d",
+    $date['year'], $date['month'],  $date['day'],
+    $date['hour'], $date['minute'], $date['second']);
 }
 
 // ------------------------------------------------------------------

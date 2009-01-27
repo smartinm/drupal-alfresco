@@ -103,13 +103,13 @@ function alfresco_service_load_properties($node) {
   $properties = array();
 
   try {
-    $properties['cm_name']        = $node->cm_name;
-    $properties['cm_title']       = $node->cm_title;
+    $properties['cm_name']        = alfresco_truncate_title($node->cm_name);
+    $properties['cm_title']       = alfresco_truncate_title($node->cm_title);
     $properties['cm_description'] = $node->cm_description;
     $properties['cm_author']      = $node->cm_author;
-    $properties['cm_created']     = $node->cm_created;
+    $properties['cm_created']     = alfresco_date_convert($node->cm_created);
     $properties['cm_creator']     = $node->cm_creator;
-    $properties['cm_modified']    = $node->cm_modified;
+    $properties['cm_modified']    = alfresco_date_convert($node->cm_modified);
     $properties['cm_modifier']    = $node->cm_modifier;
     $properties['cm_author']      = $node->cm_author;
 
