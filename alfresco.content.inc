@@ -58,6 +58,7 @@ function alfresco_form(&$node, $form_state) {
       '#title' => check_plain($type->title_label),
       '#required' => FALSE,
       '#default_value' => $node->title,
+      '#maxlength' => 255,
       '#weight' => -5,
       '#attributes' => array('readonly' => 'readonly'),
     );
@@ -156,10 +157,7 @@ function alfresco_form_submit($form, &$form_state) {
       }
 
       if (!empty($form_state['values']['use_title'])) {
-        $title = trim($properties['cm_title']);
-        if (drupal_strlen($title) > 254) {
-          $title = drupal_substr($title, 0, 250) .'...';
-        }
+        $title = alfresco_truncate_title($properties['cm_title']);
         $form_state['values']['title'] = $title;
       }
     }
@@ -422,7 +420,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
   $node = new stdClass();
   $node->type  = 'alfresco_item';
   $node->name  = $user->name;
-  $node->title = $title;
+  $node->title = alfresco_truncate_title($title);
   $node->body  = $body;
 
   // Set the node's defaults
@@ -470,11 +468,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
   }
 
   if (empty($title) && isset($node->cm_title)) {
-    $title = trim($node->cm_title);
-    if (drupal_strlen($title) > 254) {
-      $title = drupal_substr($title, 0, 250) .'...';
-    }
-    $node->title = $title;
+    $node->title = alfresco_truncate_title($node->cm_title);
   }
 
   // Save the node.

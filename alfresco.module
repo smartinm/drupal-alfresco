@@ -458,6 +458,19 @@ function alfresco_exists_node($reference, $exclude = NULL) {
   return FALSE;
 }
 
+/**
+ * Shorten the title when it is too long.
+ */
+function alfresco_truncate_title($title, $max_length = 255) {
+
+  $title = trim($title);
+  if (drupal_strlen($title) > $max_length) {
+    return drupal_substr($title, 0, $max_length - 3) .'...';
+  }
+
+  return $title;
+}
+
 // ------------------------------------------------------------------
 // =8 Debug helper functions
 // ------------------------------------------------------------------
