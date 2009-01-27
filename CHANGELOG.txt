@@ -2,6 +2,7 @@
 
 Alfresco 6.x-1.0-dev, xxxx-xx-xx
 ==================================
+- #364525: datetime parsing bug
 - Increase maximum amount of characters to accept as input of title field.
 - Fixed message node link when save a duplicated node.  
 

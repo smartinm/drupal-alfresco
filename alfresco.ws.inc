@@ -34,7 +34,7 @@ function alfresco_service_create_session() {
 
     // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
     // a ticket.  The ticket is a string which can be used to create Session's
-    $ticket = @$repository->authenticate($username, $password);
+    $ticket = $repository->authenticate($username, $password);
 
     // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather
     // than creating one and using across many pages as this helps to prevent resource usage from creaping up.

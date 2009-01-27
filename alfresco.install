@@ -301,8 +301,39 @@ function _alfresco_check_php_library() {
 }
 
 function _alfresco_check_connection_repository() {
-  // @todo  Implementar esta función
   $t = get_t();
+
+  $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+
+  // First check that Drupal can issue HTTP requests to repository.
+  $result = drupal_http_request($repository_url);
+  if (!isset($result->code) || ($result->code != 200)) {
+    return array(
+      'value'       => $t('HTTP request failed (error %code)', array('%code' => isset($result->code) ? $result->code : $t('None'))),
+      'description' => htmlentities($result->error),
+      'severity'    => REQUIREMENT_ERROR,
+    );
+  }
+
+  try {
+    _alfresco_service_include_library();
+
+    $username = variable_get('alfresco_credentials_username', 'guest');
+    $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+
+    $repository = new Repository($repository_url);
+    $ticket  = $repository->authenticate($username, $password);
+    $session = $repository->createSession($ticket);
+
+    // TODO Buscar nodo de version
+  }
+  catch (Exception $e) {
+    return array(
+      'value'       => $t('SOAP request failed'),
+      'description' => strval($e->getMessage()),
+      'severity'    => REQUIREMENT_ERROR,
+    );
+  }
 
   return array(
     'value' => $t('<a href="@url">Alfresco Labs - vx.x.x (b xxxx)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
