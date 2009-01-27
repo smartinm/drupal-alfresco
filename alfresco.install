@@ -324,13 +324,22 @@ function _alfresco_check_connection_repository() {
     $repository = new Repository($repository_url);
     $ticket  = $repository->authenticate($username, $password);
     $session = $repository->createSession($ticket);
-
-    // TODO Buscar nodo de version
+    $store   = $session->getStore('system', 'system');
+    $nodes   = $session->query($store, 'PATH:"/sys:descriptor"');
+    if (count($nodes)) {
+      $descriptor = $nodes[0];
+      $version = sprintf('Alfresco %d.%d.%d (%d)', $descriptor->sys_versionMajor, $descriptor->sys_versionMinor, $descriptor->sys_versionRevision, $descriptor->sys_versionBuild);
+      return array(
+        'value'    => $version,
+        'severity' => REQUIREMENT_OK,
+      );
+    }
   }
   catch (Exception $e) {
+    $message = $e->getMessage();
     return array(
       'value'       => $t('SOAP request failed'),
-      'description' => strval($e->getMessage()),
+      'description' => !empty($message) ? $message : $t('Authentication failed. Please check your username and password.'),
       'severity'    => REQUIREMENT_ERROR,
     );
   }
