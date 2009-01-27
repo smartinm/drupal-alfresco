@@ -325,27 +325,62 @@ function _alfresco_check_connection_repository() {
     $ticket  = $repository->authenticate($username, $password);
     $session = $repository->createSession($ticket);
     $store   = $session->getStore('system', 'system');
-    $nodes   = $session->query($store, 'PATH:"/sys:descriptor"');
-    if (count($nodes)) {
-      $descriptor = $nodes[0];
-      $version = sprintf('Alfresco %d.%d.%d (%d)', $descriptor->sys_versionMajor, $descriptor->sys_versionMinor, $descriptor->sys_versionRevision, $descriptor->sys_versionBuild);
+    $result  = $session->query($store, 'PATH:"/sys:descriptor-current"');
+
+    if (is_array($result) && count($result)) {
+      $descriptor = $result[0];
+
+      if (!strstr($descriptor->sys_versionEdition, 'contentUrl')) {
+        $version = 'Alfresco '. $descriptor->sys_versionEdition .' - ';
+      }
+      else {
+        $version = 'Alfresco Enterprise - ';
+      }
+      $version .= sprintf('v%d.%d.%d', $descriptor->sys_versionMajor, $descriptor->sys_versionMinor, $descriptor->sys_versionRevision);
+
+      if (!empty($descriptor->sys_versionLabel)) {
+        $version .= sprintf(' (%s %d)', $descriptor->sys_versionLabel, $descriptor->sys_versionBuild);
+      }
+      else {
+        $version .= sprintf(' (%d)', $descriptor->sys_versionBuild);
+      }
       return array(
-        'value'    => $version,
+        'value'    => l($version, $repository_url),
         'severity' => REQUIREMENT_OK,
       );
     }
   }
-  catch (Exception $e) {
-    $message = $e->getMessage();
+  catch (SoapFault $sf) {
     return array(
-      'value'       => $t('SOAP request failed'),
-      'description' => !empty($message) ? $message : $t('Authentication failed. Please check your username and password.'),
+      'value'       => $t('SOAP Fault: ') . _alfresco_parse_soap_fault($sf),
+      'description' => '',
       'severity'    => REQUIREMENT_ERROR,
     );
   }
+}
 
-  return array(
-    'value' => $t('<a href="@url">Alfresco Labs - vx.x.x (b xxxx)</a>', array('@url' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'))),
-    'severity' => REQUIREMENT_OK,
-  );
+function _alfresco_parse_soap_fault(SoapFault $sf) {
+  $t = get_t();
+
+  $pos = strpos($sf->faultstring, ':');
+  $code = '';
+  $detail = '';
+  if($pos) {
+    $code = substr($sf->faultstring, 0, $pos);
+    $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
+  }
+  else {
+    $message = $e->faultstring;
+  }
+
+  if (isset($sf->detail)) {
+    $reflectionObject = new ReflectionObject($sf->detail);
+    $properties = $reflectionObject->getProperties();
+    $exceptionName = $properties[0]->name;
+    //var_dump($sf->detail->$exceptionName->message);
+    $detail = $exceptionName;
+  }
+
+  return $t('(code: !code, message: !message, detail: !detail)',
+    array('!code' => $code, '!message' => $message, '!detail' => $detail));
 }
