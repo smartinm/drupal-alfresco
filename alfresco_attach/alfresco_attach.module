@@ -169,14 +169,15 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
           '#default_value' => empty($node->aid) ? NULL : $node->aid,
           '#description'   => t('Choose an alfresco item already existing on the server if you do not create a new one.')
         );
+      }
+
+      if (user_access('create alfresco content')) {
         $form['alfresco_attachments']['wrapper']['new'][] = array(
           '#type'       => 'item',
           '#value'      => t('-or-'),
           '#attributes' => array('class' => 'either-choice')
         );
-      }
 
-      if (user_access('create alfresco content')) {
         $form['alfresco_attachments']['wrapper']['new']['reference'] = array(
           '#type'          => 'textfield',
           '#title'         => t('Attach new alfresco item'),
