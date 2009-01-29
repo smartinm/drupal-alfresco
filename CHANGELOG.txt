@@ -2,7 +2,11 @@
 
 Alfresco 6.x-1.0-dev, xxxx-xx-xx
 ==================================
-- #364525: datetime parsing bug
+
+Alfresco 6.x-1.0-beta2, 2009-02-29
+==================================
+- #364525: Fixed datetime parsing bug
+- Added status report with detailed test connection to alfresco repository. 
 - Increase maximum amount of characters to accept as input of title field.
 - Fixed message node link when save a duplicated node.  
 
