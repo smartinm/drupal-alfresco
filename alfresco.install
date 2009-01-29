@@ -309,8 +309,8 @@ function _alfresco_check_connection_repository() {
   $result = drupal_http_request($repository_url);
   if (!isset($result->code) || ($result->code != 200)) {
     return array(
-      'value'       => $t('HTTP request failed (error %code)', array('%code' => isset($result->code) ? $result->code : $t('None'))),
-      'description' => htmlentities($result->error),
+      'value'       => $t('HTTP request failed (error !code)', array('!code' => isset($result->code) ? $result->code : $t('None'))),
+      'description' => $t('Error message: !error', array('!error' => htmlentities($result->error))),
       'severity'    => REQUIREMENT_ERROR,
     );
   }
@@ -349,38 +349,23 @@ function _alfresco_check_connection_repository() {
         'severity' => REQUIREMENT_OK,
       );
     }
+    else {
+      return array(
+        'value'    => $t('Connectivity OK (%ticket)', array('%ticket' => $ticket)),
+        'severity' => REQUIREMENT_OK,
+      );
+    }
   }
   catch (SoapFault $sf) {
+    $error = alfresco_parse_soap_fault($sf);
     return array(
-      'value'       => $t('SOAP Fault: ') . _alfresco_parse_soap_fault($sf),
-      'description' => '',
-      'severity'    => REQUIREMENT_ERROR,
+      'value'       => $t('SOAP request failed'),
+      'description' => $t('SOAP Fault Code: !code, Message: !message, Detail: !detail', array(
+        '!code'    => !empty($error['code'])    ? $error['code']    : $t('None'),
+        '!message' => !empty($error['message']) ? $error['message'] : $t('None'),
+        '!detail'  => !empty($error['detail'])  ? $error['detail']  : $t('None'),
+      )),
+      'severity' => REQUIREMENT_ERROR,
     );
   }
-}
-
-function _alfresco_parse_soap_fault(SoapFault $sf) {
-  $t = get_t();
-
-  $pos = strpos($sf->faultstring, ':');
-  $code = '';
-  $detail = '';
-  if($pos) {
-    $code = substr($sf->faultstring, 0, $pos);
-    $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
-  }
-  else {
-    $message = $e->faultstring;
-  }
-
-  if (isset($sf->detail)) {
-    $reflectionObject = new ReflectionObject($sf->detail);
-    $properties = $reflectionObject->getProperties();
-    $exceptionName = $properties[0]->name;
-    //var_dump($sf->detail->$exceptionName->message);
-    $detail = $exceptionName;
-  }
-
-  return $t('(code: !code, message: !message, detail: !detail)',
-    array('!code' => $code, '!message' => $message, '!detail' => $detail));
 }

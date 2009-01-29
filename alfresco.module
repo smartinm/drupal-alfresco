@@ -503,6 +503,34 @@ function alfresco_date_convert($date) {
     $date['hour'], $date['minute'], $date['second']);
 }
 
+function alfresco_parse_soap_fault(SoapFault $sf) {
+
+  if (empty($sf)) {
+    return NULL;
+  }
+
+  $code = '';
+  $detail = '';
+
+  $pos = strpos($sf->faultstring, ':');
+  if($pos) {
+    $code = substr($sf->faultstring, 0, $pos);
+    $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
+  }
+  else {
+    $message = $e->faultstring;
+  }
+
+  if (isset($sf->detail)) {
+    $reflectionObject = new ReflectionObject($sf->detail);
+    $properties = $reflectionObject->getProperties();
+    $exceptionName = $properties[0]->name;
+    $detail = $exceptionName;
+  }
+
+  return array('code' => $code, 'message' => $message, 'detail' => $detail);
+}
+
 // ------------------------------------------------------------------
 // =8 Debug helper functions
 // ------------------------------------------------------------------
