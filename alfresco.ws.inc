@@ -15,7 +15,6 @@
  * @see http://wiki.alfresco.com/wiki/PHP_Tutorial_One_Complete_Script
  */
 function alfresco_service_create_session() {
-  apm('[alfresco_service] Connecting to repository.');
 
   try {
     _alfresco_service_include_library();
@@ -46,7 +45,7 @@ function alfresco_service_create_session() {
     drupal_set_message(t('Error connecting to alfresco repository.'), 'error');
     watchdog('alfresco', 'Error connecting to alfresco repository. URL=%url, Exception=%msg', array(
       '%url' => $repository_url,
-      '%msg' => $e->getMessage()),
+      '%msg' => _alfresco_service_error_message($e)),
       WATCHDOG_ERROR);
   }
 }
@@ -60,7 +59,6 @@ function alfresco_service_create_session() {
  * @return Node
  */
 function alfresco_service_load_node($reference, $session = NULL) {
-  apm('[alfresco_service] Loading node from repository.');
 
   if (!$inforef = alfresco_parse_reference($reference)) {
     return FALSE;
@@ -87,7 +85,7 @@ function alfresco_service_load_node($reference, $session = NULL) {
     drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
     watchdog('alfresco', 'Error loading node from alfresco repository, with reference %reference. Exception=%msg', array(
       '%reference' => $reference,
-      '%msg' => $e->getMessage()),
+      '%msg' => _alfresco_service_error_message($e)),
       WATCHDOG_ERROR);
   }
 }
@@ -98,7 +96,6 @@ function alfresco_service_load_node($reference, $session = NULL) {
  * @param $node Node Alfresco object node.
  */
 function alfresco_service_load_properties($node) {
-  apm('[alfresco_service] Updating properties from alfresco node.');
 
   $properties = array();
 
@@ -129,7 +126,7 @@ function alfresco_service_load_properties($node) {
     drupal_set_message(t('Error loading properties from alfresco node.'), 'error');
     watchdog('alfresco', 'Error loading properties from alfresco node, with reference %reference. Exception=%msg', array(
       '%reference' => strval($node),
-      '%msg' => $e->getMessage()),
+      '%msg' => _alfresco_service_error_message($e)),
       WATCHDOG_ERROR);
   }
 
@@ -162,4 +159,25 @@ function _alfresco_service_include_library() {
   }
 
   $included = TRUE;
+}
+
+function _alfresco_service_error_message(Exception $ex) {
+
+  if (empty($ex)) {
+    return NULL;
+  }
+
+  if ($ex instanceof SoapFault) {
+    $error = alfresco_parse_soap_fault($ex);
+    $message = t('SOAP Fault Code: !code, Message: !message, Detail: !detail', array(
+      '!code'    => !empty($error['code'])    ? $error['code']    : t('None'),
+      '!message' => !empty($error['message']) ? $error['message'] : t('None'),
+      '!detail'  => !empty($error['detail'])  ? $error['detail']  : t('None'),
+    ));
+  }
+  else {
+    $message = $ex->getMessage();
+  }
+
+  return $message;
 }

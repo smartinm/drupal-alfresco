@@ -42,7 +42,11 @@ define('ALFRESCO_TYPE_FOLDER',  '{http://www.alfresco.org/model/content/1.0}fold
 
 // Regex string for any variety of ISO and DATETIME formats
 // (from date_api.module)
-define('ALFRESCO_DATE_REGEX_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(\d{2}):?(\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:?\d{2})?)?/');
+define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(\d{2}):?(\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:?\d{2})?)?/');
+
+// Alfresco Node UUID regex
+define('ALFRESCO_REGEX_NODE_UUID', '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}');
+
 
 // Include required files
 if (function_exists('drupal_get_path')) {
@@ -398,8 +402,9 @@ function alfresco_file_transfer($node) {
  * @see http://wiki.alfresco.com/wiki/Web_Service_Data_Types
  */
 function alfresco_valid_reference($reference) {
-  $uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
-  return preg_match("/^\w+:\/\/\w+\/$uuid$/", $reference);
+
+  $pattern = "/^\w+:\/\/\w+\/". ALFRESCO_REGEX_NODE_UUID ."$/";
+  return preg_match($pattern, $reference);
 }
 
 /**
@@ -419,8 +424,8 @@ function alfresco_valid_reference($reference) {
  */
 function alfresco_parse_reference($reference, $component = '') {
 
-  $uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
-  if (preg_match("/^(\w+):\/\/(\w+)\/($uuid)$/", $reference, $matches)) {
+  $pattern = "/^(\w+):\/\/(\w+)\/(". ALFRESCO_REGEX_NODE_UUID .")$/";
+  if (preg_match($pattern, $reference, $matches)) {
     $info = array();
     $info['reference'] = $matches[0];
     $info['scheme']    = $matches[1];
@@ -485,7 +490,7 @@ function alfresco_date_convert($date) {
     return NULL;
   }
 
-  if (!preg_match(ALFRESCO_DATE_REGEX_LOOSE, $date, $regs)) {
+  if (!preg_match(ALFRESCO_REGEX_DATE_LOOSE, $date, $regs)) {
     return NULL;
   }
 
@@ -503,6 +508,14 @@ function alfresco_date_convert($date) {
     $date['hour'], $date['minute'], $date['second']);
 }
 
+/**
+ * Parses a Soap Fault and returns an keyed array containing the components:
+ *   'code'    - Error code
+ *   'message' - Error message
+ *   'detail'  - Exception server name
+ *
+ * @see http://eirikhoem.wordpress.com/2007/08/11/soapfault-vs-exceptions/
+ */
 function alfresco_parse_soap_fault(SoapFault $sf) {
 
   if (empty($sf)) {
@@ -518,7 +531,7 @@ function alfresco_parse_soap_fault(SoapFault $sf) {
     $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
   }
   else {
-    $message = $e->faultstring;
+    $message = $sf->faultstring;
   }
 
   if (isset($sf->detail)) {
