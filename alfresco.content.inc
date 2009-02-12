@@ -36,7 +36,7 @@ function alfresco_form(&$node, $form_state) {
   $type = node_get_types('type', $node);
 
   $form['reference'] = array(
-    '#type' => 'textfield',
+    '#type' => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
     '#title' => t('Node Reference'),
     '#required' => TRUE,
     '#default_value' => isset($node->reference) ? $node->reference : '',
