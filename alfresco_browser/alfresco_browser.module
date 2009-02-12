@@ -73,9 +73,20 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   $variables['base_url'] = $base_url;
   $variables['language'] = $language;
   $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
-  $variables['head'] = drupal_get_html_head();
-}
 
+  $variables['head']    = drupal_get_html_head();
+
+  $variables['path_url'] = $base_url .'/'. drupal_get_path('module', 'alfresco_browser');
+
+  /*
+  $variables['scripts'] = drupal_get_js('header', array(
+    array('header' => array('module' => array($path .'/ext/ext-jquery-adapter.js' => array() ),
+    $path .'/ext/ext-base.js',
+    $path .'/ext/ext-all.js',
+    $path .'/js/alfresco_browser.js',
+  ));
+  */
+}
 
 /**
  * Implementation of hook_elements().
@@ -101,7 +112,7 @@ function alfresco_browser_process($element, $form_state) {
     if (Drupal.jsEnabled) {
       $(document).ready(function() {
         $('#edit-alfresco-browser-button').click(function() {
-          window.open('$path', 'alfresco_browser', 'width=700,height=500,resizable');
+          window.open('$path', 'alfresco_browser', 'width=960,height=600,resizable');
           return false;
         });
       });

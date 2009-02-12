@@ -22,8 +22,30 @@
   <head>
     <title><?php print $title; ?></title>
     <?php print $head; ?>
-    <base href="<?php print $base_url; ?>" />
+    <link type="text/css" rel="stylesheet" media="all" href="<?php print $path_url . '/ext/css/ext-all.css'; ?>" />
+    <link type="text/css" rel="stylesheet" media="all" href="<?php print $path_url . '/ext/css/xtheme-gray.css'; ?>" />
+    <link type="text/css" rel="stylesheet" media="all" href="<?php print $path_url . '/js/alfresco_browser.css'; ?>" />
+    <script type="text/javascript" src="<?php print $base_url . '/misc/jquery.js'; ?>"></script>
+    <script type="text/javascript" src="<?php print $path_url . '/ext/ext-jquery-adapter.js'; ?>"></script>
+    <!-- <script type="text/javascript" src="<?php print $path_url . '/ext/ext-base.js'; ?>"></script>  -->
+    <script type="text/javascript" src="<?php print $path_url . '/ext/ext-all.js'; ?>"></script>
+    <script type="text/javascript" src="<?php print $path_url . '/js/alfresco_browser.js'; ?>"></script>
   </head>
   <body>
+
+    <div id="header"><h1>Alfresco Browser</h1></div>
+
+    <div style="display:none;">
+
+        <!-- Start page content -->
+        <div id="start-div">
+          <h2>Welcome!</h2>
+          <p>There are many sample layouts to choose from that should give you a good head start in building your own
+          application layout.  Just like the combination examples, you can mix and match most layouts as
+          needed, so don't be afraid to experiment!</p>
+          <p>Select a layout from the tree to the left to begin.</p>
+        </div>
+    </div>
+
   </body>
 </html>
