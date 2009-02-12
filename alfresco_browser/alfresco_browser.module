@@ -1,0 +1,128 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function alfresco_browser_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#alfresco_browser':
+      return '<p>'. t('Enables Alfresco browser widget for selecting Alfresco Nodes.') .'</p>';
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function alfresco_browser_perm() {
+
+  return array('access alfresco browser');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function alfresco_browser_menu() {
+
+  $items['alfresco/browser'] = array(
+    'title' => 'Alfresco browser',
+    'page callback' => 'alfresco_browser_page',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme
+ */
+function alfresco_browser_theme() {
+
+  return array(
+    'alfresco_browser' => array(
+      'arguments' => array('element' => NULL),
+    ),
+    'alfresco_browser_page' => array(
+      'arguments' => array(),
+      'template' => 'alfresco_browser-page',
+    ),
+  );
+}
+
+/**
+ * Process variables for book-export-html.tpl.php.
+ *
+ * The $variables array contains the following arguments:
+ * - $title
+ * - $contents
+ * - $depth
+ *
+ * @see alfresco_browser-page.tpl.php
+ */
+function template_preprocess_alfresco_browser_page(&$variables) {
+  global $base_url, $language;
+
+  $variables['title'] = t('Alfresco browser');
+  $variables['base_url'] = $base_url;
+  $variables['language'] = $language;
+  $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
+  $variables['head'] = drupal_get_html_head();
+}
+
+
+/**
+ * Implementation of hook_elements().
+ */
+function alfresco_browser_elements() {
+
+  $type['alfresco_browser'] = array(
+    '#input' => TRUE,
+    '#default_value' => '',
+    '#process' => array('alfresco_browser_process'),
+    //'#element_validate' => array('alfresco_browser_element_validate'),
+  );
+  return $type;
+}
+
+/**
+ * Our #process callback to expand the control.
+ */
+function alfresco_browser_process($element, $form_state) {
+
+  $path = url('alfresco/browser');
+  drupal_add_js("
+    if (Drupal.jsEnabled) {
+      $(document).ready(function() {
+        $('#edit-alfresco-browser-button').click(function() {
+          window.open('$path', 'alfresco_browser', 'width=700,height=500,resizable');
+          return false;
+        });
+      });
+    }", 'inline');
+
+  $element['alfresco_browser_reference'] = array(
+    '#type' => 'textfield',
+    '#name' => $element['#name'],
+    '#attributes' => array('readonly' => TRUE),
+    //'#id' => form_clean_id("edit-alfresco-{$element['#name']}"),
+  );
+  $element['alfresco_browser_button'] = array(
+    '#type' => 'button',
+    '#button_type' => 'browse',
+    '#value' => t('Browse...'),
+    '#attributes' => array('onclick' => 'return false;'),
+    //'#attributes' => array('onclick' => "window.open('$path/layout.html', 'popup'); return false;"),
+  );
+  return $element;
+}
+
+function theme_alfresco_browser($element) {
+  return theme('form_element', $element, '<div class="container-inline">'. $element['#children'] .'</div>');
+}

@@ -1,0 +1,6 @@
+; $Id$
+name = "Alfresco browser"
+description = "Enables Alfresco browser widget for selecting Alfresco Nodes."
+package = "Alfresco"
+dependencies[] = "alfresco"
+core = "6.x"
