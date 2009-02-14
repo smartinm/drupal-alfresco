@@ -37,6 +37,13 @@ function alfresco_browser_menu() {
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
+
+  $items['alfresco/browser/dummy'] = array(
+    'page callback' => 'alfresco_browser_json',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
