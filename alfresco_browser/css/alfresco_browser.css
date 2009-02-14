@@ -24,12 +24,15 @@ a:hover {
 }
 #header {
     background: #7F99BE url(images/layout-browser-hd-bg.gif) repeat-x center;
+    height: 100%;
 }
 #header h1 {
+    height: 100%;
     font-size: 16px;
     color: #fff;
     font-weight: normal;
-    padding: 5px 10px;
+    padding: 6px 10px 6px 45px;
+    background: #7F99BE url(../images/alfresco-logo-32.gif) no-repeat 5px top;
 }
 #start-div h2 {
     font-size: 12px;
