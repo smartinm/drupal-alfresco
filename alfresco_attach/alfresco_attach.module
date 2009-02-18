@@ -447,9 +447,7 @@ function alfresco_attach_nodeapi(&$node, $op, $teaser) {
 
     case 'insert':
     case 'update':
-      if (user_access('create alfresco content')) {
-        _alfresco_attach_save($node);
-      }
+      _alfresco_attach_save($node);
       break;
 
     case 'delete':

@@ -2,6 +2,7 @@
 
 Alfresco 6.x-1.0-dev, xxxx-xx-xx
 ==================================
+- alfresco_attach: Arreglado error con los permisos que no permitía eliminar un alfresco adjunto 
 
 Alfresco 6.x-1.0-beta2, 2009-02-29
 ==================================
