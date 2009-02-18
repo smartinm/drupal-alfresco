@@ -25,7 +25,7 @@ Ext.onReady(function() {
     useArrows     : true,
 
     loader        : new Ext.tree.TreeLoader({
-      dataUrl : 'alfresco/browser/dummy'
+      dataUrl : 'alfresco/browser/actions/loadSpaces'
     }),
 
     root          : new Ext.tree.AsyncTreeNode({
@@ -41,6 +41,68 @@ Ext.onReady(function() {
     autoScroll :true,
     html :'<p class="details-info">Información del fichero</p>'
   };
+  
+  // create the Data Store
+  var store = new Ext.data.JsonStore({
+    url: 'alfresco/browser/actions/xxx',
+    root: 'nodes',
+    remoteSort: true,
+    fields: ['name', 'description', {name:'size', type: 'float'}, {name:'created', type:'date'}, {name:'modified', type:'date'}]
+  });
+  
+  var pagingBar = new Ext.PagingToolbar({
+    pageSize: 25,
+    store: store,
+    displayInfo: true,
+    displayMsg: 'Displaying topics {0} - {1} of {2}',
+    emptyMsg: "No topics to display",
+  });
+
+  // Content Items Grid
+  var grid = new Ext.grid.GridPanel( {
+    store: store,
+    columns: [{
+      id: 'name',
+      header: "Name",
+      width: 160,
+      renderer: function(val) {
+        return '<span class="icon-test">' + val + '</span>';
+      },
+      sortable: true,
+      dataIndex: 'name'
+    }, {
+      id: 'description',
+      header: "Title",
+      width: 75,
+      sortable: false,
+      dataIndex: 'description'
+    }, {
+      header: "Size",
+      width: 75,
+      sortable: true,
+      dataIndex: 'size'
+    }, {
+      header: "Created",
+      width: 75,
+      sortable: true,
+      renderer: Ext.util.Format.dateRenderer('m/d/Y'),
+      dataIndex: 'created'
+    }, {
+      header: "Modified",
+      width: 75,
+      sortable: true,
+      renderer: Ext.util.Format.dateRenderer('m/d/Y'),
+      dataIndex: 'modified'
+    }],
+    stripeRows :true,
+    autoExpandColumn :'description',
+    //trackMouseOver: false,
+    loadMask: true,
+    bbar: pagingBar
+    //height :350,
+    //width :600,
+    //title :'Array Grid'
+  });
 
   new Ext.Viewport({
     layout : 'border',
@@ -67,16 +129,13 @@ Ext.onReady(function() {
       region :'center', // this is what makes this panel into a region within
       layout :'fit',
       margins :'2 5 5 0',
-      //border :false,
-      bodyStyle :'padding:25px',
-      bbar: new Ext.StatusBar({
-        defaultText   : 'Default status',
-        id            : 'basic-statusbar',
-        items         : [{
-          text: 'A Button'
-        }, '-', 'Plain Text', ' ', ' ']
-      })
+      border :false,
+      //bodyStyle :'padding:25px',
+      items : grid
     }],
     renderTo : Ext.getBody()
   });
+  
+  // trigger the data store load
+  store.load({params:{start:0, limit:25}});
 });
