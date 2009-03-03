@@ -7,13 +7,18 @@
  */
 
 /**
+ *
+ */
+define('ALFRESCO_BROWSER_HOME', 'app:company_home');
+
+/**
  * Implementation of hook_help().
  */
 function alfresco_browser_help($path, $arg) {
 
   switch ($path) {
     case 'admin/help#alfresco_browser':
-      return '<p>'. t('Enables Alfresco browser widget for selecting Alfresco Nodes.') .'</p>';
+      return '<p>'. t('Enables Alfresco browser for selecting Alfresco nodes.') .'</p>';
   }
 }
 
@@ -31,16 +36,18 @@ function alfresco_browser_perm() {
 function alfresco_browser_menu() {
 
   $items['alfresco/browser'] = array(
-    'title' => 'Alfresco browser',
+    'title' => 'Alfresco Browser Ext JS',
     'page callback' => 'alfresco_browser_page',
+    'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
-  $items['alfresco/browser/actions/%'] = array(
+  $items['alfresco/browser/json/%'] = array(
     'page callback' => 'alfresco_browser_json',
     'page arguments' => array(3),
+    'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
@@ -82,7 +89,7 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   $variables['language'] = $language;
   $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
 
-  $variables['head']    = drupal_get_html_head();
+  $variables['head'] = drupal_get_html_head();
 
   $variables['path_url'] = $base_url .'/'. drupal_get_path('module', 'alfresco_browser');
 
@@ -130,14 +137,12 @@ function alfresco_browser_process($element, $form_state) {
     '#type' => 'textfield',
     '#name' => $element['#name'],
     '#attributes' => array('readonly' => TRUE),
-    //'#id' => form_clean_id("edit-alfresco-{$element['#name']}"),
   );
   $element['alfresco_browser_button'] = array(
     '#type' => 'button',
     '#button_type' => 'browse',
     '#value' => t('Browse...'),
     '#attributes' => array('onclick' => 'return false;'),
-    //'#attributes' => array('onclick' => "window.open('$path/layout.html', 'popup'); return false;"),
   );
   return $element;
 }

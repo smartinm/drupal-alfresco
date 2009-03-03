@@ -15,54 +15,71 @@ function alfresco_browser_page() {
 
 function alfresco_browser_json($action) {
 
-  if ($action == 'xxx') {
-    echo "
-{
-    nodes: [
-        {name: 'd72_2003.pdf', description:'Decreto 72/2003, de 18 de marzo', size:46.5, created: new Date(2007, 10, 29), modified: new Date(2007, 10, 29)},
-        {name: 'decreto104-92.pdf', description:'Decreto 104/1992, de 9 de junio', size:46.5, created: new Date(2007, 10, 29), modified: new Date(2007, 10, 29)},
-        {name: 'd72_2003.pdf', description:'Medidas de Impulso de la Sociedad del Conocimiento en Andalucía', size:46.5, created: new Date(2007, 10, 29), modified: new Date(2007, 10, 29)},
-        {name: 'decreto104-92.pdf', description:'Decreto 104/1992', size:46.5, created: new Date(2007, 10, 29), modified: new Date(2007, 10, 29)},
-        {name: 'd72_2003.pdf', description:'Decreto 72/2003, de 18 de marzo, de Medidas de Impulso de la Sociedad del Conocimiento en Andalucía', size:46.5, created: new Date(2007, 10, 29), modified: new Date(2007, 10, 29)},
-        {name: 'decreto104-92.pdf', description:'elaboración y desarrollo de la Política Informática de la Junta de Andalucía', size:46.5, created: new Date(2007, 10, 29), modified: new Date(2007, 10, 29)}
-    ]
-}
-    ";
-    exit();
+  ////
+  try {
+    $nodeUUID = isset($_POST['node']) ? $_POST['node'] : NULL;
+
+    $session = alfresco_service_create_session();
+    $spacesStore = new Store($session, 'SpacesStore');
+
+    if ($nodeUUID == NULL || $nodeUUID == 'NULL') {
+      $results = $session->query($spacesStore, 'PATH:"'. ALFRESCO_BROWSER_HOME .'"');
+      $currentNode = $results[0];
+    }
+    else {
+      $nodeRef = 'workspace://SpacesStore/'. $nodeUUID;
+      $currentNode = alfresco_service_load_node($nodeRef, $session);
+    }
+
+    if (!$currentNode) {
+      // node not found
+      drupal_json(array());
+      exit();
+    }
+
+    if ($action == 'spaces') {
+      $nodes = array();
+      foreach ($currentNode->children as $child) {
+        $childNode = $child->child;
+        if ($childNode->type == ALFRESCO_TYPE_FOLDER) {
+          $nodes[] = array(
+            'id'   => $childNode->sys_node_uuid,
+            'text' => $childNode->cm_name,
+            'qtip' => $childNode->cm_title,
+            //'leaf'    => count($childNode->children) == 0,
+          );
+        }
+      }
+      drupal_json($nodes);
+      exit();
+    }
+
+    if ($action == 'items') {
+      $items = array();
+      $spaces = array();
+
+      foreach ($currentNode->children as $child) {
+        $childNode = $child->child;
+        $item = array(
+          'uuid'     => $childNode->sys_node_uuid,
+          'name'     => $childNode->cm_name,
+          'type'     => $childNode->type == ALFRESCO_TYPE_FOLDER ? 'space' : 'content',
+          'size'     => $childNode->type == ALFRESCO_TYPE_CONTENT ? format_size($childNode->cm_content->size) : '',
+          'created'  => alfresco_date_convert($childNode->cm_created),
+          'modified' => alfresco_date_convert($childNode->cm_modified),
+        );
+        if ($childNode->type == ALFRESCO_TYPE_FOLDER) {
+          $spaces[] = $item;
+        }
+        else {
+          $items[] = $item;
+        }
+      }
+      drupal_json(array('nodes' => array_merge($spaces, $items)));
+      //drupal_json(array('nodes' => $items));
+      exit();
+    }
   }
-
-  $count1 = rand(); $count2 = rand(); $count3 = rand();
-  $icon_path = drupal_get_path('module', 'alfresco_browser') . '/images/space-icon-default-16.gif';
-
-  $spaces = array();
-  $spaces[] = array(
-    'id' => $count1,
-    'text' => 'Proyectos',
-    'icon' => $icon_path,
-    'leaf' => TRUE,
-  );
-  $spaces[] = array(
-    'id' => $count2,
-    'text' => 'OVCTIC',
-    'icon' => $icon_path,
-  );
-  drupal_json($spaces);
-  exit();
-
-  print "[{
-        id: $count1,
-        text: 'Proyectos',
-        icon: '$icon_path',
-        leaf: false
-    },{
-        id: $count2,
-        text: 'OVCTIC',
-        icon: '$icon_path',
-        children: [{
-            id: $count3,
-            text: 'Normativas',
-            icon: '$icon_path',
-            leaf: true
-        }]
-   }]";
+  catch (Exception $ex) {
+  }
 }

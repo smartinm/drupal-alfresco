@@ -10,6 +10,7 @@
  *
  */
 function alfresco_import_validate_item($item) {
+
   $errors = array();
   $reference = strval($item);
   if ($nid = alfresco_exists_node($reference)) {
@@ -23,6 +24,7 @@ function alfresco_import_validate_item($item) {
  *
  */
 function alfresco_import_form($form_state) {
+
   $form = array();
 
   $reference = isset($form_state['values']['reference']) ? $form_state['values']['reference'] : '';

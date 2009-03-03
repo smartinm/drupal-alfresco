@@ -20,17 +20,36 @@ Ext.onReady(function() {
 
     // tree-specific configs:
     rootVisible   : false,
-    //lines         : false,
-    //singleExpand  : true,
+    lines         : false,
+    singleExpand  : false,
+    trackMouseOver: false,
     useArrows     : true,
 
-    loader        : new Ext.tree.TreeLoader({
-      dataUrl : 'alfresco/browser/actions/loadSpaces'
+    loader : new Ext.tree.TreeLoader({
+      dataUrl: 'alfresco/browser/json/spaces'
     }),
 
-    root          : new Ext.tree.AsyncTreeNode({
-      id:'xxx'
-    })
+    root: new Ext.tree.AsyncTreeNode({id: 'NULL'}),
+    
+    tools:[{
+      id: 'refresh',
+      on: {
+        click: function(){
+          var tree = Ext.getCmp('tree-panel');
+          tree.body.mask('Loading', 'x-mask-loading');
+          tree.root.reload();
+          setTimeout(function() {
+            tree.body.unmask();
+          }, 1000);
+        }
+      }
+    }],
+    
+    listeners: {
+      'click': function(node, e){
+        store.load({params:{node:node.id}});
+      }
+    }
   });
 
   var detailsPanel = {
@@ -44,38 +63,29 @@ Ext.onReady(function() {
   
   // create the Data Store
   var store = new Ext.data.JsonStore({
-    url: 'alfresco/browser/actions/xxx',
+    url: 'alfresco/browser/json/items',
     root: 'nodes',
-    remoteSort: true,
-    fields: ['name', 'description', {name:'size', type: 'float'}, {name:'created', type:'date'}, {name:'modified', type:'date'}]
+    remoteSort: false,
+    fields: ['uuid', 'name', 'type', 'title', 'size', {name:'created', type:'date', dateFormat:'Y-m-d H:i:s'}, {name:'modified', type:'date', dateFormat:'Y-m-d H:i:s'}]
   });
   
-  var pagingBar = new Ext.PagingToolbar({
-    pageSize: 25,
-    store: store,
-    displayInfo: true,
-    displayMsg: 'Displaying topics {0} - {1} of {2}',
-    emptyMsg: "No topics to display",
-  });
-
   // Content Items Grid
   var grid = new Ext.grid.GridPanel( {
     store: store,
     columns: [{
+      id: 'uuid',
+      header: "UUID",
+      sortable: false,
+      dataIndex: 'uuid',
+      hidden: true
+    }, {
       id: 'name',
       header: "Name",
-      width: 160,
-      renderer: function(val) {
-        return '<span class="icon-test">' + val + '</span>';
+      renderer: function(value, p, record) {
+        return '<span class="icon-' + record.data.type + '">' + value + '</span>';
       },
       sortable: true,
       dataIndex: 'name'
-    }, {
-      id: 'description',
-      header: "Title",
-      width: 75,
-      sortable: false,
-      dataIndex: 'description'
     }, {
       header: "Size",
       width: 75,
@@ -83,25 +93,38 @@ Ext.onReady(function() {
       dataIndex: 'size'
     }, {
       header: "Created",
-      width: 75,
+      width: 125,
       sortable: true,
-      renderer: Ext.util.Format.dateRenderer('m/d/Y'),
+      renderer: Ext.util.Format.dateRenderer('Y-m-d H:i:s'),
       dataIndex: 'created'
     }, {
       header: "Modified",
-      width: 75,
+      width: 125,
       sortable: true,
-      renderer: Ext.util.Format.dateRenderer('m/d/Y'),
+      renderer: Ext.util.Format.dateRenderer('Y-m-d H:i:s'),
       dataIndex: 'modified'
     }],
-    stripeRows :true,
-    autoExpandColumn :'description',
-    //trackMouseOver: false,
-    loadMask: true,
-    bbar: pagingBar
-    //height :350,
-    //width :600,
-    //title :'Array Grid'
+    
+    listeners: {
+      'rowdblclick': function(grid, rowIndex, e){
+        
+        var row = this.store.getAt(rowIndex);
+        var uuid = row.get('uuid');
+        if (row.get('type') == 'space') {
+          store.load({params:{node:uuid}});
+          //treePanel.getNodeById(uuid).getUI().ensureVisible();
+          treePanel.getNodeById(uuid).expand();
+        }
+        else {
+          
+        }
+      }
+    },
+
+    //stripeRows: false,
+    autoExpandColumn :'name',
+    trackMouseOver: false,
+    loadMask: true
   });
 
   new Ext.Viewport({
@@ -137,5 +160,5 @@ Ext.onReady(function() {
   });
   
   // trigger the data store load
-  store.load({params:{start:0, limit:25}});
+  store.load();
 });

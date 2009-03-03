@@ -76,7 +76,7 @@ function alfresco_service_load_node($reference, $session = NULL) {
 
     if ($count = count($nodes)) {
       if ($count > 1) {
-        watchdog('alfresco', 'Se ha obtenido más de un nodo con la misma referencia %reference', array('%reference' => $reference), WATCHDOG_WARNING);
+        watchdog('alfresco', 'There are more than one node with the same reference %reference', array('%reference' => $reference), WATCHDOG_WARNING);
       }
       return $nodes[0];
     }

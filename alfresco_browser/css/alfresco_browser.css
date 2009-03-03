@@ -6,9 +6,18 @@
  * http://extjs.com/license
  */
 
-.icon-test {
-    background:url(../images/space-icon-default-16.gif) no-repeat;
-    padding-left: 18px;
+#tree-panel .x-tree-node-icon {
+  background-image: url(../images/space-icon-default-16.gif);
+}
+
+.icon-space {
+    background: url(../images/space-icon-default-16.gif) no-repeat 0 0;
+    padding: 2px 0 2px 20px;
+}
+
+.icon-content {
+    background: url(../images/content-icon-default.gif) no-repeat 0 0;
+    padding: 2px 0 2px 20px;
 }
 
 /*===================================
