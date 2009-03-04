@@ -82,10 +82,11 @@ function alfresco_browser_theme() {
  * @see alfresco_browser-page.tpl.php
  */
 function template_preprocess_alfresco_browser_page(&$variables) {
-  global $base_url, $language;
+  global $base_url, $base_path, $language;
 
   $variables['title'] = t('Alfresco browser');
   $variables['base_url'] = $base_url;
+  $variables['base_path'] = $base_path;
   $variables['language'] = $language;
   $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
   $variables['head'] = drupal_get_html_head();
