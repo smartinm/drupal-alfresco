@@ -179,7 +179,7 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
         );
 
         $form['alfresco_attachments']['wrapper']['new']['reference'] = array(
-          '#type'          => 'textfield',
+          '#type'          => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
           '#title'         => t('Attach new alfresco item'),
           '#default_value' => empty($node->reference) ? NULL : $node->reference,
           '#description'   => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),

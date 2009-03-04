@@ -8,7 +8,9 @@ Ext.onReady(function() {
   //Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
 
   Ext.QuickTips.init();
-
+  
+  var opener = window.opener;
+  
   var treePanel = new Ext.tree.TreePanel({
     id            : 'tree-panel',
     title         : 'Browse Spaces',
@@ -29,7 +31,7 @@ Ext.onReady(function() {
       dataUrl: 'alfresco/browser/json/spaces'
     }),
 
-    root: new Ext.tree.AsyncTreeNode({id: 'NULL'}),
+    root: new Ext.tree.AsyncTreeNode({id: 'null'}),
     
     tools:[{
       id: 'refresh',
@@ -41,55 +43,71 @@ Ext.onReady(function() {
           setTimeout(function() {
             tree.body.unmask();
           }, 1000);
+          store.load({params:{node:'null'}});
         }
       }
     }],
     
     listeners: {
       'click': function(node, e){
+        node.expand();
         store.load({params:{node:node.id}});
       }
     }
   });
 
-  var detailsPanel = {
-    id :'details-panel',
-    title :'Details',
-    region :'center',
-    bodyStyle :'padding-bottom:15px;background:#eee;',
-    autoScroll :true,
-    html :'<p class="details-info">Información del fichero</p>'
-  };
-  
-  // create the Data Store
-  var store = new Ext.data.JsonStore({
+  // Reader
+  var reader = new Ext.data.JsonReader({
+    root: 'nodes'
+  }, [
+     {name: 'uuid'},
+     {name: 'type'},
+     {name: 'name', 'type': 'string', 'sortType': 'asUCString'},
+     {name: 'title', 'type': 'string', 'sortType': 'asUCString'},
+     {name: 'size', 'type': 'string'},
+     {name: 'exists'},
+     {name: 'created', type: 'date', dateFormat: 'Y-m-d H:i:s'},
+     {name: 'modified', type: 'date', dateFormat: 'Y-m-d H:i:s'}
+  ]);
+
+  // Data Store
+  var store = new Ext.data.GroupingStore({
     url: 'alfresco/browser/json/items',
-    root: 'nodes',
+    reader: reader,
     remoteSort: false,
-    fields: ['uuid', 'name', 'type', 'title', 'size', {name:'created', type:'date', dateFormat:'Y-m-d H:i:s'}, {name:'modified', type:'date', dateFormat:'Y-m-d H:i:s'}]
+    sortInfo: {field: 'name', direction: 'ASC'},
+    groupField: 'type'
   });
   
   // Content Items Grid
   var grid = new Ext.grid.GridPanel( {
+    id: 'content-items',
     store: store,
-    columns: [{
+    columns: [ {
       id: 'uuid',
       header: "UUID",
-      sortable: false,
+      sortable: true,
       dataIndex: 'uuid',
       hidden: true
     }, {
+      id: 'type',
+      header: "Type",
+      sortable: true,
+      dataIndex: 'type'
+    }, {
       id: 'name',
       header: "Name",
-      renderer: function(value, p, record) {
-        return '<span class="icon-' + record.data.type + '">' + value + '</span>';
-      },
       sortable: true,
       dataIndex: 'name'
     }, {
+      header: "Title",
+      sortable: true,
+      dataIndex: 'title',
+      hidden: true
+    }, {
       header: "Size",
       width: 75,
-      sortable: true,
+      sortable: false,
       dataIndex: 'size'
     }, {
       header: "Created",
@@ -110,55 +128,104 @@ Ext.onReady(function() {
         
         var row = this.store.getAt(rowIndex);
         var uuid = row.get('uuid');
-        if (row.get('type') == 'space') {
+        
+        if (row.get('type') == 0 && opener.$("form#alfresco-import-form").length == 0) {
           store.load({params:{node:uuid}});
-          //treePanel.getNodeById(uuid).getUI().ensureVisible();
-          treePanel.getNodeById(uuid).expand();
+
+          var node = treePanel.getNodeById(uuid);
+          if (node) {
+            node.expand();
+            node.select();
+  
+            var ancestors = [];
+            var i = 0;
+            while (node.parentNode) {
+               ancestors[i] = node.parentNode;
+               i = i + 1;
+               node = node.parentNode;
+            }
+            for (i = (ancestors.length - 1); i >= 0; i--) {
+               ancestors[i].expand(false, false);
+            }
+          }
         }
         else {
-          
+          var nodeRef = 'workspace://SpacesStore/' + uuid;
+          var title = row.get('title');
+          opener.$("#edit-alfresco-browser-reference").val(nodeRef);
+          opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
+          opener.focus();
+          self.close();
         }
       }
     },
+    
+    view: new Ext.grid.GroupingView({
+      enableGroupingMenu : false,
+      hideGroupedColumn : true,
+      groupTextTpl : '{[values.gvalue == "0" ? "Spaces" : "Items"]} ({[values.rs.length]})',
+      getRowClass : function(record, index) {
+        var exists = record.get('exists') == '1' ? 'node-exists' : 'node-new';
+        var type   = record.get('type');
+        return 'icon-' + type + ' ' + exists;
+      }
+    }),
 
-    //stripeRows: false,
-    autoExpandColumn :'name',
-    trackMouseOver: false,
-    loadMask: true
+    // inline toolbars
+    /*
+    tbar:[{
+      text:'Add Something',
+      tooltip:'Add a new row',
+      iconCls:'add'
+    }, '-', {
+      text:'Options',
+      tooltip:'Blah blah blah blaht',
+      iconCls:'option'
+    },'-',{
+      text:'Remove Something',
+      tooltip:'Remove the selected item',
+      iconCls:'remove'
+    }],
+    */
+
+    autoExpandColumn : 'name',
+    trackMouseOver   : false,
+    loadMask         : true
   });
 
   new Ext.Viewport({
     layout : 'border',
     items  : [{
-      //xtype :'box',
-      region :'north',
-      height : 35,
-      //autoEl: {tag:'div', id:'header', html:'<h1>Alfresco Browser</h1>'}
-      html : '<div id="header"><h1>Alfresco Node Browser for Drupal</h1></div>'
+      region      : 'north',
+      height      : 35,
+      html        : '<div id="header"><h1>Alfresco Node Browser for Drupal</h1></div>'
     }, {
-      layout :'border',
-      id :'layout-browser',
-      region :'west',
-      border :false,
-      split :true,
-      margins :'2 0 5 5',
-      width :275,
-      minSize :100,
-      maxSize :500,
-      items : [ treePanel, detailsPanel ]
+      id          : 'layout-browser',
+      layout      : 'fit',
+      region      : 'west',
+      border      : false,
+      split       : true,
+      margins     : '2 0 5 5',
+      width       : 200,
+      minSize     : 100,
+      maxSize     : 500,
+      items       : treePanel
     }, {
-      id :'content-panel',
-      title :'Content Items',
-      region :'center', // this is what makes this panel into a region within
-      layout :'fit',
-      margins :'2 5 5 0',
-      border :false,
-      //bodyStyle :'padding:25px',
-      items : grid
-    }],
+      id          : 'content-panel',
+      title       : 'Content Items',
+      region      : 'center',
+      layout      : 'fit',
+      margins     : '2 5 5 0',
+      border      : false,
+      items       : grid
+    }/*, {
+      region      : 'south',
+      buttons     : [{text:'Close'}],
+      buttonAlign : 'center'
+    }*/],
     renderTo : Ext.getBody()
   });
   
   // trigger the data store load
-  store.load();
+  store.load({params:{node:'null'}});
 });

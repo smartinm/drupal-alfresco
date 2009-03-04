@@ -27,8 +27,7 @@
     <link type="text/css" rel="stylesheet" media="all" href="<?php print $path_url . '/css/alfresco_browser.css'; ?>" />
     <script type="text/javascript" src="<?php print $base_url . '/misc/jquery.js'; ?>"></script>
     <script type="text/javascript" src="<?php print $path_url . '/ext/ext-jquery-adapter.js'; ?>"></script>
-    <!-- <script type="text/javascript" src="<?php print $path_url . '/ext/ext-base.js'; ?>"></script>  -->
-    <script type="text/javascript" src="<?php print $path_url . '/ext/ext-all-debug.js'; ?>"></script>
+    <script type="text/javascript" src="<?php print $path_url . '/ext/ext-all.js'; ?>"></script>
     <script type="text/javascript" src="<?php print $path_url . '/js/alfresco_browser.js'; ?>"></script>
 
     <script type="text/javascript">

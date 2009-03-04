@@ -35,7 +35,7 @@ function alfresco_import_form($form_state) {
     '#weight' => -30,
   );
   $form['space']['reference'] = array(
-    '#type'          => 'textfield',
+    '#type'          => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
     '#title'         => t('Space Reference'),
     '#required'      => TRUE,
     '#description'   => t('Alfresco Space Reference. Example: workspace://SpacesStore/uuid'),
@@ -51,7 +51,6 @@ function alfresco_import_form($form_state) {
 
   if (!empty($reference)) {
     $alf_node = alfresco_service_load_node($reference);
-
     if (!$alf_node) {
       $form['none_found'] = array(
         '#type'  => 'item',

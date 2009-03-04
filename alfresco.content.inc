@@ -61,6 +61,8 @@ function alfresco_form(&$node, $form_state) {
       '#maxlength' => 255,
       '#weight' => -5,
       '#attributes' => array('readonly' => 'readonly'),
+      '#prefix' => '<div id="alfresco-edit-title-wrapper">',
+      '#suffix' => '</div>',
     );
   }
 
@@ -129,6 +131,8 @@ function alfresco_form_validate($form, &$form_state) {
  * Implementation of hook_validate().
  */
 function alfresco_validate($node, &$form) {
+
+  drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
 
   if (!empty($node->reference)) {
     if ($nid = alfresco_exists_node($node->reference, $node->nid)) {

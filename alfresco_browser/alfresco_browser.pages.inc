@@ -15,14 +15,13 @@ function alfresco_browser_page() {
 
 function alfresco_browser_json($action) {
 
-  ////
   try {
     $nodeUUID = isset($_POST['node']) ? $_POST['node'] : NULL;
 
     $session = alfresco_service_create_session();
     $spacesStore = new Store($session, 'SpacesStore');
 
-    if ($nodeUUID == NULL || $nodeUUID == 'NULL') {
+    if ($nodeUUID == NULL || $nodeUUID == 'null') {
       $results = $session->query($spacesStore, 'PATH:"'. ALFRESCO_BROWSER_HOME .'"');
       $currentNode = $results[0];
     }
@@ -55,28 +54,25 @@ function alfresco_browser_json($action) {
     }
 
     if ($action == 'items') {
-      $items = array();
-      $spaces = array();
+      $nodes = array();
 
       foreach ($currentNode->children as $child) {
         $childNode = $child->child;
-        $item = array(
+        $nodeUUID = $childNode->sys_node_uuid;
+        $nodeRef  = 'workspace://SpacesStore/'. $nodeUUID;
+
+        $nodes[] = array(
           'uuid'     => $childNode->sys_node_uuid,
           'name'     => $childNode->cm_name,
-          'type'     => $childNode->type == ALFRESCO_TYPE_FOLDER ? 'space' : 'content',
+          'title'    => $childNode->cm_title,
+          'type'     => $childNode->type == ALFRESCO_TYPE_FOLDER ? '0' : '1',
           'size'     => $childNode->type == ALFRESCO_TYPE_CONTENT ? format_size($childNode->cm_content->size) : '',
           'created'  => alfresco_date_convert($childNode->cm_created),
           'modified' => alfresco_date_convert($childNode->cm_modified),
+          'exists'   => alfresco_exists_node($nodeRef) ? '1' : '0',
         );
-        if ($childNode->type == ALFRESCO_TYPE_FOLDER) {
-          $spaces[] = $item;
-        }
-        else {
-          $items[] = $item;
-        }
       }
-      drupal_json(array('nodes' => array_merge($spaces, $items)));
-      //drupal_json(array('nodes' => $items));
+      drupal_json(array('nodes' => $nodes));
       exit();
     }
   }

@@ -88,19 +88,8 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   $variables['base_url'] = $base_url;
   $variables['language'] = $language;
   $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
-
   $variables['head'] = drupal_get_html_head();
-
   $variables['path_url'] = $base_url .'/'. drupal_get_path('module', 'alfresco_browser');
-
-  /*
-  $variables['scripts'] = drupal_get_js('header', array(
-    array('header' => array('module' => array($path .'/ext/ext-jquery-adapter.js' => array() ),
-    $path .'/ext/ext-base.js',
-    $path .'/ext/ext-all.js',
-    $path .'/js/alfresco_browser.js',
-  ));
-  */
 }
 
 /**
@@ -126,8 +115,14 @@ function alfresco_browser_process($element, $form_state) {
   drupal_add_js("
     if (Drupal.jsEnabled) {
       $(document).ready(function() {
+        var abWin = null;
         $('#edit-alfresco-browser-button').click(function() {
-          window.open('$path', 'alfresco_browser', 'width=960,height=600,resizable');
+          if (abWin != null && !abWin.closed) {
+            abWin = abWin.focus();
+          }
+          else {
+            abWin = window.open('$path', 'alfresco_browser', 'width=850,height=500,resizable');
+          }
           return false;
         });
       });
@@ -136,6 +131,7 @@ function alfresco_browser_process($element, $form_state) {
   $element['alfresco_browser_reference'] = array(
     '#type' => 'textfield',
     '#name' => $element['#name'],
+    '#value' => $element['#value'],
     '#attributes' => array('readonly' => TRUE),
   );
   $element['alfresco_browser_button'] = array(
