@@ -49,6 +49,7 @@ function alfresco_browser_json($action) {
           );
         }
       }
+      usort($nodes, '_alfresco_browser_order_nodes');
       drupal_json($nodes);
       exit();
     }
@@ -79,3 +80,9 @@ function alfresco_browser_json($action) {
   catch (Exception $ex) {
   }
 }
+
+function _alfresco_browser_order_nodes($node1, $node2)
+{
+   return strcmp($node1['text'], $node2['text']);
+}
+

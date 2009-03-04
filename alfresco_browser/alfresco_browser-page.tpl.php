@@ -36,7 +36,7 @@
     /*]]>*/
     </script>
 
-    <base href="<?php print $base_url; ?>" />
+    <base href="<?php print $base_url .'/'; ?>" />
   </head>
   <body>
   </body>
