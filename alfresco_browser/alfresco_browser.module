@@ -85,7 +85,7 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   global $base_url, $language;
 
   $variables['title'] = t('Alfresco browser');
-  $variables['base_url'] = $base_url;
+  $variables['base_url'] = $base_url . '/';
   $variables['language'] = $language;
   $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
   $variables['head'] = drupal_get_html_head();
