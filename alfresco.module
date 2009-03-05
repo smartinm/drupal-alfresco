@@ -231,7 +231,7 @@ function alfresco_menu() {
 }
 
 function _alfresco_download_access($node) {
-  return user_access('download alfresco content') && ($node->type == 'alfresco_item' && !empty($node->cm_content));
+  return user_access('download alfresco content') && node_access('view', $node) && ($node->type == 'alfresco_item' && !empty($node->cm_content));
 }
 
 function _alfresco_administer_access($node) {

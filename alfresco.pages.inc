@@ -15,10 +15,6 @@
  */
 function alfresco_page_download($node) {
 
-  if (!user_access('download alfresco content')) {
-    return drupal_access_denied();
-  }
-
   $node_link = l(t('view'), 'node/'. $node->nid);
   $watchdog_args = array('@type' => $node->type, '%title' => $node->title);
   watchdog('alfresco', '@type: downloaded %title.', $watchdog_args, WATCHDOG_NOTICE, $node_link);
