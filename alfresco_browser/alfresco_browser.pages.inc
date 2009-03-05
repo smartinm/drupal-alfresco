@@ -10,6 +10,15 @@
  *
  */
 function alfresco_browser_page() {
+
+  drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/ext/ext-jquery-adapter.js', 'module', 'header', FALSE, TRUE, FALSE);
+  drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/ext/ext-all.js', 'module', 'header', FALSE, TRUE, FALSE);
+  drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/js/alfresco_browser.js', 'module', 'header', FALSE, TRUE, FALSE);
+  drupal_add_js(array('alfresco_browser' => array(
+    'urlSpaces' => url('alfresco/browser/json/spaces'),
+    'urlItems'  => url('alfresco/browser/json/items')
+  )), 'setting', 'header');
+
   print theme('alfresco_browser_page');
 }
 

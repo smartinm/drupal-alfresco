@@ -28,7 +28,7 @@ Ext.onReady(function() {
     useArrows     : true,
 
     loader : new Ext.tree.TreeLoader({
-      dataUrl: 'browser/json/spaces'
+      dataUrl: Drupal.settings.alfresco_browser.urlSpaces
     }),
 
     root: new Ext.tree.AsyncTreeNode({id: 'null'}),
@@ -72,7 +72,7 @@ Ext.onReady(function() {
 
   // Data Store
   var store = new Ext.data.GroupingStore({
-    url: 'browser/json/items',
+    url: Drupal.settings.alfresco_browser.urlItems,
     reader: reader,
     remoteSort: false,
     sortInfo: {field: 'name', direction: 'ASC'},
