@@ -94,7 +94,7 @@ function alfresco_node_info() {
     'alfresco_item' => array(
       'name'        => t('Alfresco item'),
       'module'      => 'alfresco',
-      'description' => t('An <em>alfresco item</em> is a reference to node stored in Alfresco repository. Alfresco node can be content items o spaces.'),
+      'description' => t('An <em>alfresco item</em> is a reference to node stored in Alfresco repository.'),
       'has_title'   => TRUE,
       'title_label' => t('Title'),
       'has_body'    => TRUE,
@@ -126,8 +126,8 @@ function alfresco_perm() {
 /**
  * Implementation of hook_access().
  *
- * Node modules may implement node_access() to determine the operations
- * users may perform on nodes. This example uses a very common access pattern.
+ * Determine the operations users may perform on nodes. This uses a very common
+ * access pattern.
  */
 function alfresco_access($op, $node, $account) {
 
@@ -156,6 +156,7 @@ function alfresco_access($op, $node, $account) {
  * Implementation of hook_menu().
  */
 function alfresco_menu() {
+
   $items['admin/settings/alfresco'] = array(
     'title' => 'Alfresco',
     'description' => 'Configure Alfresco.',
@@ -315,11 +316,11 @@ function alfresco_theme() {
       'file' => 'alfresco.admin.inc',
     ),
     'alfresco_teaser' => array(
-      'arguments' => array('node'),
+      'arguments' => array('node' => NULL),
       'file' => 'alfresco.theme.inc',
     ),
     'alfresco_display' => array(
-      'arguments' => array('node'),
+      'arguments' => array('node' => NULL),
       'file' => 'alfresco.theme.inc',
     ),
   );

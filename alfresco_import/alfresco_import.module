@@ -36,6 +36,7 @@ function alfresco_import_menu() {
     'description' => 'Import <em>Alfresco item</em> nodes from an Alfresco space.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_import_form'),
+    'access callback' => 'user_access',
     'access arguments' => array('import alfresco contents'),
     'file' => 'alfresco_import.pages.inc',
     'type' => MENU_NORMAL_ITEM,
