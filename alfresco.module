@@ -23,15 +23,13 @@
 // ------------------------------------------------------------------
 
 // Relative path to Alfresco PHP Library
-if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
-  define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-sdk');
-}
+define('ALFRESCO_PHP_LIBRARY_PATH', 'lib');
 
 // Default value for alfresco_debug_output variable.
 define('ALFRESCO_DEBUG_OUTPUT', TRUE);
 
 // Alfresco file downloads methods.
-// @see http://wiki.alfresco.com/wiki/URL_Addressability
+// More info: http://wiki.alfresco.com/wiki/URL_Addressability
 define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);  // Private transfer
 define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
@@ -343,18 +341,24 @@ function alfresco_url_download($node) {
 /**
  * Transfer file using http to client. Pipes a file through Drupal to the client.
  *
+ * @param $reference
+ *  A string containing an Alfresco Node Reference.
+ *
+ * @param $disposition
+ *  The Content-Disposition Header. Possible values: 'attachment' or 'inline'.
+ *
  * @see file_transfer()
  * @see http://w-shadow.com/blog/2007/08/12/how-to-force-file-download-with-php/
  * @see http://www.phpclasses.org/browse/file/9051.html
  * @see http://www.php-mysql-tutorial.com/php-tutorial/php-read-remote-file.php
  * @see http://htmlblog.net/10-code-snippets-for-php-developers/
  */
-function alfresco_file_transfer($node) {
+function alfresco_file_transfer($reference, $disposition = NULL) {
   if (ob_get_level()) {
     ob_end_clean();
   }
 
-  $alf_node = alfresco_service_load_node($node->reference);
+  $alf_node = alfresco_service_load_node($reference);
   if (!$alf_node) {
     drupal_not_found();
     exit();
@@ -373,7 +377,10 @@ function alfresco_file_transfer($node) {
 
   drupal_set_header('Content-Type: '. $mime);
   drupal_set_header('Content-Length: '. $size);
-  //drupal_set_header('Content-Disposition: attachment; filename="' . $name . '"');
+
+  if ($disposition == 'attachment' || $disposition == 'inline') {
+    drupal_set_header('Content-Disposition: '. $disposition .'; filename="' . $name . '"');
+  }
 
   // Transfer file in 1024 byte chunks to save memory usage.
   if ($fd = fopen($url, 'rb')) {

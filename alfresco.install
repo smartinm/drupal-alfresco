@@ -8,7 +8,7 @@
 
 if (!defined('ALFRESCO_PHP_LIBRARY_PATH')) {
   // Relative path to Alfresco PHP Library
-  define('ALFRESCO_PHP_LIBRARY_PATH', 'alfresco-php-sdk');
+  define('ALFRESCO_PHP_LIBRARY_PATH', 'lib');
 }
 
 /**
@@ -265,23 +265,25 @@ function _alfresco_check_php_library() {
     );
   }
 
-  @include_once "Alfresco/Service/Repository.php";
-  if (class_exists('Repository')) {
-    return array(
-      'value'    => $t('Available via the system\'s include_path'),
-      'severity' => REQUIREMENT_OK,
-    );
-  }
-
   // Add the Alfresco PHP library directory to include path if exists
   $lib_path = drupal_get_path('module', 'alfresco') .'/'. ALFRESCO_PHP_LIBRARY_PATH;
   if (is_dir($lib_path)) {
     set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
-
     @include_once "Alfresco/Service/Repository.php";
+
     if (class_exists('Repository')) {
       return array(
         'value'    => $t('Available via module (%path).', array('%path' => $lib_path)),
+        'severity' => REQUIREMENT_OK,
+      );
+    }
+  }
+  else {
+    @include_once "Alfresco/Service/Repository.php";
+
+    if (class_exists('Repository')) {
+      return array(
+        'value'    => $t('Available via the system\'s include_path'),
         'severity' => REQUIREMENT_OK,
       );
     }

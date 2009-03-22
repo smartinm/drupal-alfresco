@@ -1,44 +1,78 @@
+/* $Id$ */
 
 body {
-  font-family:'lucida grande',tahoma,arial,sans-serif;
-  font-size:11px;
 }
-a {
-  color:#15428B;
-}
-a:link, a:visited {
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-#header {
-  background: #DFE6ED;
-  height: 100%;
-}
-#header h1 {
-  height: 100%;
-  font-size: 16px;
-  color: #004488;
-  font-weight: bold;
-  padding: 6px 10px 6px 45px;
+
+h1 {
   background: #DFE6ED url(../images/alfresco-logo-32.gif) no-repeat 5px top;
+  color: #004488;
+  padding: 5px 0 0 45px;
+  font-family:'lucida grande',tahoma,arial,sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  height: 100%;
 }
 
-#tree-panel .x-tree-node-icon {
-  background-image: url(../images/space-icon-default-16.gif);
+.x-tree-node-icon {
+  background-image: url(../images/space-icon-default-16.gif) !important;
 }
 
-.icon-0 .x-grid3-col-name {
-  background: url(../images/space-icon-default-16.gif) no-repeat 0 0;
+/*
+.x-grid3-td-name {
+  width: 100px !important;
+}
+*/
+
+.row-icon {
+  background: transparent url(../images/_default.gif) no-repeat;
   padding: 2px 0 2px 20px;
 }
 
-.icon-1 .x-grid3-col-name {
-  background: url(../images/content-icon-default.gif) no-repeat 0 0;
-  padding: 2px 0 2px 20px;
+#items-grid .x-grid3-viewport {
+  /*background: #fdf7bd url(../images/alf_task_bg.png) no-repeat right top !important;*/
+  /*background:  #fff url(../images/alf_task_bg.png) no-repeat left top !important;*/
+}
+#ext-gen37 {
+  /*background: #fdf7bd url(../images/alf_task_bg.png) no-repeat right top !important;*/
+  /*background:  #fff url(../images/alf_task_bg.png) no-repeat left top !important;*/
 }
 
-.node-exists {
-  background-color: #EEFFEE;
+.upload {
+  background-image:url(../images/add.gif) !important;
+}
+.details {
+  background-image:url(../images/details.gif) !important;
+}
+.drupal {
+  background-image:url(../images/drupal.png) !important;
+}
+.download {
+  background-image:url(../images/download.gif) !important;
+}
+.view {
+  background-image:url(../images/view.gif) !important;
+}
+
+#items-grid .x-grid3-hd-row td,
+#items-grid .x-grid3-row td,
+#items-grid .x-grid3-summary-row td {
+  font-family:'lucida grande',tahoma,arial,sans-serif;
+  /*font-size: 11px;*/
+  font-weight: bold;
+}
+
+#folder-tree .x-tree-node {
+  font-family:'lucida grande',tahoma,arial,sans-serif;
+  /*font-size: 11px;*/
+  font-weight: bold;
+}
+.x-tree-node .x-tree-selected {
+  background-color: #E0E0E0;
+}
+
+.x-layout-collapsed-south {
+  /*height: 10px !important;*/
+}
+#ext-gen37 {
+  /*background: #fff url(../images/gmv.png) no-repeat left bottom !important;*/
 }

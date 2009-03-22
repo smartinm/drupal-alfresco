@@ -1,0 +1,34 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install and configure Alfresco browser module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function alfresco_browser_install() {
+  variable_set('alfresco_browser_query_limit', 10);
+
+  drupal_install_schema('alfresco_browser');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alfresco_browser_uninstall() {
+  variable_del('alfresco_browser_query_limit');
+
+  drupal_uninstall_schema('alfresco_browser');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function alfresco_browser_schema() {
+  $schema['cache_alfresco_browser'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_alfresco_browser']['description'] = '';
+  return $schema;
+}

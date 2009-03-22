@@ -21,7 +21,7 @@ function alfresco_page_download($node) {
 
   switch (variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_MODULE)) {
     case ALFRESCO_FILE_DOWNLOADS_MODULE:
-      alfresco_file_transfer($node);
+      alfresco_file_transfer($node->reference);
       break;
 
     case ALFRESCO_FILE_DOWNLOADS_GUEST:

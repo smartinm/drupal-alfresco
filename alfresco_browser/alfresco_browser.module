@@ -44,14 +44,30 @@ function alfresco_browser_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['alfresco/browser/json/%'] = array(
-    'page callback' => 'alfresco_browser_json',
-    'page arguments' => array(3),
+  $items['alfresco/browser/service/tree.json'] = array(
+    'page callback' => 'alfresco_browser_service_tree_json',
     'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
+
+  $items['alfresco/browser/service/grid.json'] = array(
+    'page callback' => 'alfresco_browser_service_documents_json',
+    'access callback' => 'user_access',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['alfresco/browser/service/download'] = array(
+    'page callback' => 'alfresco_browser_service_download',
+    'access callback' => 'user_access',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
@@ -82,10 +98,9 @@ function alfresco_browser_theme() {
  * @see alfresco_browser-page.tpl.php
  */
 function template_preprocess_alfresco_browser_page(&$variables) {
-  global $base_url, $base_path, $language;
+  global $base_path, $language;
 
   $variables['title'] = t('Alfresco browser');
-  $variables['base_url'] = $base_url;
   $variables['base_path'] = $base_path;
   $variables['module_path'] = $base_path . drupal_get_path('module', 'alfresco_browser');
   $variables['language'] = $language;
@@ -124,7 +139,7 @@ function alfresco_browser_process($element, $form_state) {
             abWin = abWin.focus();
           }
           else {
-            abWin = window.open('$path', 'alfresco_browser', 'width=850,height=500,resizable');
+            abWin = window.open('$path', 'alfresco_browser', 'width=800,height=500,resizable');
           }
           return false;
         });
