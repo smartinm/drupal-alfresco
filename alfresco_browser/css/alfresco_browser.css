@@ -1,8 +1,5 @@
 /* $Id$ */
 
-body {
-}
-
 h1 {
   background: #DFE6ED url(../images/alfresco-logo-32.gif) no-repeat 5px top;
   color: #004488;
@@ -13,28 +10,9 @@ h1 {
   height: 100%;
 }
 
-.x-tree-node-icon {
-  background-image: url(../images/space-icon-default-16.gif) !important;
-}
-
-/*
-.x-grid3-td-name {
-  width: 100px !important;
-}
-*/
-
 .row-icon {
   background: transparent url(../images/_default.gif) no-repeat;
   padding: 2px 0 2px 20px;
-}
-
-#items-grid .x-grid3-viewport {
-  /*background: #fdf7bd url(../images/alf_task_bg.png) no-repeat right top !important;*/
-  /*background:  #fff url(../images/alf_task_bg.png) no-repeat left top !important;*/
-}
-#ext-gen37 {
-  /*background: #fdf7bd url(../images/alf_task_bg.png) no-repeat right top !important;*/
-  /*background:  #fff url(../images/alf_task_bg.png) no-repeat left top !important;*/
 }
 
 .upload {
@@ -57,22 +35,14 @@ h1 {
 #items-grid .x-grid3-row td,
 #items-grid .x-grid3-summary-row td {
   font-family:'lucida grande',tahoma,arial,sans-serif;
-  /*font-size: 11px;*/
   font-weight: bold;
 }
 
 #folder-tree .x-tree-node {
   font-family:'lucida grande',tahoma,arial,sans-serif;
-  /*font-size: 11px;*/
   font-weight: bold;
 }
-.x-tree-node .x-tree-selected {
-  background-color: #E0E0E0;
-}
 
-.x-layout-collapsed-south {
-  /*height: 10px !important;*/
-}
-#ext-gen37 {
-  /*background: #fff url(../images/gmv.png) no-repeat left bottom !important;*/
+#folder-tree .x-tree-node-icon {
+  background-image: url(../images/space-icon-default-16.gif) !important;
 }

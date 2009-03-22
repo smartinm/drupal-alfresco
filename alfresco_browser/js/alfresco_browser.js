@@ -96,11 +96,7 @@ AlfrescoBrowser.App = function() {
 
         loader: new Ext.tree.TreeLoader({
           dataUrl: AlfrescoBrowser.Settings['serviceTreeUrl'],
-          requestMethod: 'GET',
-          isRefresh: false,
-          listeners: {
-          'beforeload': function(loader, node) {
-          }}
+          requestMethod: 'GET'
         }),
         
         root: new Ext.tree.AsyncTreeNode({
@@ -111,14 +107,8 @@ AlfrescoBrowser.App = function() {
         listeners: {
           'click': function(node, e) {
             node.expand();
-            dataStore.baseParams = {
-              node: node.id
-            };
-            dataStore.load({
-              params: {
-                start: 0
-              }
-            });
+            dataStore.baseParams = {node: node.id};
+            dataStore.load({params:{start:0}});
             itemsGrid.setTitle(node.text);
         }},
         
@@ -126,13 +116,19 @@ AlfrescoBrowser.App = function() {
           id: 'refresh',
           on: {
             click: function(){
+              var currentNode = folderTree.getSelectionModel().getSelectedNode();
+              if (Ext.isEmpty(currentNode)) {
+                currentNode = folderTree.root;
+              }
+              var currentPath = currentNode.getPath();
+              
               var baseParams = folderTree.loader.baseParams || {};
-              folderTree.loader.baseParams['cache'] = false;
+              folderTree.loader.baseParams['cache'] = 'all';
               folderTree.root.reload();
               folderTree.loader.baseParams = baseParams;
-              //var currentPath = folderTree.getSelectionModel().getSelectedNode().getPath();
-              //folderTree.expandPath(currentPath);
-              //folderTree.selectPath(currentPath);
+              
+              folderTree.expandPath(currentPath);
+              folderTree.selectPath(currentPath);
             }}
         }]
       });
@@ -277,9 +273,10 @@ AlfrescoBrowser.App = function() {
             var o = {}, pn = this.paramNames;
             o[pn.start] = this.cursor;
             o[pn.limit] = this.pageSize;
-            o['cache'] = false;
+            o['cache'] = 'node';
             if(this.fireEvent('beforechange', this, o) !== false){
-                this.store.load({params:o});
+              itemsGrid.getEl().mask('Loading', 'x-mask-loading');
+              this.store.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
             }
             return;
           }
@@ -349,7 +346,7 @@ AlfrescoBrowser.App = function() {
           }
         },'-',{
           text: 'Send to Drupal',
-          tooltip: 'Send to Drupal.',
+          tooltip: 'Send selected item to Drupal.',
           iconCls: 'drupal',
           handler: function() {
             if (!opener) {
@@ -397,7 +394,9 @@ AlfrescoBrowser.App = function() {
           qtip: 'Clear content items and search cache.',
           on: {
             click: function(){
-              // TODO
+              var o = {start: 0, cache: 'all'};
+              itemsGrid.getEl().mask('Loading', 'x-mask-loading');
+              dataStore.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
             }}
         }]
       });

@@ -16,23 +16,24 @@ function alfresco_browser_page() {
 function alfresco_browser_service_tree_json() {
 
   $node = isset($_GET['node']) ? trim($_GET['node']) : 'Home';
-  $clear = isset($_GET['cache']) ? TRUE : FALSE;
+  $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
 
   if (empty($node)) {
     drupal_json(array());
     exit();
   }
 
-  if ($clear) {
+  $cache_key = 'tree='. $node;
+  if ($cache_clear == 'all') {
     cache_clear_all('tree=', 'cache_alfresco_browser', TRUE);
   }
-
-  $cache_key = 'tree='. $node;
-  $cache = cache_get($cache_key, 'cache_alfresco_browser');
-  if ($cache && !empty($cache->data)) {
-    $nodes = $cache->data;
-    drupal_json($nodes);
-    exit();
+  else {
+    $cache = cache_get($cache_key, 'cache_alfresco_browser');
+    if ($cache && !empty($cache->data)) {
+      $nodes = $cache->data;
+      drupal_json($nodes);
+      exit();
+    }
   }
 
   try {
@@ -85,7 +86,7 @@ function alfresco_browser_service_documents_json() {
   $query = isset($_GET['query']) ? trim($_GET['query']) : '';
   $start = isset($_GET['start']) ? intval($_GET['start']) : 0;
   $limit = isset($_GET['limit']) ? intval($_GET['limit']) : variable_get('alfresco_browser_query_limit', 10);
-  $clear = isset($_GET['cache']) ? TRUE : FALSE;
+  $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
 
   if (empty($query) && empty($node)) {
     drupal_json(array('total' => 0, 'rows' => array()));
@@ -93,15 +94,24 @@ function alfresco_browser_service_documents_json() {
   }
 
   $cache_key = empty($query) ? 'node='. $node : 'query='. $query;
-  if ($clear) {
-    cache_clear_all($cache_key, 'cache_alfresco_browser');
-  }
 
-  $cache = cache_get($cache_key, 'cache_alfresco_browser');
-  if ($cache && !empty($cache->data)) {
-    $nodes = $cache->data;
-    drupal_json(array('total' => count($nodes), 'rows' => array_slice($nodes, $start, $limit)));
-    exit();
+  switch ($cache_clear) {
+  case 'node':
+    cache_clear_all($cache_key, 'cache_alfresco_browser');
+    break;
+
+  case 'all':
+    cache_clear_all('node=', 'cache_alfresco_browser', TRUE);
+    cache_clear_all('query=', 'cache_alfresco_browser', TRUE);
+    break;
+
+  default:
+    $cache = cache_get($cache_key, 'cache_alfresco_browser');
+    if ($cache && !empty($cache->data)) {
+      $nodes = $cache->data;
+      drupal_json(array('total' => count($nodes), 'rows' => array_slice($nodes, $start, $limit)));
+      exit();
+    }
   }
 
   try {
