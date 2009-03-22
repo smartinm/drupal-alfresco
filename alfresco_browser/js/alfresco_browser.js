@@ -307,14 +307,12 @@ AlfrescoBrowser.App = function() {
             //console.log(dataRow.data.id);
         }},
         
-        /*
         viewConfig: {
-          // Return CSS class to apply to rows depending upon data values
           getRowClass: function(record, index) {
-            return 'row-icon-' + record.get('icon');
+            var exists = record.get('nid').length > 0 ? 'row-node-exists' : 'row-node-new';
+            return exists;
           }
         },
-        */
 
         tbar: [{
           text: 'Add Content',

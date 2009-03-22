@@ -68,14 +68,11 @@ function alfresco_browser_service_tree_json() {
         );
       }
     }
-    usort($nodes, create_function('$node_a, $node_b',
-      'return strnatcmp($node_a[\'text\'], $node_b[\'text\']);')
-    );
+    usort($nodes, '_alfresco_browser_sort_nodes');
     drupal_json($nodes);
     cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
   }
   catch (Exception $ex) {
-    drupal_json(array());
   }
 }
 
@@ -193,85 +190,12 @@ function alfresco_browser_service_download() {
     exit();
   }
 
-  if ($mode != 'inline' && $mode != 'attachment') {
-    $mode = NULL;
-  }
-
+  $mode = ($mode == 'inline' || $mode == 'attachment') ? $mode : NULL;
   $reference = 'workspace://SpacesStore/'. $node;
+
   alfresco_file_transfer($reference, $mode);
 }
 
-/*
-function alfresco_browser_json($action) {
-
-  try {
-    $nodeUUID = isset($_POST['node']) ? $_POST['node'] : NULL;
-
-    $session = alfresco_service_create_session();
-    $spacesStore = new Store($session, 'SpacesStore');
-
-    if ($nodeUUID == NULL || $nodeUUID == 'null') {
-      $results = $session->query($spacesStore, 'PATH:"'. ALFRESCO_BROWSER_HOME .'"');
-      $currentNode = $results[0];
-    }
-    else {
-      $nodeRef = 'workspace://SpacesStore/'. $nodeUUID;
-      $currentNode = alfresco_service_load_node($nodeRef, $session);
-    }
-
-    if (!$currentNode) {
-      // node not found
-      drupal_json(array());
-      exit();
-    }
-
-    if ($action == 'spaces') {
-      $nodes = array();
-      foreach ($currentNode->children as $child) {
-        $childNode = $child->child;
-        if ($childNode->type == ALFRESCO_TYPE_FOLDER) {
-          $nodes[] = array(
-            'id'   => $childNode->sys_node_uuid,
-            'text' => $childNode->cm_name,
-            'qtip' => $childNode->cm_title,
-            //'leaf'    => count($childNode->children) == 0,
-          );
-        }
-      }
-      usort($nodes, '_alfresco_browser_order_nodes');
-      drupal_json($nodes);
-      exit();
-    }
-
-    if ($action == 'items') {
-      $nodes = array();
-
-      foreach ($currentNode->children as $child) {
-        $childNode = $child->child;
-        $nodeUUID = $childNode->sys_node_uuid;
-        $nodeRef  = 'workspace://SpacesStore/'. $nodeUUID;
-
-        $nodes[] = array(
-          'uuid'     => $childNode->sys_node_uuid,
-          'name'     => $childNode->cm_name,
-          'title'    => $childNode->cm_title,
-          'type'     => $childNode->type == ALFRESCO_TYPE_FOLDER ? '0' : '1',
-          'size'     => $childNode->type == ALFRESCO_TYPE_CONTENT ? format_size($childNode->cm_content->size) : '',
-          'created'  => alfresco_date_convert($childNode->cm_created),
-          'modified' => alfresco_date_convert($childNode->cm_modified),
-          'exists'   => alfresco_exists_node($nodeRef) ? '1' : '0',
-        );
-      }
-      drupal_json(array('nodes' => $nodes));
-      exit();
-    }
-  }
-  catch (Exception $ex) {
-  }
+function _alfresco_browser_sort_nodes($node1, $node2) {
+  return strnatcmp($node1['text'], $node2['text']);
 }
-
-function _alfresco_browser_order_nodes($node1, $node2)
-{
-   return strcmp($node1['text'], $node2['text']);
-}
-*/
