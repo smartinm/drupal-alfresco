@@ -1,7 +1,7 @@
 /* $Id$ */
 
 h1 {
-  background: #DFE6ED url(../images/alfresco-logo-32.gif) no-repeat 5px top;
+  background: #DFE6ED url(../images/alfresco.gif) no-repeat 5px top;
   color: #004488;
   padding: 5px 0 0 45px;
   font-family:'lucida grande',tahoma,arial,sans-serif;
@@ -44,5 +44,5 @@ h1 {
 }
 
 #folder-tree .x-tree-node-icon {
-  background-image: url(../images/space-icon-default-16.gif) !important;
+  background-image: url(../images/space.gif) !important;
 }
