@@ -16,7 +16,7 @@
   <link rel="stylesheet" type="text/css" href="<?php print $module_path .'/ext/css/xtheme-gray.css'; ?>" />
   <link rel="stylesheet" type="text/css" href="<?php print $module_path .'/css/alfresco_browser.css'; ?>" />
   <script type="text/javascript" src="<?php print $module_path .'/ext/ext-base.js'; ?>"></script>
-  <script type="text/javascript" src="<?php print $module_path .'/ext/ext-all-debug.js'; ?>"></script>
+  <script type="text/javascript" src="<?php print $module_path .'/ext/ext-all.js'; ?>"></script>
   <script type="text/javascript" src="<?php print $module_path .'/js/alfresco_browser.js'; ?>"></script>
   <script type="text/javascript">
   <!--//--><![CDATA[//><!--
