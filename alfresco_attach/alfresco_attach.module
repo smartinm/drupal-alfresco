@@ -161,6 +161,7 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
       $form['alfresco_attachments']['wrapper']['new'] = array();
       $form['alfresco_attachments']['wrapper']['new']['#weight'] = 10;
 
+      /*
       if (variable_get('alfresco_attach_existing', TRUE)) {
         $form['alfresco_attachments']['wrapper']['new']['aid'] = array(
           '#type'          => 'select',
@@ -170,17 +171,20 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
           '#description'   => t('Choose an alfresco item already existing on the server if you do not create a new one.')
         );
       }
+      */
 
       if (user_access('create alfresco content')) {
+        /*
         $form['alfresco_attachments']['wrapper']['new'][] = array(
           '#type'       => 'item',
           '#value'      => t('-or-'),
           '#attributes' => array('class' => 'either-choice')
         );
+        */
 
         $form['alfresco_attachments']['wrapper']['new']['reference'] = array(
           '#type'          => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
-          '#title'         => t('Attach new alfresco item'),
+          '#title'         => t('Attach alfresco item'),
           '#default_value' => empty($node->reference) ? NULL : $node->reference,
           '#description'   => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
         );
@@ -198,22 +202,30 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
  */
 function alfresco_attach_form_validate(&$form, &$form_state) {
 
-  // Save new alfresco items.
+  // Attach alfresco items.
   if (user_access('create alfresco content')) {
 
-    if (!empty($form_state['values']['aid'])) {
+    $reference = trim($form_state['values']['reference']);
+    if (empty($reference)) {
+      return;
+    }
+
+    if ($nid = alfresco_exists_node($reference)) {
       // Attach existing alfresco item
-      if ($alf_node = node_load($form_state['values']['aid'])) {
+      if ($alf_node = node_load($nid)) {
         $form_state['alfresco_node'] = $alf_node;
       }
       else {
-        form_set_error('aid', t("Error loading alfresco node."));
+        form_set_error('reference', t("Error loading alfresco node."));
       }
     }
-    elseif (!empty($form_state['values']['reference'])) {
+    else {
       // Attach new alfresco item
-      if ($alf_node = alfresco_create_node($form_state['values']['reference'])) {
+      if ($alf_node = alfresco_create_node($reference)) {
         $form_state['alfresco_node'] = $alf_node;
+      }
+      else {
+        form_set_error('reference', t("Error creating alfresco node."));
       }
     }
   }

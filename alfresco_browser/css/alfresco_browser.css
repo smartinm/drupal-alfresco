@@ -40,6 +40,11 @@ h1 {
 #items-grid .x-grid3-summary-row td {
   font-family:'lucida grande',tahoma,arial,sans-serif;
   font-weight: bold;
+  font-size: 11px;
+}
+
+#items-grid .x-panel-header {
+  font-size: 13px;
 }
 
 #folder-tree .x-tree-node {

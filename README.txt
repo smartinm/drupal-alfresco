@@ -11,6 +11,9 @@ with Alfresco Open Source Enterprise Content Management System (ECM).
   stored in Alfresco repository, caching of file properties, syncing of nodes,
   Views support, ... 
 
+* alfresco_browser.module: Allows users to visualize, search, browse and
+  retrieve nodes of the Alfresco repository.
+
 * alfresco_attach.module: Allows users to create and attach alfresco items to
   other Drupal content (similar to upload.module).
 
@@ -22,26 +25,13 @@ with Alfresco Open Source Enterprise Content Management System (ECM).
 
 * Alfresco 3.x or 2.x (tested with Alfresco Labs and Alfresco Enterprise)
 
-* Alfresco PHP Library (included in Alfresco module bundle) 
-
 * PHP 5 (5.2.0 or greater) with SOAP extension enabled
 
 
 -- INSTALLATION --
 
-* Note that you will need an installed and configured Alfresco prior to
-  installing this module.
-
-* Alfresco module requires the Alfresco PHP Library that allows remote access
-  to the Alfresco repository via Web Services API. Alfresco module comes
-  bundled the Alfresco PHP Library in the main module directory, so you don't
-  need install anything. Simply ensure that the SOAP extensions are installed
-  and enabled in your PHP installation:
-    http://php.net/manual/soap.installation.php
-  
-  Optionally, if you want to install Alfresco PHP Library system-wide, you can
-  follow these instructions:
-    http://wiki.alfresco.com/wiki/Alfresco_PHP_Library_Installation_Instructions
+* Note that you will need an installed and configured Alfresco (on remote or
+  local server) prior to installing this module.
 
 * Install Alfresco module as usual on your Drupal site.
 

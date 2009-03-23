@@ -27,7 +27,18 @@ AlfrescoBrowser.ViewItem = function (url, title) {
     }]
   });
   iframeWin.show();
-} 
+}
+
+AlfrescoBrowser.SendToDrupal = function (node) {
+  var title = node.title;
+  var reference = 'workspace://SpacesStore/' + node.id;
+  opener.$("#edit-alfresco-browser-reference").val(reference);
+  if (opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
+    opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
+  }
+  opener.focus();
+  self.close();
+}
 
 AlfrescoBrowser.App = function() {
   var opener = window.opener;
@@ -180,10 +191,11 @@ AlfrescoBrowser.App = function() {
               return;
             }
             itemsGrid.setTitle('Search items: ' + v);
-            itemsGrid.getEl().mask('Loading', 'x-mask-loading');
+            //itemsGrid.getEl().mask('Loading', 'x-mask-loading');
 
             this.store.baseParams[this.paramName] = v;
-            this.store.load({params:{start:0},callback:function(){itemsGrid.getEl().unmask();}});
+            //this.store.load({params:{start:0},callback:function(){itemsGrid.getEl().unmask();}});
+            this.store.load({params:{start:0}});
             this.hasSearch = true;
             this.triggers[0].show();
         }
@@ -275,8 +287,9 @@ AlfrescoBrowser.App = function() {
             o[pn.limit] = this.pageSize;
             o['cache'] = 'node';
             if(this.fireEvent('beforechange', this, o) !== false){
-              itemsGrid.getEl().mask('Loading', 'x-mask-loading');
-              this.store.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
+              //itemsGrid.getEl().mask('Loading', 'x-mask-loading');
+              //this.store.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
+              this.store.load({params:o});
             }
             return;
           }
@@ -294,7 +307,7 @@ AlfrescoBrowser.App = function() {
 
         title: 'Content Items',
         region: 'center',
-        //loadMask: true,
+        loadMask: true,
         
         listeners: {
           'rowclick': function(grid, dataIndex) {
@@ -303,14 +316,12 @@ AlfrescoBrowser.App = function() {
           },
           'rowdblclick': function(grid, dataIndex) {
             var dataRow = dataStore.getAt(dataIndex);
-            //openWindow2(dataRow.data);
-            //console.log(dataRow.data.id);
+            AlfrescoBrowser.SendToDrupal(dataRow.data);
         }},
         
         viewConfig: {
           getRowClass: function(record, index) {
-            var exists = record.get('nid').length > 0 ? 'row-node-exists' : 'row-node-new';
-            return exists;
+            return record.get('nid').length > 0 ? 'row-node-exists' : 'row-node-new';
           }
         },
 
@@ -326,8 +337,14 @@ AlfrescoBrowser.App = function() {
           handler: function() {
             var items = itemsGrid.getSelections();
             if (items.length > 0) {
+              var name = items[0].data.name;
               var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + name + "?node=" + items[0].data.id + "&mode=attachment";
-              window.location = url;
+              if (Ext.isIE) {
+                window.location = url;
+              }
+              else {
+                window.open(url);
+              }
             }
           }
         }, '-', {
@@ -353,21 +370,13 @@ AlfrescoBrowser.App = function() {
             if (opener.$("form#alfresco-import-form").length == 0) {
               var items = itemsGrid.getSelections();
               if (items.length > 0) {
-                var reference = 'workspace://SpacesStore/' + items[0].data.id;
-                var title = items[0].data.title;
-                opener.$("#edit-alfresco-browser-reference").val(reference);
-                opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
-                opener.focus();
-                self.close();
+                AlfrescoBrowser.SendToDrupal(items[0].data);
               }
             }
             else {
               var node = folderTree.getSelectionModel().getSelectedNode();
               if (!Ext.isEmpty(node)) {
-                var reference = 'workspace://SpacesStore/' + node.id;
-                opener.$("#edit-alfresco-browser-reference").val(reference);
-                opener.focus();
-                self.close();
+                AlfrescoBrowser.SendToDrupal(node);
               }
             }
           }
@@ -389,12 +398,13 @@ AlfrescoBrowser.App = function() {
 
         tools: [{
           id: 'refresh',
-          qtip: 'Clear content items and search cache.',
+          qtip: 'Clear content and search cache.',
           on: {
             click: function(){
               var o = {start: 0, cache: 'all'};
-              itemsGrid.getEl().mask('Loading', 'x-mask-loading');
-              dataStore.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
+              //itemsGrid.getEl().mask('Loading', 'x-mask-loading');
+              //dataStore.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
+              dataStore.load({params:o});
             }}
         }]
       });
@@ -417,10 +427,10 @@ AlfrescoBrowser.App = function() {
           e.cancel = true;
         },
         'expand': function(p) {
-          //Ext.getCmp('grid-details').toggle(true);
+          Ext.getCmp('grid-details').toggle(true);
         },
         'collapse': function(p) {
-          //Ext.getCmp('grid-details').toggle(false);
+          Ext.getCmp('grid-details').toggle(false);
         }}
       });
     }

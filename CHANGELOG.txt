@@ -1,8 +1,15 @@
 // $Id$
 
-Alfresco 6.x-1.0-dev, xxxx-xx-xx
-==================================
-- alfresco_attach: Arreglado error con los permisos que no permitía eliminar un alfresco adjunto 
+Alfresco 6.x-1.0, 2009-03-23
+============================
+- alfresco_browser: New module which allows users to visualize, search, browse
+  and retrieve nodes of the Alfresco repository.
+- alfresco_attach: Fixed permission checking when remove attach items.
+- alfresco_attach: Simplified attach existing nodes.
+- Removed unnecessary files from Alfresco PHP Library.
+- General code clean-up.
+- Minor fixes.
+
 
 Alfresco 6.x-1.0-beta2, 2009-02-29
 ==================================

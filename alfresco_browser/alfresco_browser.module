@@ -18,7 +18,7 @@ function alfresco_browser_help($path, $arg) {
 
   switch ($path) {
     case 'admin/help#alfresco_browser':
-      return '<p>'. t('Enables Alfresco browser for selecting Alfresco nodes.') .'</p>';
+      return '<p>'. t('Allows users to visualize, search, browse and retrieve nodes of the Alfresco repository.') .'</p>';
   }
 }
 
@@ -132,15 +132,13 @@ function alfresco_browser_process($element, $form_state) {
 
   drupal_add_js("
     if (Drupal.jsEnabled) {
+      var WindowObjectReference = null;
       $(document).ready(function() {
-        var abWin = null;
         $('#edit-alfresco-browser-button').click(function() {
-          if (abWin != null && !abWin.closed) {
-            abWin = abWin.focus();
+          if (WindowObjectReference == null || WindowObjectReference.closed) {
+            WindowObjectReference = window.open('$path', 'alfresco_browser', 'width=800,height=500,resizable');
           }
-          else {
-            abWin = window.open('$path', 'alfresco_browser', 'width=800,height=500,resizable');
-          }
+          WindowObjectReference.focus();
           return false;
         });
       });

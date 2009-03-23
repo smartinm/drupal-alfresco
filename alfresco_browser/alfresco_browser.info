@@ -1,6 +1,6 @@
 ; $Id$
 name = "Alfresco browser"
-description = "Enables Alfresco browser widget for selecting Alfresco Nodes."
+description = "Allows users to visualize, search, browse and retrieve nodes of the Alfresco repository."
 package = "Alfresco"
 dependencies[] = "alfresco"
 core = "6.x"
