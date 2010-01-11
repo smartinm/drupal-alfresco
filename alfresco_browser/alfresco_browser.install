@@ -29,6 +29,41 @@ function alfresco_browser_uninstall() {
  */
 function alfresco_browser_schema() {
   $schema['cache_alfresco_browser'] = drupal_get_schema_unprocessed('system', 'cache');
-  $schema['cache_alfresco_browser']['description'] = '';
+  $schema['cache_alfresco_browser']['description'] = 'Cache table for the Alfresco browser module to store the results of web services queries against Alfresco repository.';
   return $schema;
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function alfresco_browser_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  if ($phase == 'install' || $phase == 'runtime') {
+    $path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+
+    if (!file_exists('./' . $path . '/ext-all.js') || !file_exists('./' . $path . '/adapter/ext/ext-base.js')) {
+      $requirements['alfresco_browser_extjs'] = array(
+        'title' => $t('Alfresco browser Ext JS library'),
+        'value' => $t('Not found.'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('Alfresco browser module requires the <a href="@extjs-url">Ext JS 2.x Library</a>. Please download the Ext JS library, extract the archive and copy its contents to the following location: %extjs-path. Make sure the main Ext JS file is located at %extjs-all-path.', array(
+          '@extjs-url' => 'http://www.extjs.com/products/extjs/download.php',
+          '%extjs-path' => $path,
+          '%extjs-all-path' => $path . '/ext-all.js',
+        )),
+      );
+    }
+    else {
+      $requirements['alfresco_browser_extjs'] = array(
+        'title' => $t('Alfresco browser Ext JS library'),
+        'value' => $t('Found (%extjs-path).', array('%extjs-path' => $path)),
+        'severity' => REQUIREMENT_OK,
+      );
+    }
+  }
+
+  return $requirements;
 }

@@ -100,9 +100,12 @@ function alfresco_browser_theme() {
 function template_preprocess_alfresco_browser_page(&$variables) {
   global $base_path, $language;
 
+  $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+
   $variables['title'] = t('Alfresco browser');
   $variables['base_path'] = $base_path;
   $variables['module_path'] = $base_path . drupal_get_path('module', 'alfresco_browser');
+  $variables['extjs_path'] = $base_path . $extjs_path;
   $variables['language'] = $language;
   $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
   $variables['head'] = drupal_get_html_head();
@@ -113,7 +116,6 @@ function template_preprocess_alfresco_browser_page(&$variables) {
  * Implementation of hook_elements().
  */
 function alfresco_browser_elements() {
-
   $type['alfresco_browser'] = array(
     '#input' => TRUE,
     '#default_value' => '',
@@ -127,22 +129,12 @@ function alfresco_browser_elements() {
  * Our #process callback to expand the control.
  */
 function alfresco_browser_process($element, $form_state) {
-
-  $path = url('alfresco/browser');
-
-  drupal_add_js("
-    if (Drupal.jsEnabled) {
-      var WindowObjectReference = null;
-      $(document).ready(function() {
-        $('#edit-alfresco-browser-button').click(function() {
-          if (WindowObjectReference == null || WindowObjectReference.closed) {
-            WindowObjectReference = window.open('$path', 'alfresco_browser', 'width=800,height=500,resizable');
-          }
-          WindowObjectReference.focus();
-          return false;
-        });
-      });
-    }", 'inline');
+  drupal_add_js(array(
+    'alfrescoBrowserUrl' => url('alfresco/browser'),
+    'alfrescoBrowserName' => 'AlfrescoBrowserPopup',
+    'alfrescoBrowserFeatures' => 'width=800,height=500,resizable',
+  ), 'setting');
+  drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/alfresco_browser.js');
 
   $element['alfresco_browser_reference'] = array(
     '#type' => 'textfield',
@@ -151,10 +143,8 @@ function alfresco_browser_process($element, $form_state) {
     '#attributes' => array('readonly' => TRUE),
   );
   $element['alfresco_browser_button'] = array(
-    '#type' => 'button',
-    '#button_type' => 'browse',
-    '#value' => t('Browse...'),
-    '#attributes' => array('onclick' => 'return false;'),
+    '#type' => 'markup',
+    '#value' => '<input type="button" value="'. t('Browse...') .'" id="edit-alfresco-browser-button" />',
   );
   return $element;
 }

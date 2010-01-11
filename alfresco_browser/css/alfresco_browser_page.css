@@ -1,0 +1,66 @@
+/* $Id$ */
+
+#header {
+  background: #DFE6ED url(../images/alfresco.gif) no-repeat 5px top;
+}
+
+#header h1 {
+  color: #004488;
+  float: left;
+  font-family:'lucida grande',tahoma,arial,sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  height: 100%;
+  padding: 5px 0 0 45px;
+}
+
+#search-box {
+  float: right;
+  margin: 5px;
+}
+
+#items-grid .x-grid3-hd-row td,
+#items-grid .x-grid3-row td,
+#items-grid .x-grid3-summary-row td {
+  font-family: 'lucida grande',tahoma,arial,sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+#items-grid .x-panel-header {
+  font-size: 13px;
+}
+
+#folder-tree .x-tree-node {
+  font-family: 'lucida grande',tahoma,arial,sans-serif;
+  font-weight: bold;
+}
+
+#folder-tree .x-tree-node-icon {
+  background-image: url(../images/space.gif);
+}
+
+.row-node-exists {
+  background-color: #EEFFEE;
+}
+
+.row-icon {
+  background: transparent url(../images/_default.gif) no-repeat;
+  padding: 2px 0 2px 20px;
+}
+
+.upload {
+  background-image: url(../images/add.gif) !important;
+}
+.details {
+  background-image: url(../images/details.gif) !important;
+}
+.drupal {
+  background-image: url(../images/drupal.png) !important;
+}
+.download {
+  background-image: url(../images/download.gif) !important;
+}
+.view {
+  background-image: url(../images/view.gif) !important;
+}

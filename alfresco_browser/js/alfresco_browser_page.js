@@ -11,12 +11,14 @@ Ext.ns('AlfrescoBrowser');
 AlfrescoBrowser.ViewItem = function (url, title) {
   var size = Ext.getCmp('alfresco-browser-viewport').getSize();
   var iframeWin = new Ext.Window({
+    id: 'preview-window',
     title: title,
     width: size.width - 50,
     height: size.height - 50,
+    maximizable: true,
     modal: 'true',
     layout: 'fit', 
-    html: '<iframe style="width:100%;height:100%;background-color:#fff" frameborder="0"  src="' + url + '"></iframe>',
+    html: '<iframe id="preview-frame" style="width:100%;height:100%;background-color:#fff" frameborder="0"  src="' + url + '" onLoad="AlfrescoBrowser.ViewItemOnLoad()"></iframe>',
     buttonAlign: 'center',
     defaultButton: 0,
     buttons: [{
@@ -27,6 +29,16 @@ AlfrescoBrowser.ViewItem = function (url, title) {
     }]
   });
   iframeWin.show();
+  
+  var mask = new Ext.LoadMask(iframeWin.body);
+  mask.show();
+}
+
+AlfrescoBrowser.ViewItemOnLoad = function () {
+  var iframeWin = Ext.getCmp('preview-window');
+  if (iframeWin) {
+    iframeWin.body.unmask();
+  }
 }
 
 AlfrescoBrowser.SendToDrupal = function (node) {
@@ -69,11 +81,11 @@ AlfrescoBrowser.App = function() {
       var viewport = new Ext.Viewport({
         id: 'alfresco-browser-viewport',
         layout: 'border',
-        items: [{
+        items: [new Ext.BoxComponent({
           region: 'north',
-          html: '<h1>Alfresco Browser for Drupal</h1>',
+          el: 'header',
           height: 35
-        }, folderTree, {
+        }), folderTree, {
           region: 'center',
           layout: 'border',
           border: false,
@@ -202,6 +214,7 @@ AlfrescoBrowser.App = function() {
       });
 
       var search = new Ext.app.SearchField({
+        region: 'west',
         store: dataStore,
         width: 320,
         emptyText: 'Search (minimum 4 characters)',
@@ -335,7 +348,7 @@ AlfrescoBrowser.App = function() {
           tooltip: 'Download selected item.',
           iconCls: 'download',
           handler: function() {
-            var items = itemsGrid.getSelections();
+            var items = itemsGrid.getSelectionModel().getSelections();
             if (items.length > 0) {
               var name = items[0].data.name;
               var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + name + "?node=" + items[0].data.id + "&mode=attachment";
@@ -352,7 +365,7 @@ AlfrescoBrowser.App = function() {
           tooltip: 'View selected item.',
           iconCls: 'view',
           handler: function() {
-            var items = itemsGrid.getSelections();
+            var items = itemsGrid.getSelectionModel().getSelections();
             if (items.length > 0) {
               var name = items[0].data.name;
               var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + name + "?node=" + items[0].data.id;
@@ -368,7 +381,7 @@ AlfrescoBrowser.App = function() {
               return;
             }
             if (opener.$("form#alfresco-import-form").length == 0) {
-              var items = itemsGrid.getSelections();
+              var items = itemsGrid.getSelectionModel().getSelections();
               if (items.length > 0) {
                 AlfrescoBrowser.SendToDrupal(items[0].data);
               }
