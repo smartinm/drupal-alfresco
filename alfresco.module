@@ -45,7 +45,6 @@ define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(
 // Alfresco Node UUID regex
 define('ALFRESCO_REGEX_NODE_UUID', '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}');
 
-
 // Include required files
 if (function_exists('drupal_get_path')) {
   $path = drupal_get_path('module', 'alfresco');
@@ -413,6 +412,15 @@ function alfresco_valid_reference($reference) {
 
   $pattern = "/^\w+:\/\/\w+\/". ALFRESCO_REGEX_NODE_UUID ."$/";
   return preg_match($pattern, $reference);
+}
+
+/**
+ *
+ */
+function alfresco_valid_path($path) {
+
+  $pattern = '/^(\/\w+:\w+)+$/';
+  return preg_match($pattern, $path);
 }
 
 /**
