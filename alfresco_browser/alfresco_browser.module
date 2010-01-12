@@ -7,9 +7,9 @@
  */
 
 /**
- *
+ * The default Alfresco home path.
  */
-define('ALFRESCO_BROWSER_HOME', 'app:company_home');
+define('ALFRESCO_BROWSER_HOME', '/app:company_home');
 
 /**
  * Implementation of hook_help().
@@ -34,6 +34,17 @@ function alfresco_browser_perm() {
  * Implementation of hook_menu().
  */
 function alfresco_browser_menu() {
+
+  $items['admin/settings/alfresco/browser'] = array(
+    'title' => 'Browser',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_browser_admin_settings'),
+    'access arguments' => array('administer alfresco'),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+    'parent' => 'admin/settings/alfresco',
+    'file' => 'alfresco_browser.admin.inc',
+  );
 
   $items['alfresco/browser'] = array(
     'title' => 'Alfresco Browser Ext JS',
@@ -82,34 +93,40 @@ function alfresco_browser_theme() {
     ),
     'alfresco_browser_page' => array(
       'arguments' => array(),
-      'template' => 'alfresco_browser-page',
+      'template' => 'browser/browser-page',
     ),
   );
 }
 
 /**
- * Process variables for book-export-html.tpl.php.
+ * Process variables for browser-page.tpl.php.
  *
- * The $variables array contains the following arguments:
- * - $title
- * - $contents
- * - $depth
- *
- * @see alfresco_browser-page.tpl.php
+ * @see browser-page.tpl.php
  */
 function template_preprocess_alfresco_browser_page(&$variables) {
   global $base_path, $language;
 
   $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+  $locale_path = $extjs_path .'/source/locale/ext-lang-'. $language->language .'.js';
 
-  $variables['title'] = t('Alfresco browser');
+  $variables['title'] = t('Alfresco Browser for Drupal');
+
   $variables['base_path'] = $base_path;
-  $variables['module_path'] = $base_path . drupal_get_path('module', 'alfresco_browser');
   $variables['extjs_path'] = $base_path . $extjs_path;
-  $variables['language'] = $language;
-  $variables['language_rtl'] = (defined('LANGUAGE_RTL') && $language->direction == LANGUAGE_RTL) ? TRUE : FALSE;
-  $variables['head'] = drupal_get_html_head();
-  $variables['scripts'] = drupal_get_js();
+  $variables['module_path'] = $base_path . drupal_get_path('module', 'alfresco_browser');
+  $variables['locale_path'] = file_exists('./'. $locale_path) ? $base_path . $locale_path : '';
+
+  $variables['service_tree'] = url('alfresco/browser/service/tree.json');
+  $variables['service_grid'] = url('alfresco/browser/service/grid.json');
+  $variables['service_dl']   = url('alfresco/browser/service/download');
+
+  $variables['query_limit'] = variable_get('alfresco_browser_query_limit', 20);
+
+  $homeNode = _alfresco_browser_home_node();
+  if ($homeNode) {
+    $variables['home_ref']  = $homeNode->id;
+    $variables['home_text'] = $homeNode->cm_name;
+  }
 }
 
 /**
@@ -151,4 +168,11 @@ function alfresco_browser_process($element, $form_state) {
 
 function theme_alfresco_browser($element) {
   return theme('form_element', $element, '<div class="container-inline">'. $element['#children'] .'</div>');
+}
+
+/**
+ *
+ */
+function _alfresco_browser_home_node() {
+  return alfresco_service_load_node(variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME));
 }

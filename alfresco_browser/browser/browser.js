@@ -44,18 +44,15 @@ AlfrescoBrowser.ViewItemOnLoad = function () {
 AlfrescoBrowser.SendToDrupal = function (node) {
   var title = node.title;
   var reference = 'workspace://SpacesStore/' + node.id;
-  opener.$("#edit-alfresco-browser-reference").val(reference);
-  if (opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
-    opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
+  window.opener.$("#edit-alfresco-browser-reference").val(reference);
+  if (window.opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
+    window.opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
   }
-  opener.focus();
+  window.opener.focus();
   self.close();
 }
 
 AlfrescoBrowser.App = function() {
-  var opener = window.opener;
-  var cp = new Ext.state.CookieProvider();
-
   var folderTree;
   var itemsGrid;
   var propsGrid;
@@ -64,15 +61,13 @@ AlfrescoBrowser.App = function() {
   return {
     init: function() {
       //Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
+      
       Ext.QuickTips.init();
       
       this.initFolderTree();
       this.initDocumentGrid();
       this.initSearch();
       this.initLayout();
-      
-      //var path = folderTree.getRootNode().getPath();
-      folderTree.expandPath('/home');
     },
     initLayout: function(){
       // --------------------------------------------
@@ -123,8 +118,9 @@ AlfrescoBrowser.App = function() {
         }),
         
         root: new Ext.tree.AsyncTreeNode({
-          text: 'Company Home',
-          id: 'home'
+          text: AlfrescoBrowser.Settings['homeText'],
+          id: AlfrescoBrowser.Settings['homeRef'],
+          expanded: true
         }),
         
         listeners: {
@@ -199,14 +195,12 @@ AlfrescoBrowser.App = function() {
               this.onTrigger1Click();
               return;
             }
-            if (v.length < 4) {
+            if (v.length < 3) {
               return;
             }
-            itemsGrid.setTitle('Search items: ' + v);
-            //itemsGrid.getEl().mask('Loading', 'x-mask-loading');
+            itemsGrid.setTitle('Search items: ' + Ext.util.Format.htmlEncode(v));
 
             this.store.baseParams[this.paramName] = v;
-            //this.store.load({params:{start:0},callback:function(){itemsGrid.getEl().unmask();}});
             this.store.load({params:{start:0}});
             this.hasSearch = true;
             this.triggers[0].show();
@@ -217,7 +211,7 @@ AlfrescoBrowser.App = function() {
         region: 'west',
         store: dataStore,
         width: 320,
-        emptyText: 'Search (minimum 4 characters)',
+        emptyText: 'Search (minimum 3 characters)',
         applyTo: 'search'
       })
     },
@@ -253,12 +247,14 @@ AlfrescoBrowser.App = function() {
           method: 'GET'
         }),
         reader: reader,
+        baseParams: {node: AlfrescoBrowser.Settings['homeRef']},
+        autoLoad: true,
         //remoteSort: true,
         sortInfo: {field: 'name', direction: 'ASC'}
       });
       
       function renderName(value, p, record){
-        var url = AlfrescoBrowser.Settings['moduleUrl'] + '/images/filetypes/' + record.data['icon'] + '.gif';
+        var url = AlfrescoBrowser.Settings['modulePath'] + '/images/filetypes/' + record.data['icon'] + '.gif';
         return String.format('<span class="row-icon" style="background-image: url({1})" ext:qtip="{2}">{0}</span>', value, url, record.data['title']);
       }
 
@@ -274,7 +270,7 @@ AlfrescoBrowser.App = function() {
       ];
       
       var bar = new Ext.PagingToolbar({
-        pageSize: 10,
+        pageSize: AlfrescoBrowser.Settings['queryLimit'],
         store: dataStore,
         displayInfo: true,
         autoWidth: true,
@@ -317,8 +313,9 @@ AlfrescoBrowser.App = function() {
         autoExpandColumn: 'name',
         bbar: bar,
         sm: new Ext.grid.RowSelectionModel({singleSelect:true}),
-
-        title: 'Content Items',
+        
+        title: AlfrescoBrowser.Settings['homeText'],
+        //title: 'Content Items',
         region: 'center',
         loadMask: true,
         
@@ -377,10 +374,10 @@ AlfrescoBrowser.App = function() {
           tooltip: 'Send selected item to Drupal.',
           iconCls: 'drupal',
           handler: function() {
-            if (!opener) {
+            if (!window.opener) {
               return;
             }
-            if (opener.$("form#alfresco-import-form").length == 0) {
+            if (window.opener.$("form#alfresco-import-form").length == 0) {
               var items = itemsGrid.getSelectionModel().getSelections();
               if (items.length > 0) {
                 AlfrescoBrowser.SendToDrupal(items[0].data);
