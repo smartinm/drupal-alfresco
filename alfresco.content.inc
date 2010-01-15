@@ -41,7 +41,7 @@ function alfresco_form(&$node, $form_state) {
     '#required' => TRUE,
     '#default_value' => isset($node->reference) ? $node->reference : '',
     '#weight' => -6,
-    '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
+    '#description' => module_exists('alfresco_browser') ? t('Select alfresco node.') : t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
   );
 
   if ($type->has_title) {

@@ -15,17 +15,17 @@
   <?php if (theme_get_setting('toggle_favicon')): ?>
   <link rel="shortcut icon" href="<?php print check_url(theme_get_setting('favicon')); ?>" type="image/x-icon" />
   <?php endif; ?>
-  <link rel="stylesheet" type="text/css" href="<?php print $extjs_path .'/resources/css/ext-all.css'; ?>" />
-  <link rel="stylesheet" type="text/css" href="<?php print $extjs_path .'/resources/css/xtheme-gray.css'; ?>" />
-  <link rel="stylesheet" type="text/css" href="<?php print $module_path .'/browser/browser.css'; ?>" />
-  <script type="text/javascript" src="<?php print $extjs_path .'/adapter/ext/ext-base.js'; ?>"></script>
-  <script type="text/javascript" src="<?php print $extjs_path .'/ext-all.js'; ?>"></script>
+  <link rel="stylesheet" type="text/css" href="<?php print check_url($extjs_path .'/resources/css/ext-all.css'); ?>" />
+  <link rel="stylesheet" type="text/css" href="<?php print check_url($extjs_path .'/resources/css/xtheme-gray.css'); ?>" />
+  <link rel="stylesheet" type="text/css" href="<?php print check_url($module_path .'/browser/browser.css'); ?>" />
+  <script type="text/javascript" src="<?php print check_url($extjs_path .'/adapter/ext/ext-base.js'); ?>"></script>
+  <script type="text/javascript" src="<?php print check_url($extjs_path .'/ext-all.js'); ?>"></script>
   <?php if ($locale_path): ?>
-  <script type="text/javascript" src="<?php print $locale_path; ?>"></script>
+  <script type="text/javascript" src="<?php print check_url($locale_path); ?>"></script>
   <?php endif; ?>
-  <script type="text/javascript" src="<?php print $module_path .'/browser/browser.js'; ?>"></script>
+  <script type="text/javascript" src="<?php print check_url($module_path .'/browser/browser.js'); ?>"></script>
   <script type="text/javascript">
-    Ext.BLANK_IMAGE_URL = '<?php print $extjs_path .'/resources/images/default/s.gif'; ?>';
+    Ext.BLANK_IMAGE_URL = '<?php print check_url($extjs_path .'/resources/images/default/s.gif'); ?>';
     AlfrescoBrowser.Settings = {
       'homeRef':'<?php print $home_ref; ?>',
       'homeText':'<?php print $home_text; ?>',
@@ -40,7 +40,7 @@
 </head>
 <body>
 <div id="header">
-<h1><?php print $title; ?></h1>
+<h1><?php print $header; ?></h1>
 <div id="search-box" class="x-normal-editor"><input type="text" id="search" /></div>
 </div>
 </body>

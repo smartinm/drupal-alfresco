@@ -15,18 +15,11 @@
  * 5. Theme hooks
  * 6. Files helper functions
  * 7. Utils helper functions
- * 8. Debug helper functions
  */
 
 // ------------------------------------------------------------------
 // =0 Constants, includes and views support
 // ------------------------------------------------------------------
-
-// Relative path to Alfresco PHP Library
-define('ALFRESCO_PHP_LIBRARY_PATH', 'lib');
-
-// Default value for alfresco_debug_output variable.
-define('ALFRESCO_DEBUG_OUTPUT', TRUE);
 
 // Alfresco file downloads methods.
 // More info: http://wiki.alfresco.com/wiki/URL_Addressability
@@ -38,8 +31,7 @@ define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 define('ALFRESCO_TYPE_CONTENT', '{http://www.alfresco.org/model/content/1.0}content');
 define('ALFRESCO_TYPE_FOLDER',  '{http://www.alfresco.org/model/content/1.0}folder');
 
-// Regex string for any variety of ISO and DATETIME formats
-// (from date_api.module)
+// Regex string for any variety of ISO and DATETIME formats (from date_api.module)
 define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(\d{2}):?(\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:?\d{2})?)?/');
 
 // Alfresco Node UUID regex
@@ -542,7 +534,7 @@ function alfresco_parse_soap_fault(SoapFault $sf) {
   $detail = '';
 
   $pos = strpos($sf->faultstring, ':');
-  if($pos) {
+  if ($pos) {
     $code = substr($sf->faultstring, 0, $pos);
     $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
   }
@@ -558,24 +550,4 @@ function alfresco_parse_soap_fault(SoapFault $sf) {
   }
 
   return array('code' => $code, 'message' => $message, 'detail' => $detail);
-}
-
-// ------------------------------------------------------------------
-// =8 Debug helper functions
-// ------------------------------------------------------------------
-
-/**
- * Provide debug output for Alfresco.
- */
-function alfresco_debug($message) {
-  if (module_exists('devel') && variable_get('alfresco_debug_output', ALFRESCO_DEBUG_OUTPUT)) {
-    dpm($message);
-  }
-}
-
-/**
- * Shortcut to alfresco_debug()
- */
-function apm($message) {
-  alfresco_debug($message);
 }

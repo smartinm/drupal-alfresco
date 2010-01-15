@@ -27,7 +27,7 @@ with Alfresco Open Source Enterprise Content Management System (ECM).
 
 * PHP 5 (5.2.0 or greater) with SOAP extension enabled
 
-* Ext JS 2.x (only for Alfresco browser module)
+* Ext JS (only for Alfresco browser module)
 
 
 -- INSTALLATION --

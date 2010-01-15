@@ -158,7 +158,7 @@ function _alfresco_service_include_library() {
 
   if (!$included) {
     // Add the Alfresco PHP library directory to include path
-    $lib_path = drupal_get_path('module', 'alfresco') .'/'. ALFRESCO_PHP_LIBRARY_PATH;
+    $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
     if (is_dir($lib_path)) {
       set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
     }

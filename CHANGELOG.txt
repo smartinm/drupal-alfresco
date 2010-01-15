@@ -1,5 +1,8 @@
 // $Id$
 
+Alfresco 6.x-1.1-dev, 2010-01-xx
+============================
+
 Alfresco 6.x-1.0, 2009-03-23
 ============================
 - alfresco_browser: New module which allows users to visualize, search, browse

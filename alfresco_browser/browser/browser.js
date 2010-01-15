@@ -42,12 +42,16 @@ AlfrescoBrowser.ViewItemOnLoad = function () {
 }
 
 AlfrescoBrowser.SendToDrupal = function (node) {
-  var title = node.title;
+  var title = Ext.util.Format.trim(node.title);
   var reference = 'workspace://SpacesStore/' + node.id;
+  
   window.opener.$("#edit-alfresco-browser-reference").val(reference);
+  window.opener.$("#edit-alfresco-browser-path").val(node.name);
+  
   if (window.opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
     window.opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
   }
+  
   window.opener.focus();
   self.close();
 }
