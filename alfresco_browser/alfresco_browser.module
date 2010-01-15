@@ -131,6 +131,10 @@ function template_preprocess_alfresco_browser_page(&$variables) {
     $variables['home_ref'] = $homeNode->id;
     $variables['home_text'] = $homeNode->cm_name;
   }
+  else {
+    $variables['home_ref'] = '';
+    $variables['home_text'] = '';
+  }
 }
 
 /**

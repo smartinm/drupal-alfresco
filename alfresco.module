@@ -531,15 +531,18 @@ function alfresco_parse_soap_fault(SoapFault $sf) {
   }
 
   $code = '';
+  $message = '';
   $detail = '';
 
-  $pos = strpos($sf->faultstring, ':');
-  if ($pos) {
-    $code = substr($sf->faultstring, 0, $pos);
-    $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
-  }
-  else {
-    $message = $sf->faultstring;
+  if (isset($sf->faultstring)) {
+    $pos = strpos($sf->faultstring, ':');
+    if ($pos) {
+      $code = substr($sf->faultstring, 0, $pos);
+      $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
+    }
+    else {
+      $message = $sf->faultstring;
+    }
   }
 
   if (isset($sf->detail)) {

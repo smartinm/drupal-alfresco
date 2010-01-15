@@ -36,13 +36,18 @@ function alfresco_form(&$node, $form_state) {
   $type = node_get_types('type', $node);
 
   $form['reference'] = array(
-    '#type' => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
-    '#title' => t('Node Reference'),
-    '#required' => TRUE,
+    '#type' => 'textfield',
+    '#title' => $type->name,
+    '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
     '#default_value' => isset($node->reference) ? $node->reference : '',
+    '#required' => TRUE,
     '#weight' => -6,
-    '#description' => module_exists('alfresco_browser') ? t('Select alfresco node.') : t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
   );
+
+  if (module_exists('alfresco_browser')) {
+    $form['reference']['#type'] = 'alfresco_browser';
+    $form['reference']['#description'] = t('Select an item from Alfresco repository.');
+  }
 
   if ($type->has_title) {
     $form['use_title'] = array(
@@ -96,16 +101,16 @@ function alfresco_form_validate($form, &$form_state) {
     $reference = $form_state['values']['reference'];
 
     if (!alfresco_valid_reference($reference)) {
-      form_set_error('reference', t('Alfresco Node Reference is in an invalid format.'));
+      form_set_error('reference', t('The alfresco node reference is not valid.'));
     }
     else {
-      // Check node in Alfresco repository.
+      // Load node from alfresco repository.
       $alf_node = alfresco_service_load_node($reference);
       if ($alf_node) {
         $form_state['alf_node'] = $alf_node;
       }
       else {
-        // No such node in Alfresco repository.
+        // Alfresco node not found.
         $nid = $form_state['values']['nid'];
         if ($nid) {
           // Node edit
@@ -113,14 +118,14 @@ function alfresco_form_validate($form, &$form_state) {
           $url_delete = url('node/'. $nid .'/delete');
 
           form_set_error('reference',
-            t('No such node in Alfresco repository. <a href="@url_edit">Edit Alfresco node reference</a> or <a href="@url_delete">delete this node</a>.',
+            t('The node is not found in the repository. <a href="@url_edit">Edit Alfresco node reference</a> or <a href="@url_delete">delete this node</a>.',
               array('@url_edit' => $url_edit, '@url_delete' => $url_delete)));
 
-          watchdog('alfresco', 'No such node in Alfresco repository.', NULL, WATCHDOG_NOTICE, l('view', 'node/'. $nid));
+          watchdog('alfresco', 'The node is not found in the repository.', NULL, WATCHDOG_NOTICE, l('view', 'node/'. $nid));
         }
         else {
           // Node new
-          form_set_error('reference', t('No such node in Alfresco repository.'));
+          form_set_error('reference', t('The node is not found in the repository.'));
         }
       }
     }

@@ -76,7 +76,7 @@ function alfresco_requirements($phase) {
  */
 function alfresco_uninstall() {
 
-  // Eliminamos variables
+  // Delete variables
   $variables = array(
     'alfresco_credentials_username',
     'alfresco_credentials_password',
@@ -90,15 +90,16 @@ function alfresco_uninstall() {
     variable_del($variable);
   }
 
-  // Eliminamos todo los nodos de tipo alfresco_item
+  // Remove all alfresco_items nodes
   $result = db_query("SELECT nid FROM {node} WHERE type = 'alfresco_item'");
   while ($obj = db_fetch_object($result)) {
     node_delete($obj->nid);
   }
 
-  // Remove the node type.
+  // Remove the node type
   node_type_delete('alfresco_item');
 
+  // Remove tables
   drupal_uninstall_schema('alfresco');
 }
 
@@ -109,25 +110,31 @@ function alfresco_schema() {
 
   $schema['alfresco_node'] = array(
     'fields' => array(
-
-      /* Drupal node identifications */
-      'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-
-      /* The Alfresco node reference */
-      'reference' => array(
-        'type'     => 'varchar',
-        'length'   => 255,
-        'not null' => TRUE,
-        'default'  => ''
-      ),
-
-      /* The most recent time the {alfresco_node} has been saved/synchronized */
-      'timestamp' => array(
+      'vid' => array(
         'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default'  => 0
+      ),
+      'nid' => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0
+      ),
+      'reference' => array(
+        'description' => 'The Alfresco node reference (UUID)',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => ''
+      ),
+      'timestamp' => array(
+        'description' => 'The most recent time the {alfresco_node} has been saved/synchronized',
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 0
       ),
 
       /*********************************
@@ -136,7 +143,7 @@ function alfresco_schema() {
 
       // Filename (Object type)
       'cm_name' => array(
-        'description' => 'cm:name property from cm:cmobject',
+        'description' => 'The cm:name property',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => TRUE,
@@ -145,7 +152,7 @@ function alfresco_schema() {
 
       // Title (Titled aspect)
       'cm_title' => array(
-        'description' => 'cm:title property from cm:titled',
+        'description' => 'The cm:title property',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => FALSE,
@@ -153,14 +160,14 @@ function alfresco_schema() {
       ),
       // Description (Titled aspect)
       'cm_description' => array(
-        'description' => 'cm:description property from cm:titled',
+        'description' => 'The cm:description property',
         'type'        => 'text',
         'not null'    => FALSE,
       ),
 
       // Author (Author aspect)
       'cm_author' => array(
-        'description' => 'cm:author property from cm:author',
+        'description' => 'The cm:author property',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => FALSE,
@@ -169,13 +176,13 @@ function alfresco_schema() {
 
       // Created (Auditable aspect)
       'cm_created' => array(
-        'description' => 'cm:created property from cm:auditable',
+        'description' => 'The cm:created property',
         'type'        => 'datetime',
         'not null'    => TRUE,
       ),
       // Creator (Auditable aspect)
       'cm_creator' => array(
-        'description' => 'cm:creator property from cm:auditable',
+        'description' => 'The cm:creator property',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => TRUE,
@@ -183,13 +190,13 @@ function alfresco_schema() {
       ),
       // Modified (Auditable aspect)
       'cm_modified' => array(
-        'description' => 'cm:modified property from cm:auditable',
+        'description' => 'The cm:modified property',
         'type'        => 'datetime',
         'not null'    => TRUE,
       ),
       // Modifier (Auditable aspect)
       'cm_modifier' => array(
-        'description' => 'cm:modifier property from cm:auditable',
+        'description' => 'The cm:modifier property',
         'type'        => 'varchar',
         'length'      => 255,
         'not null'    => TRUE,
@@ -199,8 +206,8 @@ function alfresco_schema() {
     'primary key' => array('vid'),
   );
 
-  // ContentData
   $schema['alfresco_content'] = array(
+    'description' => 'Content Descriptor: includes content store URL, MIME type, etc.',
     'fields' => array(
       'vid' => array(
         'type'        => 'int',
@@ -248,9 +255,20 @@ function alfresco_schema() {
 function _alfresco_check_php_library() {
   $t = get_t();
 
+  if (!class_exists('DOMDocument')) {
+    $arg = array('@url' => 'http://php.net/manual/en/book.dom.php');
+    $msg = $t('Read <a href="@url">DOM manual</a> to find how to install and enable DOM extension in your PHP setup.', $arg);
+
+    return array(
+      'value'       => $t('The PHP DOM extension is no available'),
+      'description' => $msg,
+      'severity'    => REQUIREMENT_ERROR,
+    );
+  }
+
   if (!class_exists('SoapClient')) {
     $arg = array('@url' => 'http://php.net/manual/en/book.soap.php');
-    $msg = $t('Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP in your PHP setup.', $arg);
+    $msg = $t('Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP extension in your PHP setup.', $arg);
 
     return array(
       'value'       => $t('The PHP SOAP extension is no available'),
@@ -318,10 +336,10 @@ function _alfresco_check_connection_repository() {
     $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
 
     $repository = new Repository($repository_url);
-    $ticket  = $repository->authenticate($username, $password);
+    $ticket = $repository->authenticate($username, $password);
     $session = $repository->createSession($ticket);
-    $store   = $session->getStore('system', 'system');
-    $result  = $session->query($store, 'PATH:"/sys:descriptor-current"');
+    $store = $session->getStore('system', 'system');
+    $result = $session->query($store, 'PATH:"/sys:descriptor-current"');
 
     if (is_array($result) && count($result)) {
       $descriptor = $result[0];
@@ -347,7 +365,7 @@ function _alfresco_check_connection_repository() {
     }
     else {
       return array(
-        'value'    => $t('Connectivity OK (%ticket)', array('%ticket' => $ticket)),
+        'value'    => $t('Connection attempt successful'),
         'severity' => REQUIREMENT_OK,
       );
     }
@@ -365,3 +383,11 @@ function _alfresco_check_connection_repository() {
     );
   }
 }
+
+/**
+ * Implementation of hook_update_N().
+ */
+/*
+function alfresco_update_6100() {
+}
+*/
