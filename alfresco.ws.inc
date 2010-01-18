@@ -30,7 +30,7 @@ function alfresco_service_create_session() {
 
       // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
       // It can be used to authenticate users and as a session factory.
-      $repository = new Repository($repository_url);
+      $repository = new AlfRepository($repository_url);
 
       // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
       // a ticket.  The ticket is a string which can be used to create Session's
@@ -85,11 +85,11 @@ function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = 
   try {
     if ($inforef) {
       // @see https://issues.alfresco.com/jira/browse/AR-1063
-      $store = new Store($session, $inforef['address'], $inforef['scheme']);
+      $store = new AlfStore($session, $inforef['address'], $inforef['scheme']);
       $nodes = $session->query($store, '+ISNODE:T +ID:"'. $referenceOrPath .'"');
     }
     else {
-      $store = new Store($session, 'SpacesStore');
+      $store = new AlfStore($session, 'SpacesStore');
       $nodes = $session->query($store, 'PATH:"'. $referenceOrPath .'"');
     }
 

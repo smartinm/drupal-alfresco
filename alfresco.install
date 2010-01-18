@@ -311,7 +311,7 @@ function _alfresco_check_php_library() {
     set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
     @include_once "Alfresco/Service/Repository.php";
 
-    if (class_exists('Repository')) {
+    if (class_exists('AlfRepository')) {
       return array(
         'value'    => $t('Found (%path).', array('%path' => $lib_path)),
         'severity' => REQUIREMENT_OK,
@@ -321,7 +321,7 @@ function _alfresco_check_php_library() {
   else {
     @include_once "Alfresco/Service/Repository.php";
 
-    if (class_exists('Repository')) {
+    if (class_exists('AlfRepository')) {
       return array(
         'value'    => $t('Found (system\'s include_path)'),
         'severity' => REQUIREMENT_OK,
@@ -381,7 +381,7 @@ function _alfresco_check_connection_repository() {
     $username = variable_get('alfresco_credentials_username', 'guest');
     $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
 
-    $repository = new Repository($repository_url);
+    $repository = new AlfRepository($repository_url);
     $ticket = $repository->authenticate($username, $password);
     $session = $repository->createSession($ticket);
     $store = $session->getStore('system', 'system');

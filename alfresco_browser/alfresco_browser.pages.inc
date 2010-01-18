@@ -121,7 +121,7 @@ function alfresco_browser_service_documents_json() {
     $queryResults = array();
 
     if (!empty($query)) {
-      $spacesStore = new Store($session, 'SpacesStore');
+      $spacesStore = new AlfStore($session, 'SpacesStore');
       $queryResults = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $query .'*"');
     }
     else {
