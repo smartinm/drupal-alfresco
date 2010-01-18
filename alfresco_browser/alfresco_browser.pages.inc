@@ -23,7 +23,7 @@ function alfresco_browser_service_tree_json() {
     exit();
   }
 
-  if (variable_get('alfresco_browser_cache_enabled', 1)) {
+  if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
     $cache_key = 'tree='. $node;
     if ($cache_clear == 'all') {
       cache_clear_all('tree=', 'cache_alfresco_browser', TRUE);
@@ -40,7 +40,8 @@ function alfresco_browser_service_tree_json() {
 
   try {
     $reference = 'workspace://SpacesStore/'. $node;
-    $currentNode = alfresco_service_load_node($reference);
+    $session = alfresco_service_create_session();
+    $currentNode = alfresco_service_load_node($reference, $session);
 
     if (!$currentNode) {
       // node not found
@@ -49,13 +50,16 @@ function alfresco_browser_service_tree_json() {
     }
 
     $nodes = array();
+    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
 
     foreach ($currentNode->children as $child) {
       /* @var $childNode Node */
       $childNode = $child->child;
 
-      // @todo Suppport other folder types
-      if ($childNode->type == ALFRESCO_TYPE_FOLDER) {
+      // @todo: Enhanced suppport other folder types
+      $type = $session->getNamespaceMap()->getShortName($childNode->getType());
+
+      if (in_array($type, $folder_types)) {
         $nodes[] = array(
           'id'   => $childNode->id,
           'text' => $childNode->cm_name,
@@ -66,7 +70,7 @@ function alfresco_browser_service_tree_json() {
 
     usort($nodes, '_alfresco_browser_sort_nodes');
 
-    if (variable_get('alfresco_browser_cache_enabled', 1)) {
+    if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
       cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
     }
 
@@ -90,7 +94,7 @@ function alfresco_browser_service_documents_json() {
     exit();
   }
 
-  if (variable_get('alfresco_browser_cache_enabled', 1)) {
+  if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
     $cache_key = empty($query) ? 'node='. $node : 'query='. $query;
     switch ($cache_clear) {
     case 'node':
@@ -129,16 +133,19 @@ function alfresco_browser_service_documents_json() {
         exit();
       }
 
+      $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+
       foreach ($folder->children as $childAssoc) {
-        // @todo Suppport other folder types
-        if ($childAssoc->child->type != ALFRESCO_TYPE_FOLDER) {
+        // @todo: Enhanced suppport other folder types
+        $type = $session->getNamespaceMap()->getShortName($childAssoc->child->type);
+        if (!in_array($type, $folder_types)) {
           $queryResults[] = $childAssoc->child;
         }
       }
     }
 
     if (count($queryResults) == 0) {
-      if (variable_get('alfresco_browser_cache_enabled', 1)) {
+      if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
         cache_set($cache_key, array(), 'cache_alfresco_browser', CACHE_TEMPORARY);
       }
 
@@ -171,7 +178,7 @@ function alfresco_browser_service_documents_json() {
       );
     }
 
-    if (variable_get('alfresco_browser_cache_enabled', 1)) {
+    if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
       cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
     }
 

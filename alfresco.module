@@ -289,6 +289,8 @@ function alfresco_cron() {
       alfresco_sync_node($node);
     }
   }
+
+  variable_set('alfresco_http_request_fails', FALSE);
 }
 
 // ------------------------------------------------------------------
@@ -343,6 +345,7 @@ function alfresco_url_download($node) {
  * @see http://www.phpclasses.org/browse/file/9051.html
  * @see http://www.php-mysql-tutorial.com/php-tutorial/php-read-remote-file.php
  * @see http://htmlblog.net/10-code-snippets-for-php-developers/
+ * @see http://www.faqts.com/knowledge_base/view.phtml/aid/1/fid/40 - Which is faster, echo or print?
  */
 function alfresco_file_transfer($reference, $disposition = NULL) {
   if (ob_get_level()) {
@@ -376,7 +379,7 @@ function alfresco_file_transfer($reference, $disposition = NULL) {
   // Transfer file in 1024 byte chunks to save memory usage.
   if ($fd = fopen($url, 'rb')) {
     while (!feof($fd)) {
-      print fread($fd, 1024);
+      echo fread($fd, 1024);
     }
     fclose($fd);
   }
@@ -407,7 +410,7 @@ function alfresco_valid_reference($reference) {
 }
 
 /**
- *
+ * @todo: Add documentation.
  */
 function alfresco_valid_path($path) {
 

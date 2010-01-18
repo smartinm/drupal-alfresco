@@ -48,7 +48,7 @@ function alfresco_browser_admin_settings() {
     '#title'         => t('Enable cache'),
     '#description'   => t('Enable cache for the Alfresco browser to store the results of web services queries against Alfresco repository.'),
     '#required'      => TRUE,
-    '#default_value' => variable_get('alfresco_browser_cache_enabled', 1),
+    '#default_value' => variable_get('alfresco_browser_cache_enabled', TRUE),
   );
 
   $form['#submit'][] = 'alfresco_browser_admin_settings_submit';
@@ -77,7 +77,7 @@ function alfresco_browser_admin_settings_validate($form, &$form_state) {
  */
 function alfresco_browser_admin_settings_submit($form, &$form_state) {
 
-  if ($form_state['values']['alfresco_browser_cache_enabled'] != variable_get('alfresco_browser_cache_enabled', 1)) {
+  if ($form_state['values']['alfresco_browser_cache_enabled'] != variable_get('alfresco_browser_cache_enabled', TRUE)) {
     cache_clear_all(NULL, 'cache_alfresco_browser');
     drupal_set_message(t('Alfresco browser cache cleared.'));
   }

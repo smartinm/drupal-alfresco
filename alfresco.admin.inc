@@ -69,9 +69,20 @@ function alfresco_admin_overview(&$form_state) {
     '#description' => $download_more,
   );
 
+  $form['#validate'][] = 'alfresco_admin_overview_validate';
   $form['#submit'][] = 'alfresco_admin_overview_submit';
 
   return system_settings_form($form);
+}
+
+/**
+ * Validate the alfresco overview settings form.
+ */
+function alfresco_admin_overview_validate($form, &$form_state) {
+  // Ensure URL is valid.
+  if (!valid_url($form_state['values']['alfresco_repository_url'], TRUE)) {
+    form_set_error('url', t('The URL repository %url is invalid. Please enter a fully-qualified URL, such as http://share.alfresco.com/alfresco/api.', array('%url' => $form_state['values']['alfresco_repository_url'])));
+  }
 }
 
 /**
@@ -87,6 +98,11 @@ function alfresco_admin_overview_submit($form, &$form_state) {
   }
 
   $form_state['values']['alfresco_credentials_password'] = base64_encode($password);
+
+  //$link = array('!link' => l(t('the status report'), 'admin/reports/status'));
+  //drupal_set_message(t("Check !link to see whether the connection was successful.", $link));
+
+  variable_set('alfresco_http_request_fails', FALSE);
 }
 
 // ------------------------------------------------------------------

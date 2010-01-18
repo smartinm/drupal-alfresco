@@ -39,7 +39,8 @@ class NamespaceMap
 		"view" => "http://www.alfresco.org/view/repository/1.0",
 		"security" => "http://www.alfresco.org/model/security/1.0",
 		"wcm" => "http://www.alfresco.org/model/wcmmodel/1.0",
-		"wca" => "http://www.alfresco.org/model/wcmappmodel/1.0");
+		"wca" => "http://www.alfresco.org/model/wcmappmodel/1.0",
+		"st" => "http://www.alfresco.org/model/site/1.0");
 	
 	public function isShortName($shortName)
 	{
