@@ -14,7 +14,7 @@ function alfresco_install() {
 
   // Alfresco built-in content model
   // @see http://wiki.alfresco.com/wiki/Data_Dictionary_Guide#Built-in_Content_Model_Namespaces
-  // @todo: Habilitar la modificación de los tipos de contenidos desde la configuración
+  // @todo: Habilitar la modificaciÃ³n de los tipos de contenidos desde la configuraciÃ³n
   $default_folder_types = array(
     'cm_folder',
     'cm_systemfolder',
