@@ -143,7 +143,7 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
         '#title'       => t('Alfresco attachments'),
         '#collapsible' => TRUE,
         '#collapsed'   => empty($node->alfresco),
-        '#description' => t(''),
+        '#description' => '',
         '#prefix'      => '<div class="alfresco-attachments">',
         '#suffix'      => '</div>',
         '#weight'      => 20,
@@ -292,7 +292,7 @@ function _alfresco_attach_form($node) {
       $url = url(alfresco_url_download($alfresco_node), array('absolute' => TRUE));
       //$description = '<small>'. $url .'</small>';
 
-      $title = alfresco_truncate_title($alfresco_node->title, 80);
+      $title = truncate_utf8($alfresco_node->title, 80);
       $link = l($title, 'node/'. $alfresco_node->nid, array('attributes' => array('title' => t('View alfresco node'))));
       $description = '<small>'. $link .'</small>';
 
@@ -555,7 +555,7 @@ function _alfresco_attach_get_alfresco_nodes() {
   $result_count = db_result(db_query("SELECT COUNT(*) FROM {node} n WHERE n.status = 1 AND type = 'alfresco_item'"));
   $rows = array(0 => t('None'));
   while ($node = db_fetch_object($result)) {
-    $rows[$node->nid] = alfresco_truncate_title($node->title, 100);
+    $rows[$node->nid] = truncate_utf8($node->title, 100);
   }
   return $rows;
 }

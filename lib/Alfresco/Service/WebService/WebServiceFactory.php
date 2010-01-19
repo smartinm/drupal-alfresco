@@ -63,8 +63,7 @@ class AlfWebServiceFactory
    {
         // Workaround for incorrect targetNamespace WSDL file.
         // @see https://issues.alfresco.com/jira/browse/ALFCOM-1913
-        $wsdl_path = drupal_get_path('module', 'alfresco');
-        $wsdl_path .= '/lib/wsdl/dictionary-service.wsdl';
+        $wsdl_path = drupal_get_path('module', 'alfresco') . '/misc/wsdl/dictionary-service.wsdl';
 
         $options = array(
           'location' => $path .'/DictionaryService',

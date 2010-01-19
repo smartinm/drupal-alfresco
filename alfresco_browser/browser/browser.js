@@ -72,6 +72,16 @@ AlfrescoBrowser.App = function() {
       this.initDocumentGrid();
       this.initSearch();
       this.initLayout();
+      
+      /*
+      folderTree.expandPath('/1b6feb86-bc5e-11dd-8590-695888b0c20c/1df6475a-bc5e-11dd-8590-695888b0c20c/aecb9b3c-e3ce-11dd-a77e-2daab57b0158');
+      folderTree.selectPath('/1b6feb86-bc5e-11dd-8590-695888b0c20c/1df6475a-bc5e-11dd-8590-695888b0c20c/aecb9b3c-e3ce-11dd-a77e-2daab57b0158');
+      
+      var node = folderTree.getSelectionModel().getSelectedNode();
+      dataStore.baseParams = {node: 'aecb9b3c-e3ce-11dd-a77e-2daab57b0158'};
+      dataStore.load({params:{start:0}});
+      itemsGrid.setTitle(node.text);
+      */
     },
     initLayout: function(){
       // --------------------------------------------

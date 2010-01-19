@@ -33,7 +33,7 @@ function alfresco_admin_overview(&$form_state) {
   $form['repository']['alfresco_credentials_username'] = array(
     '#default_value' => variable_get('alfresco_credentials_username', 'guest'),
     '#title'         => t('Username'),
-    '#description'   => t(''),
+    '#description'   => '',
     '#type'          => 'textfield',
     '#size'          => 25,
   );
@@ -41,6 +41,36 @@ function alfresco_admin_overview(&$form_state) {
     '#type'          => 'password_confirm',
     '#description'   => t('To change the current password, enter the new password in both fields. Default password is <em>guest</em>'),
     '#size'          => 25,
+  );
+
+  $auth_help = t('Select the authentication method to connect Alfresco repository.');
+  $auth_more = t('Anonymous users always uses account repository.');
+
+  $form['authentication'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Authentication'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#description' => $auth_help,
+  );
+
+  $form['authentication']['alfresco_authentication_method'] = array(
+    '#type' => 'radios',
+    '#title' => t('Choose authentication mode'),
+    '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE),
+    '#required' => TRUE,
+    '#options' => array(
+      ALFRESCO_AUTH_SINGLE   => t('Single. Use the above username and password to connect to repository.'),
+      ALFRESCO_AUTH_PER_USER => t('Per user. Use users accounts and passwords to connect to repository.'),
+    ),
+    '#description' => $auth_more,
+  );
+
+  $form['authentication']['alfresco_authentication_admin'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Admin use account repository'),
+    '#default_value' => variable_get('alfresco_authentication_admin', TRUE),
+    '#required' => TRUE,
   );
 
   $download_help = t('Select the download method of the files stored in Alfresco repository:');
@@ -53,16 +83,18 @@ function alfresco_admin_overview(&$form_state) {
 
   $form['downloads'] = array(
     '#type' => 'fieldset',
-    '#title' => t('File downloads'),
+    '#title' => t('Download method'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
     '#description' => $download_help . theme('item_list', $download_tips),
   );
 
   $form['downloads']['alfresco_file_downloads'] = array(
     '#type' => 'radios',
-    '#title' => t('Download method'),
+    '#title' => t('Choose download method'),
     '#default_value' => variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_MODULE),
     '#options' => array(
-      ALFRESCO_FILE_DOWNLOADS_MODULE => t('Module - files are transferred by Drupal\'s alfresco module using <em>Ticket URL Argument</em> transparently.'),
+      ALFRESCO_FILE_DOWNLOADS_MODULE => t('Module - files are transferred by Drupal\'s alfresco module using <em>Ticket URL Argument</em> transparently (recommended).'),
       ALFRESCO_FILE_DOWNLOADS_GUEST  => t('Direct guest - files are available using Alfresco <em>URL Guest Access</em>.'),
       ALFRESCO_FILE_DOWNLOADS_TICKET => t('Direct ticket - files are available using Alfresco <em>Ticket URL Argument</em>.'),
     ),
@@ -278,6 +310,18 @@ function alfresco_admin_advanced(&$form_state) {
     '#options' => $period,
     '#description' => t('The length of time between node synchronizes. (Requires a correctly configured <a href="@cron">cron maintenance task</a>)', array('@cron' => url('admin/reports/status'))),
     '#disabled' => TRUE,  // @todo eliminar cuando sea estable
+  );
+
+  $tip = t('El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl.');
+  $tipo_more = t('For more info, visit <a href="@url">ALFCOM-1913 issue</a> on Alfresco JIRA.', array(
+    '@url' => 'https://issues.alfresco.com/jira/browse/ALFCOM-1913')
+  );
+
+  $form['alfresco_workaround_dictionary_service_wsdl'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
+    '#description' => $tip . $tipo_more,
+    '#default_value' => variable_get('alfresco_local_dictionary_service_wsdl', TRUE),
   );
 
   return system_settings_form($form);

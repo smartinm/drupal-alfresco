@@ -58,7 +58,11 @@ function alfresco_import_form($form_state) {
       );
       return $form;
     }
-    if ($alf_node->type != ALFRESCO_TYPE_FOLDER) {
+
+    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+    $type = $session->getNamespaceMap()->getShortName($alf_node->type);
+
+    if (!in_array($type, $folder_types)) {
       $form['none_found'] = array(
         '#type'  => 'item',
         '#value' => t('Alfresco item "%name" is not a space.', array('%name' => $alf_node->cm_title)),
@@ -69,7 +73,8 @@ function alfresco_import_form($form_state) {
     $items = array();
     if (is_array($alf_node->children)) {
       foreach ($alf_node->children as $child) {
-        if ($child->child->type != ALFRESCO_TYPE_FOLDER) {
+        $type = $session->getNamespaceMap()->getShortName($child->child->type);
+        if (!in_array($type, $folder_types)) {
           $items[] = $child->child;
         }
       }

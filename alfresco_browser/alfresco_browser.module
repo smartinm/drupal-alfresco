@@ -174,7 +174,7 @@ function alfresco_browser_process($element, $form_state) {
 
   $element['alfresco_browser_path'] = array(
     '#type' => 'textfield',
-    '#value' => $alfNode ? $alfNode->cm_name : '',
+    '#value' => $alfNode ? $alfNode->getFolderPath() . '/'. $alfNode->cm_name : '',
     '#attributes' => array('readonly' => TRUE),
   );
 

@@ -1,16 +1,20 @@
 // $Id$
 
 Drupal.behaviors.attachBrowser = function (context) {
-  var winObjRef = null;
+  var popup = null;
+  var $browseButton = $("#edit-alfresco-browser-button"); 
+  
   $(document).ready(function() {
-    $('#edit-alfresco-browser-button').click(function() {
-      if (winObjRef == null || winObjRef.closed) {
-        winObjRef = window.open(
+    $browseButton.click(function() {
+      if (popup == null || popup.closed) {
+        popup = window.open(
           Drupal.settings.alfrescoBrowserUrl,
           Drupal.settings.alfrescoBrowserName,
           Drupal.settings.alfrescoBrowserFeatures);
       }
-      winObjRef.focus();
+      if (popup) {
+        popup.focus();
+      }
       return false;
     });
   });

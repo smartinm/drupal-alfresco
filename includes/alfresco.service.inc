@@ -2,8 +2,8 @@
 // $Id$
 
 /**
- * @file
- * Alfresco Web Service.
+ * @file alfresco.service.inc
+ * Provides functions for access to Alfresco repository through of web service.
  */
 
 /**
@@ -21,12 +21,21 @@ function alfresco_service_create_session() {
     _alfresco_service_include_library();
 
     try {
+      global $user;
+
       // The web service end point URL for the Alfresco repository
       $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
 
       // The user credentials we are going to use
-      $username = variable_get('alfresco_credentials_username', 'guest');
-      $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+      if ($user->uid == 0 || $user->uid == 1 && variable_get('alfresco_authentication_admin', TRUE)
+          || variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE) == ALFRESCO_AUTH_SINGLE) {
+        $username = variable_get('alfresco_credentials_username', 'guest');
+        $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+      }
+      else {
+        $username = $_SESSION['alfresco']['credentials']['username'];
+        $password = base64_decode($_SESSION['alfresco']['credentials']['password']);
+      }
 
       // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
       // It can be used to authenticate users and as a session factory.
@@ -41,8 +50,9 @@ function alfresco_service_create_session() {
       $session = $repository->createSession($ticket);
     }
     catch (Exception $e) {
-      drupal_set_message(t('Error connecting to alfresco repository.'), 'error');
-      watchdog('alfresco', 'Error connecting to alfresco repository. URL=%url, Exception=%msg', array(
+      drupal_set_message(t('Error connecting to Alfresco repository. Please contact the server administrator for assistance.'), 'error');
+
+      watchdog('alfresco', 'Error connecting to Alfresco repository. URL=%url, Exception=%msg', array(
         '%url' => $repository_url,
         '%msg' => _alfresco_service_error_message($e)),
         WATCHDOG_ERROR);
@@ -117,8 +127,8 @@ function alfresco_service_load_properties($node) {
   $properties = array();
 
   try {
-    $properties['cm_name']        = alfresco_truncate_title($node->cm_name);
-    $properties['cm_title']       = alfresco_truncate_title($node->cm_title);
+    $properties['cm_name']        = truncate_utf8($node->cm_name, 255);
+    $properties['cm_title']       = truncate_utf8($node->cm_title, 255);
     $properties['cm_description'] = $node->cm_description;
     $properties['cm_author']      = $node->cm_author;
     $properties['cm_created']     = alfresco_date_convert($node->cm_created);
