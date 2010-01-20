@@ -274,7 +274,7 @@ AlfrescoBrowser.App = function() {
 
       var columns = [
         {id: 'name', header: "Name", dataIndex: 'name', sortable: true, width: 200, renderer: renderName},
-        {header: "Size", dataIndex: 'size', sortable: true, align: 'right', width: 80},
+        {header: "Size", dataIndex: 'size', sortable: false, align: 'right', width: 80},
         {header: "Creator", dataIndex: 'creator', sortable: true, width: 100},
         {header: "Date created", dataIndex: 'created', width: 130, hidden: true, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
         {header: "Date modified", dataIndex: 'modified', width: 130, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},

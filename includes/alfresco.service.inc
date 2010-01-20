@@ -51,7 +51,6 @@ function alfresco_service_create_session() {
     }
     catch (Exception $e) {
       drupal_set_message(t('Error connecting to Alfresco repository. Please contact the server administrator for assistance.'), 'error');
-
       watchdog('alfresco', 'Error connecting to Alfresco repository. URL=%url, Exception=%msg', array(
         '%url' => $repository_url,
         '%msg' => _alfresco_service_error_message($e)),
@@ -68,7 +67,7 @@ function alfresco_service_create_session() {
  * @param $referenceOrPath
  *  The alfresco node reference or path.
  * @param $session Session
- * @return Node
+ * @return AlfNode
  */
 function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = NULL) {
   static $nodes = array();
@@ -111,6 +110,38 @@ function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = 
   catch (Exception $e) {
     drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
     watchdog('alfresco', 'Error loading node from alfresco repository, with reference %reference. Exception=%msg', array(
+      '%reference' => $reference,
+      '%msg' => _alfresco_service_error_message($e)),
+      WATCHDOG_ERROR);
+  }
+}
+
+/**
+ * Wrapper for Lucene API.
+ *
+ * @see http://wiki.alfresco.com/wiki/Search
+ */
+function alfresco_service_search($text, $property = '@cm:name', $session = NULL) {
+
+  if (!$session && !($session = alfresco_service_create_session())) {
+    return FALSE;
+  }
+
+  try {
+    // Lucene requires the : to be escaped using the \ character
+    $property = !empty($property) ? str_replace(':', '\:', $property) : 'ALL';
+    $query = '+ISNODE:T +TYPE:"cm:content" +'. $property .':"*'. $text .'*"';
+
+    $spacesStore = new AlfSpacesStore($session);
+    $queryResults = $session->query($spacesStore, $query);
+
+    //$nodes = $session->query($store, 'PATH:"/app:company_home/*"');
+
+    return $queryResults;
+  }
+  catch (Exception $e) {
+    drupal_set_message(t('Error searching nodes from alfresco repository.'), 'error');
+    watchdog('alfresco', 'Error searching node from alfresco repository, with reference %reference. Exception=%msg', array(
       '%reference' => $reference,
       '%msg' => _alfresco_service_error_message($e)),
       WATCHDOG_ERROR);
@@ -161,6 +192,66 @@ function alfresco_service_load_properties($node) {
 }
 
 /**
+ * Uploads a file into content store and returns the content data string which
+ * can be used to populate a content property.
+ *
+ * @param $session the session
+ * @param $filePath the file location
+ * @return String the content data that can be used to update the content property
+ *
+ * @see alf_upload_file()
+ * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
+ */
+function alfresco_service_upload_file($filepath, $mimetype = NULL, $encoding = NULL, $session = NULL) {
+  $result = null;
+
+  if (!$session && !($session = alfresco_service_create_session())) {
+    return FALSE;
+  }
+
+  // Check for the existance of the file
+  if (!file_exists($filepath)) {
+    return FALSE;
+  }
+
+  // Get the file name and size
+  $name = basename($filepath);
+  $size = filesize($filepath);
+
+  // Get the address and the
+  $host = $session->repository->host;
+  $port = $session->repository->port;
+
+  // Write the request header onto the socket
+  $url = 'http://'. $host .':'. $port .'/alfresco/upload/'. urlencode($name) .'?ticket='. $session->ticket;
+
+  if (!empty($mimetype)) {
+    // Add mimetype if specified
+    $url .= '&mimetype='. $mimetype;
+  }
+
+  if (!empty($encoding)) {
+    // Add encoding if specified
+    $url .= '&encoding='. $encoding;
+  }
+
+  $headers = array();
+  $data = file_get_contents($filepath);
+  $result = drupal_http_request($url, $headers, 'PUT', $data);
+
+  if ($result->code != 200) {
+    return FALSE;
+  }
+
+  $index = strpos($result->data, 'contentUrl');
+  if ($index === FALSE) {
+    return FALSE;
+  }
+
+  return substr($result->data, $index);
+}
+
+/**
  * Include the Alfresco PHP library.
  */
 function _alfresco_service_include_library() {
@@ -174,6 +265,7 @@ function _alfresco_service_include_library() {
     }
 
     // Include the required Alfresco PHP API objects
+    include_once "Alfresco/Service/SpacesStore.php";
     include_once "Alfresco/Service/Repository.php";
     include_once "Alfresco/Service/Session.php";
 

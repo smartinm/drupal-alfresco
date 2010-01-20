@@ -60,7 +60,6 @@ class AlfNamespaceMap {
     "sv"       => "http://www.jcp.org/jcr/sv/1.0",
     "usr"      => "http://www.alfresco.org/model/user/1.0",
     "rule"     => "http://www.alfresco.org/model/rule/1.0",
-    // "abcona"   => "abcona/namespace/alfresco/customModel",
     );
 
     // Constructor private to enforce singleton pattern

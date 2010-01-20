@@ -437,5 +437,23 @@ function _alfresco_check_connection_repository() {
  */
 /*
 function alfresco_update_6100() {
+
+  $default_folder_types = array(
+    'cm_folder',
+    'cm_systemfolder',
+    'st_sites',
+    'st_site',
+    'fm_forums',
+    'fm_forum',
+    'fm_topic',
+    'app_configurations',
+    'app_glossary',
+    'wca_formfolder',
+    'wca_webfolder',
+    'wcm_avmfolder',
+    'wcm_avmplainfolder',
+    'wcm_avmlayeredfolder',
+  );
+  variable_set('alfresco_folder_types', $default_folder_types);
 }
 */

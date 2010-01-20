@@ -52,12 +52,14 @@ function alfresco_browser_service_tree_json() {
     $nodes = array();
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
 
-    foreach ($currentNode->children as $child) {
-      /* @var $childNode Node */
+    foreach ($currentNode->getChildren() as $child) {
+      /* @var $childNode AlfNode */
       $childNode = $child->child;
 
       // @todo: Enhanced suppport other folder types
       $type = $session->getNamespaceMap()->getShortName($childNode->getType());
+
+      //$ctype = $session->getContentType(str_replace('_', ':', $type));
 
       if (in_array($type, $folder_types)) {
         $nodes[] = array(
@@ -161,12 +163,16 @@ function alfresco_browser_service_documents_json() {
       $ext = substr(strrchr($childNode->cm_name, '.'), 1);
       $nid = alfresco_exists_node($nodeRef);
 
+      if ($childNode->cm_content instanceof AlfContentData) {
+        $contentData = $childNode->cm_content;
+      }
+
       $nodes[] = array(
         'id'          => $childNode->id,
         'nid'         => $nid ? url('node/'. $nid) : '',
         'name'        => $childNode->cm_name,
-        'size'        => isset($childNode->cm_content) ? format_size($childNode->cm_content->size) : '',
-        'mimetype'    => isset($childNode->cm_content) ? $childNode->cm_content->mimetype : '',
+        'size'        => isset($contentData) ? format_size($contentData->size) : '',
+        'mimetype'    => isset($contentData) ? $contentData->mimetype : '',
         'icon'        => file_exists($module_path .'/images/filetypes/'. $ext .'.gif') ? $ext : '_default',
         'author'      => $childNode->cm_author,
         'creator'     => $childNode->cm_creator,

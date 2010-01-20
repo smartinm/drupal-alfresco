@@ -489,7 +489,8 @@ class AlfNode extends AlfBaseObject {
     }
 
     public function onBeforeSave(&$statements) {
-        print "++ Node::onBeforeSave()\n";
+        // TODO Logger
+        //print "++ Node::onBeforeSave()\n";
 
         if ($this->_isNewNode == true) {
             $childAssociation = $this->addedParents[$this->_primaryParent->__toString()];

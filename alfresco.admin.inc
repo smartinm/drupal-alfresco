@@ -17,6 +17,17 @@
  */
 function alfresco_admin_overview(&$form_state) {
 
+  /*
+  module_load_install('alfresco');
+  $requirements = module_invoke('alfresco', 'requirements', 'runtime');
+  $severity = drupal_requirements_severity($requirements);
+  if ($severity == REQUIREMENT_ERROR) {
+    drupal_set_message(t('One or more problems were detected with your Alfresco setttings. Check the <a href="@status">status report</a> for more information.', array(
+      '@status' => url('admin/reports/status')
+    )), 'error');
+  }
+  */
+
   $form['repository'] = array(
     '#type' => 'fieldset',
     '#title' => t('Repository'),
@@ -60,8 +71,9 @@ function alfresco_admin_overview(&$form_state) {
     '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE),
     '#required' => TRUE,
     '#options' => array(
-      ALFRESCO_AUTH_SINGLE   => t('Single. Use the above username and password to connect to repository.'),
-      ALFRESCO_AUTH_PER_USER => t('Per user. Use users accounts and passwords to connect to repository.'),
+      ALFRESCO_AUTH_SINGLE      => t('Single. Use always the above username and password to connect to repository.'),
+      ALFRESCO_AUTH_USER        => t('Per user. Use users accounts and passwords to connect to repository.'),
+      ALFRESCO_AUTH_USER_UPLOAD => t('Per user only upload. Use users accounts and passwords to connect to repository.'),
     ),
     '#description' => $auth_more,
   );
@@ -134,7 +146,10 @@ function alfresco_admin_overview_submit($form, &$form_state) {
   //$link = array('!link' => l(t('the status report'), 'admin/reports/status'));
   //drupal_set_message(t("Check !link to see whether the connection was successful.", $link));
 
+  // @see _alfresco_check_connection_repository()
   variable_set('alfresco_http_request_fails', FALSE);
+
+  drupal_set_message(t('Check the <a href="@status">status report</a> for test repository connection.', array('@status' => url('admin/reports/status'))));
 }
 
 // ------------------------------------------------------------------

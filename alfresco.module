@@ -33,8 +33,9 @@ define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
 // Alfresco authentication methods.
-define('ALFRESCO_AUTH_SINGLE',   1);
-define('ALFRESCO_AUTH_PER_USER', 2);
+define('ALFRESCO_AUTH_SINGLE',      1);
+define('ALFRESCO_AUTH_USER',        2);
+define('ALFRESCO_AUTH_USER_UPLOAD', 3);
 
 // Regex string for any variety of ISO and DATETIME formats (from date_api.module)
 define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(\d{2}):?(\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:?\d{2})?)?/');
@@ -101,6 +102,7 @@ function alfresco_perm() {
     'download alfresco content',
     'edit own alfresco content',
     'edit any alfresco content',
+    'upload alfresco files',
   );
 }
 
@@ -205,6 +207,23 @@ function alfresco_menu() {
     'access arguments' => array(1),
     'weight' => 7,
     'type' => MENU_LOCAL_TASK,
+    'file' => 'alfresco.pages.inc',
+  );
+
+  $items['alfresco/autocomplete'] = array(
+    'title' => 'Alfresco node autocomplete',
+    'page callback' => 'alfresco_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'alfresco.pages.inc',
+  );
+
+  $items['alfresco/add'] = array(
+    'title' => 'Alfresco upload content',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_page_add'),
+    'access arguments' => array('upload alfresco files'),
+    'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
   );
 
@@ -563,6 +582,33 @@ function alfresco_views_api() {
     'api' => '2.0',
     'path' => drupal_get_path('module', 'alfresco') .'/views',
   );
+}
+
+/**
+ * Implementation of hook_admin_theme().
+ */
+function alfresco_admin_theme($op = 'info', $option = NULL) {
+  switch ($op) {
+    case 'info':
+      $options = array();
+      $options['alfresco'] = array(
+        'title' => t('Alfresco add content'),
+        'description' => t('Use the administration theme when viewing the Alfresco add content page.'),
+      );
+      $options['alfresco_details'] = array(
+        'title' => t('Alfresco details'),
+        'description' => t('Use the administration theme when viewing the Alfresco details node tab.'),
+      );
+      return $options;
+
+    case 'check':
+      switch ($option) {
+        case 'alfresco':
+          return arg(0) == 'alfresco' && arg(1) == 'add';
+        case 'alfresco_details':
+          return arg(0) == 'node' && arg(2) == 'details';
+      }
+  }
 }
 
 // ------------------------------------------------------------------
