@@ -79,6 +79,14 @@ function alfresco_browser_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['alfresco/browser/service/add'] = array(
+    'page callback' => 'alfresco_browser_service_add',
+    'access callback' => 'user_access',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 

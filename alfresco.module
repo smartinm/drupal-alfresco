@@ -56,6 +56,12 @@ require_once(dirname(__FILE__) .'/includes/alfresco.service.inc');
 function alfresco_help($path, $arg) {
 
   switch ($path) {
+    case 'alfresco/add':
+      return '<p>'. t('Add content to a space and enter information about the content to be uploaded.') .'</p>';
+
+    case 'alfresco/items':
+      return '<p>'. t('Displays a list of alfresco items nodes.') .'</p>';
+
     case 'admin/help#alfresco':
       return '<p>'. t('Alfresco and Drupal integration.') .'</p>';
   }
@@ -95,6 +101,7 @@ function alfresco_node_info() {
 function alfresco_perm() {
 
   return array(
+    'add alfresco content',
     'administer alfresco',
     'create alfresco content',
     'delete own alfresco content',
@@ -102,7 +109,6 @@ function alfresco_perm() {
     'download alfresco content',
     'edit own alfresco content',
     'edit any alfresco content',
-    'upload alfresco files',
   );
 }
 
@@ -139,6 +145,8 @@ function alfresco_access($op, $node, $account) {
  * Implementation of hook_menu().
  */
 function alfresco_menu() {
+
+  // Settings
 
   $items['admin/settings/alfresco'] = array(
     'title' => 'Alfresco',
@@ -210,19 +218,41 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
-  $items['alfresco/autocomplete'] = array(
-    'title' => 'Alfresco node autocomplete',
-    'page callback' => 'alfresco_autocomplete',
+  // Pages
+
+  $items['alfresco'] = array(
+    'title' => 'Alfresco',
+    'page callback' => 'alfresco_overview_page',
     'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
+    //'weight' => 5,
     'file' => 'alfresco.pages.inc',
   );
 
   $items['alfresco/add'] = array(
-    'title' => 'Alfresco upload content',
+    'title' => 'Add content',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('alfresco_page_add'),
-    'access arguments' => array('upload alfresco files'),
+    'page arguments' => array('alfresco_add_form'),
+    'access arguments' => array('add alfresco content'),
+    //'weight' => 5,
+    'file' => 'alfresco.pages.inc',
+  );
+
+  if (module_exists('views')) {
+    $items['alfresco/items'] = array(
+      'title' => 'Items',
+      'page callback' => 'alfresco_items_page',
+      'access arguments' => array('access content'),
+      //'weight' => 5,
+      'file' => 'alfresco.pages.inc',
+    );
+  }
+
+  // AJAX Callbacks
+
+  $items['alfresco/autocomplete'] = array(
+    'title' => 'Alfresco node autocomplete',
+    'page callback' => 'alfresco_autocomplete',
+    'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
   );
@@ -461,9 +491,6 @@ function alfresco_update($node) {
  */
 function _alfresco_save($node) {
 
-  // update timestamp
-  $node->timestamp = time();
-
   // if this is a new node or we're adding a new revision
   if ($node->is_new || !empty($node->revision)) {
     drupal_write_record('alfresco_node', $node);
@@ -500,6 +527,9 @@ function alfresco_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     case 'delete revision':
       db_query('DELETE FROM {alfresco_node} WHERE vid = %d', $node->vid);
       db_query('DELETE FROM {alfresco_content} WHERE vid = %d', $node->vid);
+      break;
+
+    case 'presave':
       break;
   }
 }
@@ -545,6 +575,7 @@ function alfresco_load($node) {
 
   return $alfresco_node;
 }
+
 
 // -----------------------------------------------------------------------
 // =5 View functions
@@ -604,7 +635,7 @@ function alfresco_admin_theme($op = 'info', $option = NULL) {
     case 'check':
       switch ($option) {
         case 'alfresco':
-          return arg(0) == 'alfresco' && arg(1) == 'add';
+          return arg(0) == 'alfresco' /*&& arg(1) == 'add' */;
         case 'alfresco_details':
           return arg(0) == 'node' && arg(2) == 'details';
       }
@@ -730,6 +761,133 @@ function alfresco_file_transfer($reference, $disposition = NULL) {
     drupal_not_found();
   }
   exit();
+}
+
+/**
+ *
+ * @see drupal_http_request()
+ */
+function alfresco_file_put($filepath, $url, $headers = array()) {
+  $result = new stdClass();
+
+  if (!file_exists($filepath)) {
+    $result->error = 'file not found';
+    return $result;
+  }
+
+  // Parse the URL and make sure we can handle the schema.
+  $uri = parse_url($url);
+
+  if ($uri == FALSE) {
+    $result->error = 'unable to parse URL';
+    $result->code = -1001;
+    return $result;
+  }
+
+  if (!isset($uri['scheme'])) {
+    $result->error = 'missing schema';
+    $result->code = -1002;
+    return $result;
+  }
+
+  switch ($uri['scheme']) {
+    case 'http':
+      $port = isset($uri['port']) ? $uri['port'] : 80;
+      $host = $uri['host'] . ($port != 80 ? ':'. $port : '');
+      $fp = @fsockopen($uri['host'], $port, $errno, $errstr, 15);
+      break;
+    case 'https':
+      // Note: Only works for PHP 4.3 compiled with OpenSSL.
+      $port = isset($uri['port']) ? $uri['port'] : 443;
+      $host = $uri['host'] . ($port != 443 ? ':'. $port : '');
+      $fp = @fsockopen('ssl://'. $uri['host'], $port, $errno, $errstr, 20);
+      break;
+    default:
+      $result->error = 'invalid schema '. $uri['scheme'];
+      $result->code = -1003;
+      return $result;
+  }
+
+  // Make sure the socket opened properly.
+  if (!$fp) {
+    // When a network error occurs, we use a negative number so it does not
+    // clash with the HTTP status codes.
+    $result->code = -$errno;
+    $result->error = trim($errstr);
+    return $result;
+  }
+
+  // Construct the path to act on.
+  $path = isset($uri['path']) ? $uri['path'] : '/';
+  if (isset($uri['query'])) {
+    $path .= '?'. $uri['query'];
+  }
+
+  // Create HTTP request.
+  $defaults = array(
+    'Host' => "Host: $host",
+    'User-Agent' => 'User-Agent: Drupal (+http://drupal.org/)',
+  );
+
+  $content_length = filesize($filepath);
+  if ($content_length > 0) {
+    $defaults['Content-Length'] = 'Content-Length: '. $content_length;
+  }
+
+  // If the server url has a user then attempt to use basic authentication
+  if (isset($uri['user'])) {
+    $defaults['Authorization'] = 'Authorization: Basic '. base64_encode($uri['user'] . (!empty($uri['pass']) ? ":". $uri['pass'] : ''));
+  }
+
+  foreach ($headers as $header => $value) {
+    $defaults[$header] = $header .': '. $value;
+  }
+
+  $request = 'PUT '. $path ." HTTP/1.0\r\n";
+  $request .= implode("\r\n", $defaults);
+  $request .= "\r\n\r\n";
+
+  $result->request = $request;
+
+  fwrite($fp, $request);
+
+  // Transfer file in 1024 byte chunks to save memory usage.
+  if ($fd = fopen($filepath, 'rb')) {
+    while (!feof($fd) && $chunk = fread($fd, 1024)) {
+      fwrite($fp, $chunk, strlen($chunk));
+    }
+    fclose($fd);
+  }
+
+  // Fetch response.
+  $response = '';
+  while (!feof($fp) && $chunk = fread($fp, 1024)) {
+    $response .= $chunk;
+  }
+  fclose($fp);
+
+  // Parse response.
+  list($split, $result->data) = explode("\r\n\r\n", $response, 2);
+  $split = preg_split("/\r\n|\n|\r/", $split);
+
+  list($protocol, $code, $text) = explode(' ', trim(array_shift($split)), 3);
+  $result->headers = array();
+
+  // Parse headers.
+  while ($line = trim(array_shift($split))) {
+    list($header, $value) = explode(':', $line, 2);
+    if (isset($result->headers[$header]) && $header == 'Set-Cookie') {
+      // RFC 2109: the Set-Cookie response header comprises the token Set-
+      // Cookie:, followed by a comma-separated list of one or more cookies.
+      $result->headers[$header] .= ','. trim($value);
+    }
+    else {
+      $result->headers[$header] = trim($value);
+    }
+  }
+
+  $result->code = $code;
+  return $result;
 }
 
 // ------------------------------------------------------------------
@@ -919,7 +1077,7 @@ function alfresco_sync_node($node) {
 
   // update properties
   $properties = alfresco_service_load_properties($alf_node);
-  if (!$properties) {
+  if ($properties) {
     foreach ($properties as $key => $value) {
       $node->$key = $value;
     }

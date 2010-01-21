@@ -211,6 +211,38 @@ function alfresco_browser_service_download() {
   alfresco_file_transfer($reference, $mode);
 }
 
+function alfresco_browser_service_add() {
+  $js = <<<EOD
+  <script>
+
+    new Ext.FormPanel({
+      renderTo: 'alfresco-add-form',
+      fileUpload: true
+    });
+
+    new Ext.form.TextField({
+      applyTo: 'edit-space',
+      fieldLabel: 'Space'
+    });
+
+    new Ext.ux.form.FileUploadField({
+      applyTo: 'edit-file',
+      fieldLabel: 'File'
+    });
+
+    new Ext.Button({
+      renderTo: 'edit-upload'
+    });
+  </script>
+EOD;
+
+  module_load_include('inc', 'alfresco', 'alfresco.pages');
+
+  echo drupal_get_form('alfresco_add_form');
+
+  exit();
+}
+
 function _alfresco_browser_sort_nodes($node1, $node2) {
   return strnatcmp($node1['text'], $node2['text']);
 }

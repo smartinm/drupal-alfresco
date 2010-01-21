@@ -271,8 +271,8 @@ function alfresco_views_default_views() {
     ),
     'default' => 'created',
   ));
-  $handler = $view->new_display('page', 'Page', 'page_1');
-  $handler->override_option('path', 'alfresco');
+  $handler = $view->new_display('page', 'Page', 'page');
+  $handler->override_option('path', 'alfresco/items');
   $handler->override_option('menu', array(
     'type' => 'none',
     'title' => '',

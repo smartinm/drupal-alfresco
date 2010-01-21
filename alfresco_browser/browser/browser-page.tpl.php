@@ -17,9 +17,11 @@
   <?php endif; ?>
   <link rel="stylesheet" type="text/css" href="<?php print check_url($extjs_path .'/resources/css/ext-all.css'); ?>" />
   <link rel="stylesheet" type="text/css" href="<?php print check_url($extjs_path .'/resources/css/xtheme-gray.css'); ?>" />
+  <link rel="stylesheet" type="text/css" href="<?php print check_url($extjs_path .'/examples/ux/fileuploadfield/css/fileuploadfield.css'); ?>" />
   <link rel="stylesheet" type="text/css" href="<?php print check_url($module_path .'/browser/browser.css'); ?>" />
   <script type="text/javascript" src="<?php print check_url($extjs_path .'/adapter/ext/ext-base.js'); ?>"></script>
   <script type="text/javascript" src="<?php print check_url($extjs_path .'/ext-all.js'); ?>"></script>
+  <script type="text/javascript" src="<?php print check_url($extjs_path .'/examples/ux/fileuploadfield/FileUploadField.js'); ?>"></script>
   <?php if ($locale_path): ?>
   <script type="text/javascript" src="<?php print check_url($locale_path); ?>"></script>
   <?php endif; ?>

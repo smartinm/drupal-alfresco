@@ -56,6 +56,73 @@ AlfrescoBrowser.SendToDrupal = function (node) {
   self.close();
 }
 
+AlfrescoBrowser.UploadItem = function (space) {
+  var title = 'Add content';
+  var url = '/alfresco/browser/service/add';
+
+  var iframeWin = new Ext.Window({
+    id: 'upload-window',
+    title: title,
+    width: 600,
+    height: 500,
+    modal: 'true',
+    layout: 'fit', 
+    //autoLoad: {url: url, scripts: true},
+    html: '<iframe id="preview-frame" style="width:100%;height:100%;" frameborder="0"  src="' + url + '"></iframe>'
+  });
+  iframeWin.show();
+}
+
+AlfrescoBrowser.UploadItem2 = function (space) {
+  var title = 'Add content';
+  var url = '/alfresco/browser/service/add';
+
+  var fp = new Ext.FormPanel({
+    fileUpload: true,
+    width: 500,
+    //autoHeight: true,
+    //bodyStyle: 'padding: 10px 10px 0 10px;',
+    //labelWidth: 50,
+    frame: false,
+    //deferedRender:true,
+    defaults: {
+        anchor: '95%',
+        allowBlank: false,
+        msgTarget: 'side'
+    },
+    autoLoad: {url: url/*, scripts:true*/},
+    buttons: [{
+        text: 'Save',
+        handler: function(){
+            if(fp.getForm().isValid()){
+              fp.getForm().submit({
+                  url: url,
+                  waitMsg: 'Uploading your photo...',
+                  success: function(fp, o){
+                      msg('Success', 'Processed file "'+o.result.file+'" on the server');
+                  }
+              });
+            }
+        }
+    },{
+        text: 'Reset',
+        handler: function(){
+            fp.getForm().reset();
+        }
+    }]
+  });
+  
+  var iframeWin = new Ext.Window({
+    id: 'upload-window',
+    modal: 'true',
+    title: 'File Upload Form',
+    layout: 'fit',
+    autoLoad: {url: url/*, scripts:true*/},
+  });
+  
+  iframeWin.show();
+}
+
 AlfrescoBrowser.App = function() {
   var folderTree;
   var itemsGrid;
@@ -350,10 +417,18 @@ AlfrescoBrowser.App = function() {
         },
 
         tbar: [{
-          text: 'Add Content',
+          text: 'Add content',
           tooltip: 'Upload content to this space.',
           iconCls: 'upload',
-          disabled: true
+          handler: function() {
+            AlfrescoBrowser.UploadItem('');
+            
+            var items = itemsGrid.getSelectionModel().getSelections();
+            if (items.length > 0) {
+              var name = items[0].data.name;
+              
+            }
+          }
         }, '-', {
           text: 'Download',
           tooltip: 'Download selected item.',

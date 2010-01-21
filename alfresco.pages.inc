@@ -7,6 +7,22 @@
  */
 
 // ------------------------------------------------------------------
+// Alfresco page
+// ------------------------------------------------------------------
+
+function alfresco_overview_page() {
+  $item = menu_get_item();
+  $content = system_admin_menu_block($item);
+  return theme('admin_block_content', $content);
+}
+
+function alfresco_items_page() {
+  //drupal_set_title(check_plain(''));
+  $view = views_embed_view('alfresco_items', 'page');
+  return $view;
+}
+
+// ------------------------------------------------------------------
 // Alfresco download page
 // ------------------------------------------------------------------
 
@@ -170,11 +186,13 @@ function alfresco_autocomplete2($string = '') {
 // ------------------------------------------------------------------
 
 /**
+ * @todo: Arreglar flujo del formulario.
+ *
  * @see https://issues.alfresco.com/jira/browse/ETWOONE-400
  * @see http://wiki.alfresco.com/wiki/PHP_Tutorial_Five
  * @see http://drupal.org/node/470834
  */
-function alfresco_page_add($form_state) {
+function alfresco_add_form($form_state) {
 
   // If a file has already been uploaded, we know we need the confirmation form.
   if (isset($form_state['values']['file'])) {
@@ -185,25 +203,8 @@ function alfresco_page_add($form_state) {
   return _alfresco_add_form($form_state);
 }
 
-function alfresco_page_add_submit($form, &$form_state) {
-  dpm('alfresco_page_add_submit');
-
-  $validators = array(
-    'file_validate_extensions' => array(),
-    'file_validate_image_resolution' => array(),
-    'file_validate_size' => array(),
-  );
-  $validators = array();
-
-  // Save new file uploads.
-  if (user_access('upload alfresco files') && ($file = file_save_upload('file', $validators))) {
-    $form_state['values']['file'] = (array)$file;
-  }
-
-  $form_state['rebuild'] = TRUE;
-}
-
 function _alfresco_add_form($form_state) {
+
   $form = array();
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
 
@@ -216,8 +217,10 @@ function _alfresco_add_form($form_state) {
   $form['upload']['space'] = array(
     '#type' => 'textfield',
     '#title' => t('Space'),
-    '#autocomplete_path' => 'alfresco/autocomplete',
+    '#required' => TRUE,
+    //'#autocomplete_path' => 'alfresco/autocomplete',
     //'#description' => t('Space.'),
+    '#default_value' => '/app:company_home/app:guest_home',
   );
 
   $form['upload']['file'] = array(
@@ -236,26 +239,30 @@ function _alfresco_add_form($form_state) {
 
 function _alfresco_add_form_properties($form_state) {
 
+  $space = isset($form_state['values']['space']) ? $form_state['values']['space'] : '';
+
+  // @todo $form_state['values']['file'] es vacío cuando se reconstruye el formularion
   $file = $form_state['values']['file'];
-  if (empty($file)) {
-    // TODO ?
-  }
-  //dpm($file);
-
   $form['#file'] = $file;
-
-  drupal_set_message(t("'!filename' was uploaded successfully.", array(
-    '!filename' => $file['filename'])
-  ));
 
   $form['upload'] = array(
     '#type' => 'fieldset',
     '#title' => t('Uploaded content'),
   );
 
+  $form['upload']['space'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Space'),
+    '#required' => TRUE,
+    //'#autocomplete_path' => 'alfresco/autocomplete',
+    //'#description' => t('Space.'),
+    '#default_value' => $space,
+  );
+
   $form['upload']['file'] = array(
     '#type' => 'item',
-    '#value' => $file['filename'],
+    '#title' => t('File'),
+    '#value' => $file['filename'] .' ('. format_size($file['filesize']) .')'
   );
 
   $form['properties'] = array(
@@ -268,6 +275,7 @@ function _alfresco_add_form_properties($form_state) {
     '#title' => t('Name'),
     '#default_value' => $file['filename'],
     '#required' => TRUE,
+    '#maxlength' => 255,
   );
 
   $form['properties']['type'] = array(
@@ -279,6 +287,7 @@ function _alfresco_add_form_properties($form_state) {
     ),
   );
 
+  /*
   $encodings = array();
   foreach (mb_list_encodings() as $encoding) {
     $encodings[$encoding] = $encoding;
@@ -290,63 +299,129 @@ function _alfresco_add_form_properties($form_state) {
     '#default_value' => 'UTF-8',
     '#options' => $encodings,
   );
+  */
+
+  $form['properties']['encoding'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Encoding'),
+    '#default_value' => 'UTF-8',
+    '#maxlength' => 255,
+  );
 
   $form['properties']['mimetype'] = array(
     '#type' => 'textfield',
     '#title' => t('Content Type'),
     '#default_value' => $file['filemime'],
+    '#maxlength' => 255,
+  );
+
+  $form['content'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content properties'),
+    '#description' => t('Information about the content to be uploaded.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $form['content']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => '',
+    '#maxlength' => 255,
+  );
+
+  $form['content']['description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => '',
+    '#rows' => 2,
+  );
+
+  $form['content']['author'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Author'),
+    '#default_value' => '',
+    '#maxlength' => 255,
   );
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('OK'),
-    '#submit' => array('alfresco_page_add_upload'),
+    '#submit' => array('alfresco_add_form_upload'),
   );
 
   $form['buttons']['cancel'] = array(
     '#type' => 'submit',
     '#value' => t('Cancel'),
-    '#submit' => array('alfresco_page_add_cancel'),
+    '#submit' => array('alfresco_add_form_cancel'),
   );
 
   return $form;
 }
 
+function alfresco_add_form_validate($form, &$form_state) {
+
+  // @todo: Añadir validadores
+  if (empty($form['#file'])) {
+    $validators = array(
+      'file_validate_extensions' => array(),
+      'file_validate_image_resolution' => array(),
+      'file_validate_size' => array(),
+    );
+    $validators = array();
+
+    // Save new file uploads.
+    if ($file = file_save_upload('file', $validators)) {
+      $form_state['values']['file'] = (array)$file;
+    }
+    else {
+      form_set_error('file', t('File field is required.'));
+    }
+  }
+}
+
+function alfresco_add_form_submit($form, &$form_state) {
+  //dpm('alfresco_page_add_submit');
+
+  // Save new file uploads.
+  if (!empty($form_state['values']['file'])) {
+    drupal_set_message(t("'!filename' was uploaded successfully.", array(
+      '!filename' => $form_state['values']['file']['filename'])
+    ));
+    $form_state['rebuild'] = TRUE;
+  }
+}
+
 /**
  * TODO Controlar si el fichero ya existe.
  */
-function alfresco_page_add_upload($form, &$form_state) {
-  dpm('alfresco_page_add_upload');
+function alfresco_add_form_upload($form, &$form_state) {
+  //dpm('alfresco_page_add_upload');
 
   $file = $form['#file'];
-  dpm($file);
+  $space = $form_state['values']['space'];
 
-  $session = alfresco_service_create_session();
+  if ($file) {
+    $filepath = $file['filepath'];
+    $filename = $form_state['values']['name'];
+    $mimetype = $form_state['values']['mimetype'];
+    $encoding = $form_state['values']['encoding'];
 
-  $guest_home = alfresco_service_load_node('/app:company_home/app:guest_home', $session);
-  if (!$guest_home) {
-    drupal_not_found();
-    exit;
+    if (alfresco_service_add_content($space, $filepath, $filename, $mimetype, $encoding)) {
+      drupal_set_message(t("'!filename' was created successfully.", array(
+        '!filename' => $file['filename'])
+      ));
+    }
+    else {
+      //form_set_error('file', t('Error'));
+
+      $form_state['values']['file'] = (array)$file;
+      $form_state['rebuild'] = TRUE;
+    }
   }
-
-  $filepath = $file['filepath'];
-
-  $filename = $form_state['values']['name'];
-  $mimetype = $form_state['values']['mimetype'];
-  $encoding = $form_state['values']['encoding'];
-
-  $contentUrl = alfresco_service_upload_file($filepath, $mimetype, $encoding, $session);
-  if ($contentUrl) {
-    $newNode = $guest_home->createChild('cm_content', 'cm_contains', $filename);
-
-    $newNode->cm_name = $filename;
-    //$newNode->cm_description = '';
-    //$newNode->cm_title = '';
-    $newNode->cm_content = $contentUrl;
-  }
-  $session->save();
 }
 
-function alfresco_page_add_cancel($form, &$form_state) {
-
+function alfresco_add_form_cancel($form, &$form_state) {
+  //dpm('alfresco_page_add_cancel');
+  //drupal_goto('alfresco/add');
 }

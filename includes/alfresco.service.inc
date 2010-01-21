@@ -62,12 +62,17 @@ function alfresco_service_create_session() {
 }
 
 /**
- * Load a node by reference from alfresco repository.
+ * Load an alfresco node object from the Alfresco repository.
  *
  * @param $referenceOrPath
  *  The alfresco node reference or path.
  * @param $session Session
+ *  xxx
+ * @param $reset
+ *  Whether to reset the internal node cache.
+ *
  * @return AlfNode
+ *  A fully-populated alfresco node object.
  */
 function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = NULL) {
   static $nodes = array();
@@ -82,9 +87,12 @@ function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = 
     }
   }
 
-  // Is the node statically cached?
-  if (isset($nodes[$referenceOrPath])) {
-    return is_object($nodes[$referenceOrPath]) ? drupal_clone($nodes[$referenceOrPath]) : $nodes[$referenceOrPath];
+  if ($inforef) {
+    $reference = $inforef['reference'];
+    // Is the node statically cached?
+    if (isset($nodes[$reference])) {
+      return is_object($nodes[$referenceOrPath]) ? drupal_clone($nodes[$reference]) : $nodes[$reference];
+    }
   }
 
   if (!$session && !($session = alfresco_service_create_session())) {
@@ -95,16 +103,22 @@ function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = 
     if ($inforef) {
       // @see https://issues.alfresco.com/jira/browse/AR-1063
       $store = new AlfStore($session, $inforef['address'], $inforef['scheme']);
-      $nodes = $session->query($store, '+ISNODE:T +ID:"'. $referenceOrPath .'"');
+      $nodes = $session->query($store, '+ISNODE:T +ID:"'. $inforef['reference'] .'"');
     }
     else {
       $store = new AlfStore($session, 'SpacesStore');
       $nodes = $session->query($store, 'PATH:"'. $referenceOrPath .'"');
     }
 
-    if (count($nodes)) {
-      $nodes[$referenceOrPath] = is_object($nodes[0]) ? drupal_clone($nodes[0]) : $nodes[0];
-      return $nodes[0];
+    if (count($nodes) && $nodes[0]->getId()) {
+      $node = $nodes[0];
+
+      if ($inforef) {
+        $reference = $inforef['reference'];
+        $nodes[$reference] = is_object($node) ? drupal_clone($node) : $node;
+      }
+
+      return $node;
     }
   }
   catch (Exception $e) {
@@ -202,53 +216,67 @@ function alfresco_service_load_properties($node) {
  * @see alf_upload_file()
  * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
-function alfresco_service_upload_file($filepath, $mimetype = NULL, $encoding = NULL, $session = NULL) {
-  $result = null;
+function alfresco_service_add_content($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = NULL, $session = NULL) {
 
   if (!$session && !($session = alfresco_service_create_session())) {
     return FALSE;
   }
 
-  // Check for the existance of the file
-  if (!file_exists($filepath)) {
-    return FALSE;
+  try {
+    $space_node = alfresco_service_load_node($space, $session);
+    if (!$space_node) {
+      return FALSE;
+    }
+
+    // Get the address and the
+    $host = $session->repository->host;
+    $port = $session->repository->port;
+
+    if (empty($filename)) {
+      $filename = basename($filepath);
+    }
+
+    // Write the request header onto the socket
+    $url = 'http://'. $host .':'. $port .'/alfresco/upload/'. urlencode($filename) .'?ticket='. $session->ticket;
+
+    if (!empty($mimetype)) {
+      // Add mimetype if specified
+      $url .= '&mimetype='. $mimetype;
+    }
+
+    if (!empty($encoding)) {
+      // Add encoding if specified
+      $url .= '&encoding='. $encoding;
+    }
+
+    $result = alfresco_file_put($filepath, $url);
+    if ($result->code != 200) {
+      return FALSE;
+    }
+
+    if (($index = strpos($result->data, 'contentUrl')) === FALSE) {
+      return FALSE;
+    }
+
+    $content_data = substr($result->data, $index);
+    if ($content_data) {
+      $new_node = $space_node->createChild('cm_content', 'cm_contains', $filename);
+      $new_node->cm_name = $filename;
+      $new_node->cm_content = $content_data;
+      //$new_node->cm_title = '';
+      //$new_node->cm_description = '';
+
+      $session->save();
+
+      return TRUE;
+    }
   }
-
-  // Get the file name and size
-  $name = basename($filepath);
-  $size = filesize($filepath);
-
-  // Get the address and the
-  $host = $session->repository->host;
-  $port = $session->repository->port;
-
-  // Write the request header onto the socket
-  $url = 'http://'. $host .':'. $port .'/alfresco/upload/'. urlencode($name) .'?ticket='. $session->ticket;
-
-  if (!empty($mimetype)) {
-    // Add mimetype if specified
-    $url .= '&mimetype='. $mimetype;
+  catch (Exception $e) {
+    drupal_set_message(t('Error saving alfresco node.'), 'error');
+    watchdog('alfresco', 'Error saving alfresco node. Exception=%msg', array(
+      '%msg' => _alfresco_service_error_message($e)),
+      WATCHDOG_ERROR);
   }
-
-  if (!empty($encoding)) {
-    // Add encoding if specified
-    $url .= '&encoding='. $encoding;
-  }
-
-  $headers = array();
-  $data = file_get_contents($filepath);
-  $result = drupal_http_request($url, $headers, 'PUT', $data);
-
-  if ($result->code != 200) {
-    return FALSE;
-  }
-
-  $index = strpos($result->data, 'contentUrl');
-  if ($index === FALSE) {
-    return FALSE;
-  }
-
-  return substr($result->data, $index);
 }
 
 /**
@@ -265,14 +293,17 @@ function _alfresco_service_include_library() {
     }
 
     // Include the required Alfresco PHP API objects
-    include_once "Alfresco/Service/SpacesStore.php";
-    include_once "Alfresco/Service/Repository.php";
-    include_once "Alfresco/Service/Session.php";
+    include_once 'Alfresco/Service/SpacesStore.php';
+    include_once 'Alfresco/Service/Repository.php';
+    include_once 'Alfresco/Service/Session.php';
 
     $included = TRUE;
   }
 }
 
+/**
+ *
+ */
 function _alfresco_service_error_message(Exception $ex) {
 
   if (empty($ex)) {
