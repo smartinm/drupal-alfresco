@@ -216,13 +216,14 @@ function alfresco_service_load_properties($node) {
  * @see alf_upload_file()
  * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
-function alfresco_service_add_content($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = NULL, $session = NULL) {
+function alfresco_service_add_content($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $session = NULL) {
 
   if (!$session && !($session = alfresco_service_create_session())) {
     return FALSE;
   }
 
   try {
+
     $space_node = alfresco_service_load_node($space, $session);
     if (!$space_node) {
       return FALSE;
@@ -250,6 +251,7 @@ function alfresco_service_add_content($space, $filepath, $filename = NULL, $mime
     }
 
     $result = alfresco_file_put($filepath, $url);
+
     if ($result->code != 200) {
       return FALSE;
     }

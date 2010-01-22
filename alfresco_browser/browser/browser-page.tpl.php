@@ -35,6 +35,7 @@
       'serviceTreeUrl':'<?php print $service_tree; ?>',
       'serviceGridUrl':'<?php print $service_grid; ?>',
       'serviceDownloadUrl':'<?php print $service_dl; ?>',
+      'serviceUploadUrl':'<?php print $service_ul; ?>',
       'queryLimit':<?php print $query_limit; ?>
     };
   </script>

@@ -33,90 +33,85 @@ require_once 'Alfresco/Service/BaseObject.php';
 // THIS is a class definiton, control flow has no place here!
 //
 
-//if (isset($_SESSION) == false) {
-// Start the session
-//     session_start();
-//}
-
 class AlfRepository extends AlfBaseObject {
-    private $_connectionUrl;
-    private $_host;
-    private $_port;
+  private $_connectionUrl;
+  private $_host;
+  private $_port;
 
-    public function __construct($connectionUrl="http://localhost:8080/alfresco/api") {
-        $this->_connectionUrl = $connectionUrl;
-        $parts = parse_url($connectionUrl);
-        $this->_host = $parts["host"];
-        $this->_port = $parts["port"];
-    }
+  public function __construct($connectionUrl="http://localhost:8080/alfresco/api") {
+    $this->_connectionUrl = $connectionUrl;
+    $parts = parse_url($connectionUrl);
+    $this->_host = $parts["host"];
+    $this->_port = $parts["port"];
+  }
 
-    public function getConnectionUrl() {
-        return $this->_connectionUrl;
-    }
+  public function getConnectionUrl() {
+    return $this->_connectionUrl;
+  }
 
-    public function getHost() {
-        return $this->_host;
-    }
+  public function getHost() {
+    return $this->_host;
+  }
 
-    public function getPort() {
-        return $this->_port;
-    }
+  public function getPort() {
+    return $this->_port;
+  }
 
-    public function authenticate($userName, $password) {
+  public function authenticate($userName, $password) {
     // TODO need to handle exceptions!
 
-        $authenticationService = AlfWebServiceFactory::getAuthenticationService($this->_connectionUrl);
-        $result = $authenticationService->startSession(array (
+    $authenticationService = AlfWebServiceFactory::getAuthenticationService($this->_connectionUrl);
+    $result = $authenticationService->startSession(array (
             "username" => $userName,
             "password" => $password
-        ));
+    ));
 
-        // Get the ticket and sessionId
-        $ticket = $result->startSessionReturn->ticket;
-        $sessionId = $result->startSessionReturn->sessionid;
+    // Get the ticket and sessionId
+    $ticket = $result->startSessionReturn->ticket;
+    $sessionId = $result->startSessionReturn->sessionid;
 
-        // Store the session id for later use
-        if ($sessionId != null) {
-            $sessionIds = null;
-            if (isset($_SESSION["sessionIds"]) == false) {
-                $sessionIds = array();
-            }
-            else {
-                $sessionIds = $_SESSION["sessionIds"];
-            }
-            $sessionIds[$ticket] = $sessionId;
-            $_SESSION["sessionIds"] = $sessionIds;
-        }
-
-        return $ticket;
+    // Store the session id for later use
+    if ($sessionId != null) {
+      $sessionIds = null;
+      if (isset($_SESSION["sessionIds"]) == false) {
+        $sessionIds = array();
+      }
+      else {
+        $sessionIds = $_SESSION["sessionIds"];
+      }
+      $sessionIds[$ticket] = $sessionId;
+      $_SESSION["sessionIds"] = $sessionIds;
     }
 
-    public function createSession($ticket=null) {
-        $session = null;
+    return $ticket;
+  }
 
-        if ($ticket == null) {
-        // TODO get ticket from some well known location ie: the $_SESSION
-        }
-        else {
-        // TODO would be nice to be able to check that the ticket is still valid!
+  public function createSession($ticket=null) {
+    $session = null;
 
-        // Create new session
-            $session = new AlfSession($this, $ticket);
-        }
+    if ($ticket == null) {
+      // TODO get ticket from some well known location ie: the $_SESSION
+    }
+    else {
+      // TODO would be nice to be able to check that the ticket is still valid!
 
-        return $session;
+      // Create new session
+      $session = new AlfSession($this, $ticket);
     }
 
-    /**
-     * For a given ticket, returns the realated session id, null if one can not be found.
-     */
-    public static function getSessionId($ticket) {
-        $result = null;
-        if (isset($_SESSION["sessionIds"]) == true) {
-            $result = $_SESSION["sessionIds"][$ticket];
-        }
-        return $result;
+    return $session;
+  }
 
+  /**
+   * For a given ticket, returns the realated session id, null if one can not be found.
+   */
+  public static function getSessionId($ticket) {
+    $result = null;
+    if (isset($_SESSION["sessionIds"]) == true) {
+      $result = $_SESSION["sessionIds"][$ticket];
     }
+    return $result;
+
+  }
 
 }

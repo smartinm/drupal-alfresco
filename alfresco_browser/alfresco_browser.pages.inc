@@ -211,38 +211,43 @@ function alfresco_browser_service_download() {
   alfresco_file_transfer($reference, $mode);
 }
 
-function alfresco_browser_service_add() {
-  $js = <<<EOD
-  <script>
+function alfresco_browser_service_upload() {
 
-    new Ext.FormPanel({
-      renderTo: 'alfresco-add-form',
-      fileUpload: true
-    });
+  $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+  $space = isset($_POST['space']) ? trim($_POST['space']) : '';
 
-    new Ext.form.TextField({
-      applyTo: 'edit-space',
-      fieldLabel: 'Space'
-    });
+  if ($file = file_save_upload('file')) {
+    $filepath = $file->filepath;
+    $mimetype = $file->filemime;
+    $reference = 'workspace://SpacesStore/'. $space;
 
-    new Ext.ux.form.FileUploadField({
-      applyTo: 'edit-file',
-      fieldLabel: 'File'
-    });
+    if (alfresco_service_add_content($reference, $filepath, $name, $mimetype)) {
+      _alfresco_drupal_json(array('success' => TRUE), 'text/html;charset=ISO-8859-1');
+      exit();
+    }
+  }
 
-    new Ext.Button({
-      renderTo: 'edit-upload'
-    });
-  </script>
-EOD;
-
-  module_load_include('inc', 'alfresco', 'alfresco.pages');
-
-  echo drupal_get_form('alfresco_add_form');
-
-  exit();
+  _alfresco_drupal_json(array('success' => FALSE), 'text/html;charset=ISO-8859-1');
 }
 
 function _alfresco_browser_sort_nodes($node1, $node2) {
   return strnatcmp($node1['text'], $node2['text']);
+}
+
+/**
+ * Return data in JSON format.
+ *
+ * This function should be used for JavaScript callback functions returning
+ * data in JSON format. It sets the header for JavaScript output.
+ *
+ * @param $var
+ *   (optional) If set, the variable will be converted to JSON and output.
+ */
+function _alfresco_drupal_json($var = NULL, $content_type = 'text/javascript; charset=utf-8') {
+  // We are returning JavaScript, so tell the browser.
+  drupal_set_header('Content-Type: '. $content_type);
+
+  if (isset($var)) {
+    echo drupal_to_js($var);
+  }
 }

@@ -79,8 +79,8 @@ function alfresco_browser_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['alfresco/browser/service/add'] = array(
-    'page callback' => 'alfresco_browser_service_add',
+  $items['alfresco/browser/service/upload'] = array(
+    'page callback' => 'alfresco_browser_service_upload',
     'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
@@ -132,6 +132,7 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   $variables['service_tree'] = url('alfresco/browser/service/tree.json');
   $variables['service_grid'] = url('alfresco/browser/service/grid.json');
   $variables['service_dl'] = url('alfresco/browser/service/download');
+  $variables['service_ul'] = url('alfresco/browser/service/upload');
 
   $variables['query_limit'] = variable_get('alfresco_browser_query_limit', 20);
 

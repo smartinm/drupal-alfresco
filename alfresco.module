@@ -1219,18 +1219,37 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
  * Implementation of hook_user().
  */
 function alfresco_user($op, &$edit, &$account, $category = NULL) {
+  require_once(drupal_get_path('module', 'alfresco') .'/includes/alfresco.user.inc');
 
   switch ($op) {
     case 'login':
-      // Cuando el usuario se autentica en Drupal guardamos las credenciales
-      // para podernos autenticar contra Alfresco cuando sea necesario.
-      // @todo: Analizar otros métodos, como guardar la sesión de alfresco
-      $_SESSION['alfresco']['credentials']['username'] = $edit['name'];
-      $_SESSION['alfresco']['credentials']['password'] = base64_encode($edit['pass']);
+      // The user just logged in.
+      alfresco_user_login($edit);
       break;
 
     case 'logout':
-      unset($_SESSION['alfresco']);
+      // The user just logged out.
+      alfresco_user_logout();
+      break;
+
+    case 'view':
+      // The user's account information is being displayed.
+      //alfresco_user_view(&$account);
+      break;
+
+    case 'insert':
+      // The user account is being added.
+      //alfresco_user_insert(&$edit, &$account);
+      break;
+
+    case 'update':
+      // The user account is being changed.
+      //alfresco_user_update(&$edit, &$account);
+      break;
+
+    case 'delete':
+      // The user account is being deleted.
+      //alfresco_user_delete($account);
       break;
   }
 }

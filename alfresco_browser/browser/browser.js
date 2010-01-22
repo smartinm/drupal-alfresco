@@ -13,12 +13,12 @@ AlfrescoBrowser.ViewItem = function (url, title) {
   var iframeWin = new Ext.Window({
     id: 'preview-window',
     title: title,
-    width: size.width - 50,
-    height: size.height - 50,
+    width: size.width - 100,
+    height: size.height - 100,
     maximizable: true,
     modal: 'true',
     layout: 'fit', 
-    html: '<iframe id="preview-frame" style="width:100%;height:100%;background-color:#fff" frameborder="0"  src="' + url + '" onLoad="AlfrescoBrowser.ViewItemOnLoad()"></iframe>',
+    html: '<iframe id="preview-frame" frameborder="0"  src="' + url + '" onLoad="AlfrescoBrowser.ViewItemOnLoad()"></iframe>',
     buttonAlign: 'center',
     defaultButton: 0,
     buttons: [{
@@ -57,70 +57,72 @@ AlfrescoBrowser.SendToDrupal = function (node) {
 }
 
 AlfrescoBrowser.UploadItem = function (space) {
-  var title = 'Add content';
-  var url = '/alfresco/browser/service/add';
 
-  var iframeWin = new Ext.Window({
-    id: 'upload-window',
-    title: title,
-    width: 600,
-    height: 500,
-    modal: 'true',
-    layout: 'fit', 
-    //autoLoad: {url: url, scripts: true},
-    html: '<iframe id="preview-frame" style="width:100%;height:100%;" frameborder="0"  src="' + url + '"></iframe>'
-  });
-  iframeWin.show();
-}
-
-AlfrescoBrowser.UploadItem2 = function (space) {
-  var title = 'Add content';
-  var url = '/alfresco/browser/service/add';
-
-  var fp = new Ext.FormPanel({
+  var uploadForm = new Ext.FormPanel({
     fileUpload: true,
     width: 500,
-    //autoHeight: true,
-    //bodyStyle: 'padding: 10px 10px 0 10px;',
-    //labelWidth: 50,
-    frame: false,
-    //deferedRender:true,
+    frame: true,
+    autoHeight: true,
+    bodyStyle: 'padding: 10px 10px 0 10px;',
+    labelWidth: 50,
     defaults: {
         anchor: '95%',
         allowBlank: false,
         msgTarget: 'side'
     },
-    autoLoad: {url: url/*, scripts:true*/},
-    buttons: [{
-        text: 'Save',
-        handler: function(){
-            if(fp.getForm().isValid()){
-              fp.getForm().submit({
-                  url: url,
-                  waitMsg: 'Uploading your photo...',
-                  success: function(fp, o){
-                      msg('Success', 'Processed file "'+o.result.file+'" on the server');
-                  }
-              });
-            }
+    items: [{
+        xtype: 'fileuploadfield',
+        id: 'form-file',
+        name: 'files[file]',
+        emptyText: 'Locate content to upload.',
+        fieldLabel: 'File',
+        listeners: {
+          'fileselected': function(fb, v) {
+            Ext.getCmp('form-name').setValue(v);
+          }
         }
-    },{
+    }, {
+      xtype: 'textfield',
+      id: 'form-name',
+      name: 'name',
+      fieldLabel: 'Name'
+    }, {
+      xtype: 'hidden',
+      name: 'space',
+      value: space
+    }],
+    buttons: [{
+        text: 'Add',
+        handler: function() {
+          if (uploadForm.getForm().isValid()) {
+            uploadForm.getForm().submit({
+              url: AlfrescoBrowser.Settings['serviceUploadUrl'],
+              waitMsg: 'Uploading your content...',
+              success: function(uploadForm, o) {
+                dataStore.reload();
+              }
+            });
+          }
+        }
+    }, {
         text: 'Reset',
         handler: function(){
-            fp.getForm().reset();
+          uploadForm.getForm().reset();
         }
     }]
   });
-  
-  var iframeWin = new Ext.Window({
+
+  var win = new Ext.Window({
     id: 'upload-window',
+    title: 'Add content to current space',
+    autoHeight: true,
+    minWidth: 500,
     modal: 'true',
-    title: 'File Upload Form',
-    layout: 'fit',
-    autoLoad: {url: url/*, scripts:true*/},
+    layout: 'fit', 
+    items: [ uploadForm ]
   });
   
-  iframeWin.show();
+  win.show();
 }
 
 AlfrescoBrowser.App = function() {
@@ -145,9 +147,7 @@ AlfrescoBrowser.App = function() {
       folderTree.selectPath('/1b6feb86-bc5e-11dd-8590-695888b0c20c/1df6475a-bc5e-11dd-8590-695888b0c20c/aecb9b3c-e3ce-11dd-a77e-2daab57b0158');
       
       var node = folderTree.getSelectionModel().getSelectedNode();
-      dataStore.baseParams = {node: 'aecb9b3c-e3ce-11dd-a77e-2daab57b0158'};
-      dataStore.load({params:{start:0}});
-      itemsGrid.setTitle(node.text);
+      //node.fireEvent('click', node);
       */
     },
     initLayout: function(){
@@ -358,17 +358,6 @@ AlfrescoBrowser.App = function() {
         displayMsg: 'Displaying items {0} - {1} of {2}',
         emptyMsg: 'No items to display.',
 
-        /*
-        items:[
-               '-', {
-               text: 'Alfresco module',
-               iconCls: '',
-               width: 20,
-               handler: function(btn){
-               }
-           }],
-         */
-
         // override private event
         onClick: function(which){
           if (which == "refresh") {
@@ -421,12 +410,10 @@ AlfrescoBrowser.App = function() {
           tooltip: 'Upload content to this space.',
           iconCls: 'upload',
           handler: function() {
-            AlfrescoBrowser.UploadItem('');
-            
-            var items = itemsGrid.getSelectionModel().getSelections();
-            if (items.length > 0) {
-              var name = items[0].data.name;
-              
+            var space = folderTree.getSelectionModel().getSelectedNode();
+
+            if (!Ext.isEmpty(space)) {
+              AlfrescoBrowser.UploadItem(space.id);
             }
           }
         }, '-', {
@@ -532,6 +519,11 @@ AlfrescoBrowser.App = function() {
           Ext.getCmp('grid-details').toggle(false);
         }}
       });
+    },
+    initUploadForm: function(){
+      // --------------------------------------------
+      // -- UPLOAD FORM
+      // --------------------------------------------
     }
   };
 }();

@@ -2,14 +2,27 @@
 
 Alfresco 6.x-1.1-dev, 2010-01-xx
 ============================
-- Nueva funcionalidad que permite añadir contenido a Alfresco (upload)
+
+Nuevas funcionalidades:
+
+- Implementada la subida de documentos al repositorio de Alfresco desde Drupal
+
+- Nuevo menú Alfresco, desde donde se puede acceder:
+  * Formulario de adición de contenido al repositorio de Alfresco
+  * Listado de elementos de Alfresco de Drupal
+
+- Mejorada la integración con Views
+  * Añadida una vista por defecto
+
+- Añadida integración con Admin Theme
+
+Cambios para desarrolladores:
+- Actualizada la biblioteca de Alfresco PHP con Alfredo Common (enlace)
+- Eliminada la biblioteca Ext JS que se distribuía con el módulo, ahora es una depedencia.
+
+Otros cambios:
 - Actualizada la traducción
 - Añadida una solución para el fallo del NameSpace del dictionary-service.wsdl
-- Añadida una vista por defecto
-- Añadida integración con admin_theme
-- Actualizada la biblioteca de Alfresco PHP con Alfredo Common (enlace)
-- Browser: Eliminada la biblioteca Ext JS que se distribuía con el módulo,
-  ahora es una depedencia.
 - Fixed a variety of other bugs.
 
 Alfresco 6.x-1.0, 2009-03-23
