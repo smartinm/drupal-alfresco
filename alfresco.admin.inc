@@ -283,6 +283,80 @@ function theme_alfresco_properties_table($form) {
   return $output;
 }
 
+// ------------------------------------------------------------------
+// Alfresco Namespaces settings page
+// ------------------------------------------------------------------
+
+/**
+ * @todo: documentation
+ *
+ * @see system_settings_form()
+ */
+function alfresco_admin_namespaces() {
+  $form = array();
+
+  $model_more = t('For more info, visit <a href="@url">Data Dictionary Guide</a> on Alfresco Wiki.', array(
+    '@url' => 'http://wiki.alfresco.com/wiki/Data_Dictionary_Guide')
+  );
+
+  $form['model'] = array(
+    '#tree'        => TRUE,
+    '#type'        => 'fieldset',
+    '#title'       => t('Content Model'),
+    '#description' => t('Alfresco Repository Data Dictionary is pre-populated with definitions that describe common Content constructs such as Folders, Files and meta-data schemes.') .' '. $model_more,
+    '#collapsible' => FALSE,
+  );
+
+  $headers = array('Namespace', 'Prefix');
+  $rows = array();
+
+  _alfresco_service_include_library();
+  $namespaceMap = AlfNamespaceMap::getInstance();
+  foreach($namespaceMap->getMappings() as $prefix => $name) {
+    $rows[] = array($name, $prefix);
+  }
+
+  $form['model']['namespaces'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Namespaces'),
+    '#description' => t('Each Content model is described in its own XML file and is identified by its defined Namespace and Name. Out-of-the-box, the Alfresco Repository is primed with several models:'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => theme('table', $headers, $rows),
+  );
+
+  /*
+  $form['model']['custom'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Custom Namespaces'),
+    '#description' => t(''),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  */
+
+  $form['model']['namespaces']['custom'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Custom namespaces'),
+  );
+
+  $headers = array('Title', 'Name', 'Parent');
+  $rows = array();
+  $rows[] = array('Object', 'cm:cmobject', 'sys:base');
+  $rows[] = array('Folder', 'cm:folder', 'cm:cmobject');
+  $rows[] = array('Content', 'cm:content', 'cm:cmobject');
+
+  $form['model']['content_types'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content Types'),
+    '#description' => t(''),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => theme('table', $headers, $rows),
+  );
+
+  return system_settings_form($form);
+}
 
 // ------------------------------------------------------------------
 // Alfresco advanced settings page

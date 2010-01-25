@@ -174,16 +174,29 @@ function alfresco_menu() {
     'file' => 'alfresco.admin.inc',
   );
 
-  $items['admin/settings/alfresco/advanced'] = array(
-    'title' => 'Advanced',
+  $items['admin/settings/alfresco/model'] = array(
+    'title' => 'Content Model',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('alfresco_admin_advanced'),
+    'page arguments' => array('alfresco_admin_namespaces'),
     'access arguments' => array('administer alfresco'),
     'weight' => 3,
     'type' => MENU_LOCAL_TASK,
     'parent' => 'admin/settings/alfresco',
     'file' => 'alfresco.admin.inc',
   );
+
+  $items['admin/settings/alfresco/advanced'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alfresco_admin_advanced'),
+    'access arguments' => array('administer alfresco'),
+    'weight' => 4,
+    'type' => MENU_LOCAL_TASK,
+    'parent' => 'admin/settings/alfresco',
+    'file' => 'alfresco.admin.inc',
+  );
+
+  // Node tabs
 
   $items['node/%alfresco_node/download/%alfresco_name'] = array(
     'title' => 'Download',

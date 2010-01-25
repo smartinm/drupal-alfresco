@@ -393,7 +393,7 @@ function alfresco_add_form_submit($form, &$form_state) {
 }
 
 /**
- * TODO Controlar si el fichero ya existe.
+ * @todo: Controlar si el fichero ya existe.
  */
 function alfresco_add_form_upload($form, &$form_state) {
   //dpm('alfresco_page_add_upload');
