@@ -80,3 +80,10 @@ function theme_alfresco_display($node) {
 
   return $table_properties;
 }
+
+/**
+ * @todo documentation
+ */
+function theme_alfresco($element) {
+  return drupal_render($element);
+}

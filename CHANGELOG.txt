@@ -3,14 +3,21 @@
 Alfresco 6.x-1.1-dev, 2010-01-xx
 ============================
 
-Nuevas funcionalidades:
+Nuevas funcionalidades y mejoras:
 
 - Implementada la subida de documentos al repositorio de Alfresco desde Drupal
 
 - Nuevo menú Alfresco, desde donde se puede acceder:
   * Formulario de adición de contenido al repositorio de Alfresco
+  * Navegador por el repositorio de Alfresco
   * Listado de elementos de Alfresco de Drupal
 
+- Mejoras del módulo Alfresco Browser:
+  * Añadido máscara de carga
+  * Personalización del Espacio de inicio
+  * Mejorada la detección de tipos de contenidos Folders
+  * Implementada la subida de documentos
+  
 - Mejorada la integración con Views
   * Añadida una vista por defecto
 

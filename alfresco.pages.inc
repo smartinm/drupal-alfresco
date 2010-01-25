@@ -150,21 +150,6 @@ function alfresco_page_details($node) {
 /**
  * Menu callback; Retrieve a JSON object containing autocomplete suggestions for existing alfresco nodes.
  */
-function alfresco_autocomplete($string = '') {
-  $matches = array();
-  if ($string) {
-
-    $results = alfresco_service_search($string);
-    if (is_array($results)) {
-      foreach ($results as $anode) {
-        $matches[$anode->getId()] = check_plain($anode->getFolderPath()) .'/'. check_plain($anode->cm_name);
-      }
-    }
-  }
-
-  drupal_json($matches);
-}
-
 function alfresco_autocomplete2($string = '') {
   $matches = array();
   if ($string) {
@@ -180,6 +165,44 @@ function alfresco_autocomplete2($string = '') {
   drupal_json($matches);
 }
 
+/**
+ * Helper function for autocompletion of paths.
+ *
+ * @see http://drupal.org/node/93854
+ */
+function alfresco_autocomplete() {
+  $array = func_get_args();
+  $string = implode('/', $array);
+
+  //$array = explode('/', $string);
+
+  $last_string = trim(array_pop($array));
+  $matches = array();
+
+  if ($last_string != '') {
+
+    if (!$session = alfresco_service_create_session()) {
+      drupal_json($matches);
+      exit();
+    }
+
+    $prefix = count($array) ? implode('/', $array) .'/' : '/';
+
+    $query = '+PARENT:"'. $prefix .'" +@cm:name:"'. $last_string . '*"';
+    $query = '+PARENT:"/""';
+    $spacesStore = new AlfSpacesStore($session);
+    $results = $session->query($spacesStore, $query);
+
+    if (is_array($results)) {
+      foreach ($results as $result) {
+        $n = $result->cm_name;
+        $matches[$result->getId()] = check_plain($prefix . $n);
+      }
+    }
+  }
+
+  drupal_json($matches);
+}
 
 // ------------------------------------------------------------------
 //
@@ -218,9 +241,9 @@ function _alfresco_add_form($form_state) {
     '#type' => 'textfield',
     '#title' => t('Space'),
     '#required' => TRUE,
-    //'#autocomplete_path' => 'alfresco/autocomplete',
+    '#autocomplete_path' => 'alfresco/autocomplete',
     //'#description' => t('Space.'),
-    '#default_value' => '/app:company_home/app:guest_home',
+    //'#default_value' => '/app:company_home/app:guest_home',
   );
 
   $form['upload']['file'] = array(

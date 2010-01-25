@@ -35,6 +35,8 @@ function alfresco_browser_perm() {
  */
 function alfresco_browser_menu() {
 
+  // Settings
+
   $items['admin/settings/alfresco/browser'] = array(
     'title' => 'Browser',
     'page callback' => 'drupal_get_form',
@@ -93,6 +95,7 @@ function alfresco_browser_menu() {
 
   $items['alfresco/repository'] = array(
     'title' => 'Repository browser',
+    'description' => 'i18n Permite navegar, buscar y añadir contenido al repositorio de Alfresco.',
     'page callback' => 'alfresco_repository_browser_page',
     'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
