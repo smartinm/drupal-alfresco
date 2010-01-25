@@ -9,6 +9,18 @@
 /**
  *
  */
+function alfresco_repository_browser_page() {
+
+  drupal_set_title('');
+  $url = url('alfresco/browser');
+  $frame = '<iframe id="embedded-browser" style="width: 100%; height: 600px; border: 2px solid #ccc" frameborder="0"  src="'. $url .'"></iframe>';
+
+  return $frame;
+}
+
+/**
+ *
+ */
 function alfresco_browser_page() {
   print theme('alfresco_browser_page');
 }
@@ -211,43 +223,43 @@ function alfresco_browser_service_download() {
   alfresco_file_transfer($reference, $mode);
 }
 
+/**
+ *
+ */
 function alfresco_browser_service_upload() {
 
-  $name = isset($_POST['name']) ? trim($_POST['name']) : '';
   $space = isset($_POST['space']) ? trim($_POST['space']) : '';
+  $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+  $title = isset($_POST['title']) ? trim($_POST['title']) : '';
+  $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+  $author = isset($_POST['author']) ? trim($_POST['author']) : '';
 
   if ($file = file_save_upload('file')) {
     $filepath = $file->filepath;
     $mimetype = $file->filemime;
+    $encoding = 'UTF-8';
     $reference = 'workspace://SpacesStore/'. $space;
 
-    if (alfresco_service_add_content($reference, $filepath, $name, $mimetype)) {
-      _alfresco_drupal_json(array('success' => TRUE), 'text/html;charset=ISO-8859-1');
+    $properties = array(
+      'cm_title'       => $title,
+      'cm_description' => $description,
+      'cm_author'      => $author,
+    );
+
+    if (alfresco_service_add_content($reference, $filepath, $name, $mimetype, $encoding, $properties)) {
+      drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
+      echo drupal_to_js(array('success' => TRUE));
       exit();
     }
   }
 
-  _alfresco_drupal_json(array('success' => FALSE), 'text/html;charset=ISO-8859-1');
-}
-
-function _alfresco_browser_sort_nodes($node1, $node2) {
-  return strnatcmp($node1['text'], $node2['text']);
+  drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
+  echo drupal_to_js(array('success' => FALSE));
 }
 
 /**
- * Return data in JSON format.
- *
- * This function should be used for JavaScript callback functions returning
- * data in JSON format. It sets the header for JavaScript output.
- *
- * @param $var
- *   (optional) If set, the variable will be converted to JSON and output.
+ * Función auxiliar para los nodos alfabéticamente por su nombre.
  */
-function _alfresco_drupal_json($var = NULL, $content_type = 'text/javascript; charset=utf-8') {
-  // We are returning JavaScript, so tell the browser.
-  drupal_set_header('Content-Type: '. $content_type);
-
-  if (isset($var)) {
-    echo drupal_to_js($var);
-  }
+function _alfresco_browser_sort_nodes($node1, $node2) {
+  return strnatcmp($node1['text'], $node2['text']);
 }

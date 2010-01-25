@@ -6,6 +6,7 @@
  * Provides functions for access to Alfresco repository through of web service.
  */
 
+
 /**
  * Authenticate against the repository and create a new session.
  *
@@ -210,13 +211,19 @@ function alfresco_service_load_properties($node) {
  * can be used to populate a content property.
  *
  * @param $session the session
- * @param $filePath the file location
+ * @param $filepath the file location
+ * @param $mimetype
+ * @param $encoding
+ * @param $properties
+ *  cm_title
+ *  cm_description
+ *  cm_author
  * @return String the content data that can be used to update the content property
  *
  * @see alf_upload_file()
  * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
-function alfresco_service_add_content($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $session = NULL) {
+function alfresco_service_add_content($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $properties = array(), $session = NULL) {
 
   if (!$session && !($session = alfresco_service_create_session())) {
     return FALSE;
@@ -265,8 +272,12 @@ function alfresco_service_add_content($space, $filepath, $filename = NULL, $mime
       $new_node = $space_node->createChild('cm_content', 'cm_contains', $filename);
       $new_node->cm_name = $filename;
       $new_node->cm_content = $content_data;
-      //$new_node->cm_title = '';
-      //$new_node->cm_description = '';
+
+      if (is_array($properties) && count($properties)) {
+        foreach ($properties as $key => $value) {
+          $new_node->$key = $value;
+        }
+      }
 
       $session->save();
 

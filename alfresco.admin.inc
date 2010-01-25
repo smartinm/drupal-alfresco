@@ -292,7 +292,7 @@ function theme_alfresco_properties_table($form) {
  *
  * @see system_settings_form()
  */
-function alfresco_admin_namespaces() {
+function alfresco_admin_model() {
   $form = array();
 
   $model_more = t('For more info, visit <a href="@url">Data Dictionary Guide</a> on Alfresco Wiki.', array(

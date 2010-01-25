@@ -57,58 +57,87 @@ AlfrescoBrowser.SendToDrupal = function (node) {
 }
 
 AlfrescoBrowser.UploadItem = function (space) {
-
   var uploadForm = new Ext.FormPanel({
     fileUpload: true,
     width: 500,
     frame: true,
+    border: false,
     autoHeight: true,
     bodyStyle: 'padding: 10px 10px 0 10px;',
     labelWidth: 50,
     defaults: {
-        anchor: '95%',
-        allowBlank: false,
-        msgTarget: 'side'
+      anchor: '95%',
+      allowBlank: false,
+      msgTarget: 'side'
     },
     items: [{
-        xtype: 'fileuploadfield',
-        id: 'form-file',
-        name: 'files[file]',
-        emptyText: 'Locate content to upload.',
-        fieldLabel: 'File',
-        listeners: {
-          'fileselected': function(fb, v) {
+      xtype: 'fileuploadfield',
+      id: 'form-file',
+      name: 'files[file]',  // No change: required for Drupal Form API
+      emptyText: 'Locate content to upload',
+      fieldLabel: 'File',
+      labelStyle: 'font-weight:bold;',
+      listeners: {
+        'fileselected': function(fb, v) {
+          if (v) {
             Ext.getCmp('form-name').setValue(v);
           }
         }
+      }
     }, {
       xtype: 'textfield',
       id: 'form-name',
       name: 'name',
-      fieldLabel: 'Name'
+      fieldLabel: 'Name',
+      labelStyle: 'font-weight:bold;'
     }, {
       xtype: 'hidden',
       name: 'space',
       value: space
+    }, {
+      xtype: 'fieldset',
+      title: 'Content properties',
+      defaultType: 'textfield',
+      labelWidth: 70,
+      anchor: '100%',
+      style: 'margin-top: 10px;',
+      defaults: {
+        anchor: '95%',
+        msgTarget: 'side'
+      },
+      autoHeight:true,
+      items: [{
+        fieldLabel: 'Title',
+        name: 'title',
+        allowBlank: false,
+        labelStyle: 'font-weight:bold;'
+      },{
+        xtype: 'textarea',
+        fieldLabel: 'Description',
+        name: 'description'
+      },{
+        fieldLabel: 'Author',
+        name: 'author'
+      }]
     }],
     buttons: [{
-        text: 'Add',
-        handler: function() {
-          if (uploadForm.getForm().isValid()) {
-            uploadForm.getForm().submit({
-              url: AlfrescoBrowser.Settings['serviceUploadUrl'],
-              waitMsg: 'Uploading your content...',
-              success: function(uploadForm, o) {
-                dataStore.reload();
-              }
-            });
-          }
+      text: 'Add',
+      handler: function() {
+        if (uploadForm.getForm().isValid()) {
+          uploadForm.getForm().submit({
+            url: AlfrescoBrowser.Settings['serviceUploadUrl'],
+            waitMsg: 'Uploading your content...',
+            success: function(form, o) {
+              win.close();
+            }
+          });
         }
+      }
     }, {
-        text: 'Reset',
-        handler: function(){
-          uploadForm.getForm().reset();
-        }
+      text: 'Cancel',
+      handler: function(){
+        win.close();
+      }
     }]
   });
 
@@ -130,6 +159,7 @@ AlfrescoBrowser.App = function() {
   var itemsGrid;
   var propsGrid;
   var dataStore;
+  var currentPath;
   
   return {
     init: function() {
@@ -142,13 +172,12 @@ AlfrescoBrowser.App = function() {
       this.initSearch();
       this.initLayout();
       
-      /*
-      folderTree.expandPath('/1b6feb86-bc5e-11dd-8590-695888b0c20c/1df6475a-bc5e-11dd-8590-695888b0c20c/aecb9b3c-e3ce-11dd-a77e-2daab57b0158');
-      folderTree.selectPath('/1b6feb86-bc5e-11dd-8590-695888b0c20c/1df6475a-bc5e-11dd-8590-695888b0c20c/aecb9b3c-e3ce-11dd-a77e-2daab57b0158');
-      
-      var node = folderTree.getSelectionModel().getSelectedNode();
-      //node.fireEvent('click', node);
-      */
+      setTimeout(function() {
+        Ext.get('loading').remove();
+        Ext.fly('loading-mask').fadeOut({
+            remove: true
+        });
+      }, 250);
     },
     initLayout: function(){
       // --------------------------------------------
@@ -182,8 +211,7 @@ AlfrescoBrowser.App = function() {
         margins: '5 0 5 5',
         cmargins: '5 5 5 5',
         width: 240,
-        minSize: 150,
-        maxSize: 400,
+        minSize: 100,
         split: true,
         layout: 'fit',
         autoScroll: true,
@@ -201,15 +229,25 @@ AlfrescoBrowser.App = function() {
         root: new Ext.tree.AsyncTreeNode({
           text: AlfrescoBrowser.Settings['homeText'],
           id: AlfrescoBrowser.Settings['homeRef'],
-          expanded: true
+          expanded: true,
+          listeners: {
+            'load': function() {
+              if (Ext.isEmpty(currentPath)) {
+                this.fireEvent('click', this);
+              }
+              else {
+                folderTree.expandPath(currentPath);
+                folderTree.selectPath(currentPath);
+              }
+          }}
         }),
         
         listeners: {
           'click': function(node, e) {
-            node.expand();
             dataStore.baseParams = {node: node.id};
             dataStore.load({params:{start:0}});
             itemsGrid.setTitle(node.text);
+            node.expand();
         }},
         
         tools: [{
@@ -220,15 +258,12 @@ AlfrescoBrowser.App = function() {
               if (Ext.isEmpty(currentNode)) {
                 currentNode = folderTree.root;
               }
-              var currentPath = currentNode.getPath();
+              currentPath = currentNode.getPath();
               
               var baseParams = folderTree.loader.baseParams || {};
               folderTree.loader.baseParams['cache'] = 'all';
               folderTree.root.reload();
               folderTree.loader.baseParams = baseParams;
-              
-              folderTree.expandPath(currentPath);
-              folderTree.selectPath(currentPath);
             }}
         }]
       });
@@ -329,9 +364,18 @@ AlfrescoBrowser.App = function() {
         }),
         reader: reader,
         baseParams: {node: AlfrescoBrowser.Settings['homeRef']},
-        autoLoad: true,
+        autoLoad: false,
         //remoteSort: true,
-        sortInfo: {field: 'name', direction: 'ASC'}
+        sortInfo: {field: 'name', direction: 'ASC'},
+        listener: {
+          load: function(store, records, options) {
+            console.debug('load');
+            Ext.getCmp('btn-download').enable(false);
+            Ext.getCmp('btn-open').enable(false);
+            Ext.getCmp('btn-send').enable(false);
+            Ext.getCmp('grid-details').enable(false);
+          }
+        }
       });
       
       function renderName(value, p, record){
@@ -382,7 +426,19 @@ AlfrescoBrowser.App = function() {
         columns: columns,
         autoExpandColumn: 'name',
         bbar: bar,
-        sm: new Ext.grid.RowSelectionModel({singleSelect:true}),
+        sm: new Ext.grid.RowSelectionModel({
+          singleSelect:true,
+          listeners: {
+            rowselect: function(sm, row, rec) {
+              Ext.getCmp('btn-download').enable();
+              Ext.getCmp('btn-open').enable();
+              Ext.getCmp('btn-send').enable();
+              Ext.getCmp('grid-details').enable();
+            },
+            rowdeselect: function(sm, row, rec) {
+            }
+          } 
+        }),
         
         title: AlfrescoBrowser.Settings['homeText'],
         //title: 'Content Items',
@@ -406,6 +462,7 @@ AlfrescoBrowser.App = function() {
         },
 
         tbar: [{
+          id: 'btn-add-content',
           text: 'Add content',
           tooltip: 'Upload content to this space.',
           iconCls: 'upload',
@@ -417,9 +474,11 @@ AlfrescoBrowser.App = function() {
             }
           }
         }, '-', {
+          id: 'btn-download',
           text: 'Download',
           tooltip: 'Download selected item.',
           iconCls: 'download',
+          disabled: true,
           handler: function() {
             var items = itemsGrid.getSelectionModel().getSelections();
             if (items.length > 0) {
@@ -434,9 +493,11 @@ AlfrescoBrowser.App = function() {
             }
           }
         }, '-', {
-          text: 'View',
-          tooltip: 'View selected item.',
+          id: 'btn-open',
+          text: 'Open',
+          tooltip: 'Open selected item in new window.',
           iconCls: 'view',
+          disabled: true,
           handler: function() {
             var items = itemsGrid.getSelectionModel().getSelections();
             if (items.length > 0) {
@@ -446,9 +507,11 @@ AlfrescoBrowser.App = function() {
             }
           }
         },'-',{
+          id: 'btn-send',
           text: 'Send to Drupal',
           tooltip: 'Send selected item to Drupal.',
           iconCls: 'drupal',
+          disabled: true,
           handler: function() {
             if (!window.opener) {
               return;
@@ -468,9 +531,10 @@ AlfrescoBrowser.App = function() {
           }
         }, '-', {
           id: 'grid-details',
-          text: 'Details',
-          tooltip: 'View details.',
+          text: 'Properties',
+          tooltip: 'View node properties.',
           iconCls: 'details',
+          disabled: true,
           enableToggle: true,
           toggleHandler: function(item, pressed){
             if (pressed) {
@@ -505,8 +569,9 @@ AlfrescoBrowser.App = function() {
         maxSize: 300,
         collapsible: true,
         collapsed: true,
+        collapseMode: 'mini',
         split: true,
-        //hideCollapseTool: true,
+        hideCollapseTool: true,
         hideHeaders: true,
         listeners: {
         'validateedit': function(e) {
@@ -519,11 +584,6 @@ AlfrescoBrowser.App = function() {
           Ext.getCmp('grid-details').toggle(false);
         }}
       });
-    },
-    initUploadForm: function(){
-      // --------------------------------------------
-      // -- UPLOAD FORM
-      // --------------------------------------------
     }
   };
 }();

@@ -46,6 +46,8 @@ function alfresco_browser_menu() {
     'file' => 'alfresco_browser.admin.inc',
   );
 
+  // Callbacks
+
   $items['alfresco/browser'] = array(
     'title' => 'Alfresco Browser Ext JS',
     'page callback' => 'alfresco_browser_page',
@@ -87,6 +89,16 @@ function alfresco_browser_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  // Pages
+
+  $items['alfresco/repository'] = array(
+    'title' => 'Repository browser',
+    'page callback' => 'alfresco_repository_browser_page',
+    'access callback' => 'user_access',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+  );
+
   return $items;
 }
 
@@ -114,6 +126,7 @@ function alfresco_browser_theme() {
 function template_preprocess_alfresco_browser_page(&$variables) {
   global $base_path, $language;
 
+  $module_path = drupal_get_path('module', 'alfresco_browser');
   $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
   $locale_path = $extjs_path .'/source/locale/ext-lang-'. $language->language .'.js';
 
@@ -126,7 +139,7 @@ function template_preprocess_alfresco_browser_page(&$variables) {
 
   $variables['base_path'] = $base_path;
   $variables['extjs_path'] = $base_path . $extjs_path;
-  $variables['module_path'] = $base_path . drupal_get_path('module', 'alfresco_browser');
+  $variables['module_path'] = $base_path . $module_path;
   $variables['locale_path'] = file_exists('./'. $locale_path) ? $base_path . $locale_path : '';
 
   $variables['service_tree'] = url('alfresco/browser/service/tree.json');
@@ -143,6 +156,14 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   else {
     $variables['home_ref'] = '';
     $variables['home_text'] = '';
+  }
+
+  $info = drupal_parse_info_file($module_path .'/alfresco_browser.info');
+  if (isset($info['version'])) {
+    $variables['module_info'] = $info['name'] .' '. $info['version'];
+  }
+  else {
+    $variables['module_info'] = $info['name'];
   }
 }
 

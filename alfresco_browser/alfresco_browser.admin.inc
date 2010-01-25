@@ -38,6 +38,36 @@ function alfresco_browser_admin_settings() {
     '#default_value' => variable_get('alfresco_browser_query_limit', 20),
   );
 
+  /*
+  $form['browser']['upload'] = array(
+    '#type'          => 'fieldset',
+    '#title'         => t('Add content'),
+    '#description'   => t('Upload content to repository from Browser'),
+    '#collapsible'   => TRUE,
+    '#collapsed'     => FALSE,
+  );
+
+  $form['browser']['upload']['alfresco_browser_upload_enabled'] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Enable upload'),
+    '#description'   => t('Enable add content to Alfresco repository from browser.'),
+    '#required'      => TRUE,
+    '#default_value' => variable_get('alfresco_browser_upload_enabled', TRUE),
+  );
+
+  $form['browser']['upload']['alfresco_browser_required_properties'] = array(
+    '#type'          => 'checkboxes',
+    '#title'         => t('Content properties'),
+    '#description'   => t('Enable add content to Alfresco repository from browser.'),
+    '#options'       => array(
+      'title' => t('Title'),
+      'description' => t('Description'),
+      'author' => t('Author'),
+    ),
+    '#default_value' => variable_get('alfresco_browser_required_properties', array()),
+  );
+  */
+
   $form['browser_cache'] = array(
     '#type' => 'fieldset',
     '#title' => t('Browser cache'),

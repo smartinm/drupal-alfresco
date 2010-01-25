@@ -175,9 +175,9 @@ function alfresco_menu() {
   );
 
   $items['admin/settings/alfresco/model'] = array(
-    'title' => 'Content Model',
+    'title' => 'Model',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('alfresco_admin_namespaces'),
+    'page arguments' => array('alfresco_admin_model'),
     'access arguments' => array('administer alfresco'),
     'weight' => 3,
     'type' => MENU_LOCAL_TASK,
@@ -252,7 +252,7 @@ function alfresco_menu() {
 
   if (module_exists('views')) {
     $items['alfresco/items'] = array(
-      'title' => 'Items',
+      'title' => 'View items',
       'page callback' => 'alfresco_items_page',
       'access arguments' => array('access content'),
       //'weight' => 5,
