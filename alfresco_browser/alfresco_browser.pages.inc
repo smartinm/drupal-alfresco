@@ -53,7 +53,7 @@ function alfresco_browser_service_tree_json() {
   try {
     $reference = 'workspace://SpacesStore/'. $node;
     $session = alfresco_service_create_session();
-    $currentNode = alfresco_service_load_node($reference, $session);
+    $currentNode = alfresco_service_node_load($reference, $session);
 
     if (!$currentNode) {
       // node not found
@@ -140,7 +140,7 @@ function alfresco_browser_service_documents_json() {
     }
     else {
       $reference = 'workspace://SpacesStore/'. $node;
-      $folder = alfresco_service_load_node($reference, $session);
+      $folder = alfresco_service_node_load($reference, $session);
 
       if (!$folder) {
         drupal_json(array('total' => 0, 'rows' => array()));
@@ -255,6 +255,16 @@ function alfresco_browser_service_upload() {
 
   drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
   echo drupal_to_js(array('success' => FALSE));
+}
+
+/**
+ *
+ */
+function alfresco_browser_service_delete() {
+
+  $node = isset($_GET['node']) ? trim($_GET['node']) : '';
+  alfresco_service_node_delete('workspace://SpacesStore/'. $node);
+  drupal_json(array('success' => TRUE));
 }
 
 /**

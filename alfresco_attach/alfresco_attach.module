@@ -183,16 +183,21 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
         */
 
         $form['alfresco_attachments']['wrapper']['new']['reference'] = array(
-          '#type'          => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
-          '#title'         => t('Attach alfresco item'),
-          '#default_value' => empty($node->reference) ? NULL : $node->reference,
-          '#description'   => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
+          '#type' => 'textfield',
+          '#title' => t('Attach alfresco item'),
+          '#description' => t('Alfresco node reference. Example: workspace://SpacesStore/uuid'),
+          '#default_value' => !empty($node->reference) ? $node->reference : NULL,
         );
+
+        if (module_exists('alfresco_browser')) {
+          $form['alfresco_attachments']['wrapper']['new']['reference']['#type'] = 'alfresco_browser';
+          $form['alfresco_attachments']['wrapper']['new']['reference']['#description'] = t('Select an item from Alfresco repository.');
+        }
       }
 
       // Custom validate and submit handler so we can handle alfresco item creation on-the-fly
       $form['#validate'][] = 'alfresco_attach_form_validate';
-      $form['#submit'][]   = 'alfresco_attach_form_submit';
+      $form['#submit'][] = 'alfresco_attach_form_submit';
     }
   }
 }
@@ -396,7 +401,7 @@ function theme_alfresco_attach_attachments($files) {
 function theme_alfresco_attach_form_current(&$form) {
 
   //$header = array('', t('Delete'), t('List'), t('Description'), t('Node'), t('Weight'), t('Size'));
-  $header = array('', t('Delete'), t('List'), t('Description'), t('Weight'), t('Size'));
+  $header = array('', t('Delete'), t('List'), t('Title'), t('Weight'), t('Size'));
   drupal_add_tabledrag('alfresco-attachments', 'order', 'sibling', 'alfresco-weight');
 
   foreach (element_children($form) as $key) {

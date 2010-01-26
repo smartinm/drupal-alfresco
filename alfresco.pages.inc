@@ -47,7 +47,7 @@ function alfresco_page_download($node) {
       break;
 
     case ALFRESCO_FILE_DOWNLOADS_TICKET:
-      $alf_node = alfresco_service_load_node($node->reference);
+      $alf_node = alfresco_service_node_load($node->reference);
       $alf_data = $alf_node->cm_content;
       if ($alf_data) {
         drupal_goto($alf_data->url);
@@ -92,7 +92,7 @@ function alfresco_page_sync($node) {
  */
 function alfresco_page_details($node) {
 
-  $alf_node = alfresco_service_load_node($node->reference);
+  $alf_node = alfresco_service_node_load($node->reference);
   if (!$alf_node) {
     return $node;
   }
@@ -241,9 +241,9 @@ function _alfresco_add_form($form_state) {
     '#type' => 'textfield',
     '#title' => t('Space'),
     '#required' => TRUE,
-    '#autocomplete_path' => 'alfresco/autocomplete',
+    //'#autocomplete_path' => 'alfresco/autocomplete',
     //'#description' => t('Space.'),
-    //'#default_value' => '/app:company_home/app:guest_home',
+    '#default_value' => '/app:company_home/app:guest_home',
   );
 
   $form['upload']['file'] = array(

@@ -93,7 +93,7 @@ function alfresco_browser_admin_settings_validate($form, &$form_state) {
   if (!alfresco_valid_path($form_state['values']['alfresco_browser_home'])) {
     form_set_error('alfresco_browser_home', t('The home path you specified is not valid.'));
   }
-  else if (!alfresco_service_load_node($form_state['values']['alfresco_browser_home'])) {
+  else if (!alfresco_service_node_load($form_state['values']['alfresco_browser_home'])) {
     form_set_error('alfresco_browser_home', t('The home path you specified could not be found.'));
   }
 

@@ -65,34 +65,35 @@ function alfresco_service_create_session() {
 /**
  * Load an alfresco node object from the Alfresco repository.
  *
- * @param $referenceOrPath
- *  The alfresco node reference or path.
+ * @param $reference_or_path
+ *  Either the node reference of the Alfresco node or the path to the Alfresco
+ *  node (trail of QNames of the child relationships to get to the node).
  * @param $session Session
  *  xxx
  * @param $reset
  *  Whether to reset the internal node cache.
  *
  * @return AlfNode
- *  A fully-populated alfresco node object.
+ *  A fully-populated Alfresco node object.
  */
-function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = NULL) {
+function alfresco_service_node_load($reference_or_path, $session = NULL, $reset = NULL) {
   static $nodes = array();
 
   if ($reset) {
     $nodes = array();
   }
 
-  if (!$inforef = alfresco_parse_reference($referenceOrPath)) {
-    if (!alfresco_valid_path($referenceOrPath)) {
+  if (!$inforef = alfresco_parse_reference($reference_or_path)) {
+    if (!alfresco_valid_path($reference_or_path)) {
       return FALSE;
     }
   }
 
   if ($inforef) {
-    $reference = $inforef['reference'];
+    $ref = $inforef['reference'];
     // Is the node statically cached?
-    if (isset($nodes[$reference])) {
-      return is_object($nodes[$referenceOrPath]) ? drupal_clone($nodes[$reference]) : $nodes[$reference];
+    if (isset($nodes[$ref])) {
+      return is_object($nodes[$ref]) ? drupal_clone($nodes[$ref]) : $nodes[$ref];
     }
   }
 
@@ -108,15 +109,15 @@ function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = 
     }
     else {
       $store = new AlfStore($session, 'SpacesStore');
-      $nodes = $session->query($store, 'PATH:"'. $referenceOrPath .'"');
+      $nodes = $session->query($store, 'PATH:"'. $reference_or_path .'"');
     }
 
-    if (count($nodes) && $nodes[0]->getId()) {
+    if (count($nodes)) {
       $node = $nodes[0];
 
       if ($inforef) {
-        $reference = $inforef['reference'];
-        $nodes[$reference] = is_object($node) ? drupal_clone($node) : $node;
+        $ref = $inforef['reference'];
+        $nodes[$ref] = is_object($node) ? drupal_clone($node) : $node;
       }
 
       return $node;
@@ -132,7 +133,71 @@ function alfresco_service_load_node($referenceOrPath, $session = NULL, $reset = 
 }
 
 /**
+ *
+ * @param $reference_or_path
+ * @param $session
+ * @param $reset
+ * @return unknown_type
+ */
+function alfresco_service_node_delete($reference_or_path, $session = NULL) {
+
+  if (!$inforef = alfresco_parse_reference($reference_or_path)) {
+    if (!alfresco_valid_path($reference_or_path)) {
+      return FALSE;
+    }
+  }
+
+  if (!$session && !($session = alfresco_service_create_session())) {
+    return FALSE;
+  }
+
+  try {
+    if ($inforef) {
+      // @see https://issues.alfresco.com/jira/browse/AR-1063
+      $store = new AlfStore($session, $inforef['address'], $inforef['scheme']);
+      $nodes = $session->query($store, '+ISNODE:T +ID:"'. $inforef['reference'] .'"');
+    }
+    else {
+      $store = new AlfStore($session, 'SpacesStore');
+      $nodes = $session->query($store, 'PATH:"'. $reference_or_path .'"');
+    }
+
+    if (count($nodes)) {
+      $node = $nodes[0];
+
+      $statements = array(
+        "delete" => array(
+          "where" => array(
+            "nodes" => $node->__toArray()
+          )
+        )
+      );
+
+      $session->repositoryService->update(array('statements' => $statements));
+    }
+  }
+  catch (Exception $e) {
+    drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
+    watchdog('alfresco', 'Error loading node from alfresco repository, with reference %reference. Exception=%msg', array(
+      '%reference' => $reference,
+      '%msg' => _alfresco_service_error_message($e)),
+      WATCHDOG_ERROR);
+  }
+}
+
+/**
  * Wrapper for Lucene API.
+ *
+ * Examples of valid paths:
+ * - "/"
+ * - "/*"
+ * - "/app:*"
+ * - "/app:company_home"
+ * - "/app:company_home/*"
+ * - "/app:company_home//*"
+ * - "/app:company_home//."
+ * - "//app:company_home"
+ * - "//app:company_home//*"
  *
  * @see http://wiki.alfresco.com/wiki/Search
  */
@@ -164,49 +229,6 @@ function alfresco_service_search($text, $property = '@cm:name', $session = NULL)
 }
 
 /**
- * Return an array of node properties from alfresco repository.
- *
- * @param $node Node Alfresco object node.
- */
-function alfresco_service_load_properties($node) {
-
-  $properties = array();
-
-  try {
-    $properties['cm_name']        = truncate_utf8($node->cm_name, 255);
-    $properties['cm_title']       = truncate_utf8($node->cm_title, 255);
-    $properties['cm_description'] = $node->cm_description;
-    $properties['cm_author']      = $node->cm_author;
-    $properties['cm_created']     = alfresco_date_convert($node->cm_created);
-    $properties['cm_creator']     = $node->cm_creator;
-    $properties['cm_modified']    = alfresco_date_convert($node->cm_modified);
-    $properties['cm_modifier']    = $node->cm_modifier;
-    $properties['cm_author']      = $node->cm_author;
-
-    if (is_object($node->cm_content)) {
-      $data = $node->cm_content;
-      $properties['cm_content'] = array();
-      $properties['cm_content']['url']      = $data->guestUrl;
-      $properties['cm_content']['mimetype'] = $data->mimetype;
-      $properties['cm_content']['size']     = $data->size;
-      $properties['cm_content']['encoding'] = $data->encoding;
-    }
-    else {
-      $properties['cm_content'] = NULL;
-    }
-  }
-  catch (Exception $e) {
-    drupal_set_message(t('Error loading properties from alfresco node.'), 'error');
-    watchdog('alfresco', 'Error loading properties from alfresco node, with reference %reference. Exception=%msg', array(
-      '%reference' => strval($node),
-      '%msg' => _alfresco_service_error_message($e)),
-      WATCHDOG_ERROR);
-  }
-
-  return $properties;
-}
-
-/**
  * Uploads a file into content store and returns the content data string which
  * can be used to populate a content property.
  *
@@ -231,7 +253,7 @@ function alfresco_service_add_content($space, $filepath, $filename = NULL, $mime
 
   try {
 
-    $space_node = alfresco_service_load_node($space, $session);
+    $space_node = alfresco_service_node_load($space, $session);
     if (!$space_node) {
       return FALSE;
     }
@@ -269,7 +291,7 @@ function alfresco_service_add_content($space, $filepath, $filename = NULL, $mime
 
     $content_data = substr($result->data, $index);
     if ($content_data) {
-      $new_node = $space_node->createChild('cm_content', 'cm_contains', $filename);
+      $new_node = $space_node->createChild('cm_content', 'cm_contains', 'cm_'. $filename);
       $new_node->cm_name = $filename;
       $new_node->cm_content = $content_data;
 
@@ -336,4 +358,14 @@ function _alfresco_service_error_message(Exception $ex) {
   }
 
   return $message;
+}
+
+function alfresco_service_node_content($node) {
+
+  if (isset($node) && is_object($node->cm_content)) {
+    if ($node->cm_content instanceof AlfContentData) {
+      return $node->cm_content;
+    }
+  }
+  return FALSE;
 }

@@ -70,6 +70,10 @@ button.view {
   background-image: url(../images/view.gif);
 }
 
+button.delete {
+  background-image: url(../images/delete.gif);
+}
+
 #preview-frame {
   width: 100%;
   height: 100%;

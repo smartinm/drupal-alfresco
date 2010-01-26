@@ -50,7 +50,7 @@ function alfresco_import_form($form_state) {
   );
 
   if (!empty($reference)) {
-    $alf_node = alfresco_service_load_node($reference);
+    $alf_node = alfresco_service_node_load($reference);
     if (!$alf_node) {
       $form['none_found'] = array(
         '#type'  => 'item',

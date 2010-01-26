@@ -87,6 +87,7 @@
     'serviceGridUrl':'<?php print $service_grid; ?>',
     'serviceDownloadUrl':'<?php print $service_dl; ?>',
     'serviceUploadUrl':'<?php print $service_ul; ?>',
+    'serviceDeleteUrl':'<?php print $service_del; ?>',
     'queryLimit':<?php print $query_limit; ?>
   };
 </script>

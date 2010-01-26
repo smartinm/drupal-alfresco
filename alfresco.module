@@ -37,10 +37,12 @@ define('ALFRESCO_AUTH_SINGLE',      1);
 define('ALFRESCO_AUTH_USER',        2);
 define('ALFRESCO_AUTH_USER_UPLOAD', 3);
 
-// Regex string for any variety of ISO and DATETIME formats (from date_api.module)
+// Regex string for any variety of ISO and DATETIME formats
+// @see date_api.module
 define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(\d{2}):?(\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:?\d{2})?)?/');
 
 // Alfresco Node UUID regex
+// @eee http://wiki.alfresco.com/wiki/Web_Service_Data_Types_XML_Schema
 define('ALFRESCO_REGEX_NODE_UUID', '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}');
 
 // Including dependencies.
@@ -199,7 +201,7 @@ function alfresco_menu() {
     'file' => 'alfresco.admin.inc',
   );
 
-  // Node tabs
+  // Node local taks (tabs)
 
   $items['node/%alfresco_node/download/%alfresco_name'] = array(
     'title' => 'Download',
@@ -212,6 +214,7 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
+  /*
   $items['node/%alfresco_node/sync'] = array(
     'title' => 'Synchronize',
     'page callback' => 'alfresco_page_sync',
@@ -222,6 +225,7 @@ function alfresco_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'alfresco.pages.inc',
   );
+  */
 
   $items['node/%alfresco_node/details'] = array(
     'title' => 'Details',
@@ -229,7 +233,7 @@ function alfresco_menu() {
     'page arguments' => array(1),
     'access callback' => '_alfresco_administer_access',
     'access arguments' => array(1),
-    'weight' => 7,
+    'weight' => 6,
     'type' => MENU_LOCAL_TASK,
     'file' => 'alfresco.pages.inc',
   );
@@ -344,7 +348,7 @@ function alfresco_form(&$node, $form_state) {
   $form['reference'] = array(
     '#type' => 'textfield',
     '#title' => $type->name,
-    '#description' => t('Alfresco Node Reference. Example: workspace://SpacesStore/uuid'),
+    '#description' => t('Alfresco node reference. Example: workspace://SpacesStore/uuid'),
     '#default_value' => isset($node->reference) ? $node->reference : '',
     '#required' => TRUE,
     '#weight' => -6,
@@ -386,7 +390,7 @@ function alfresco_form(&$node, $form_state) {
   }
 
   $form['#validate'][] = 'alfresco_form_validate';
-  $form['#submit'][]   = 'alfresco_form_submit';
+  $form['#submit'][] = 'alfresco_form_submit';
 
   return $form;
 }
@@ -411,7 +415,7 @@ function alfresco_form_validate($form, &$form_state) {
     }
     else {
       // Load node from alfresco repository.
-      $alf_node = alfresco_service_load_node($reference);
+      $alf_node = alfresco_service_node_load($reference);
       if ($alf_node) {
         $form_state['alf_node'] = $alf_node;
       }
@@ -465,7 +469,7 @@ function alfresco_form_submit($form, &$form_state) {
   if (isset($form_state['alf_node'])) {
     $alf_node = $form_state['alf_node'];
 
-    $properties = alfresco_service_load_properties($alf_node);
+    $properties = _alfresco_map($alf_node);
     if ($properties) {
       foreach ($properties as $key => $value) {
         $form_state['values'][$key] = $value;
@@ -531,6 +535,42 @@ function _alfresco_save($node) {
 }
 
 /**
+ * Return an array of node properties from alfresco repository.
+ *
+ * @todo: Add documentation.
+ * @param $node
+ *  Alfresco node.
+ *
+ * @return
+ */
+function _alfresco_map($node) {
+
+  $properties = array();
+  $properties['cm_name'] = truncate_utf8($node->cm_name, 255);
+  $properties['cm_title'] = truncate_utf8($node->cm_title, 255);
+  $properties['cm_description'] = $node->cm_description;
+  $properties['cm_author'] = truncate_utf8($node->cm_author, 255);
+  $properties['cm_creator'] = truncate_utf8($node->cm_creator, 255);
+  $properties['cm_modifier'] = truncate_utf8($node->cm_modifier, 255);
+  $properties['cm_created'] = alfresco_date_convert($node->cm_created);
+  $properties['cm_modified'] = alfresco_date_convert($node->cm_modified);
+
+  if ($content_data = alfresco_service_node_content($node)) {
+    $properties['cm_content'] = array();
+    $properties['cm_content']['url'] = $content_data->guestUrl;
+    $properties['cm_content']['mimetype'] = $content_data->mimetype;
+    $properties['cm_content']['size'] = $content_data->size;
+    $properties['cm_content']['encoding'] = $content_data->encoding;
+  }
+  else {
+    $properties['cm_content'] = NULL;
+  }
+
+  return $properties;
+}
+
+
+/**
  * Implementation of hook_nodeapi().
  *
  * When a node revision is deleted, we need to remove the corresponding record
@@ -543,9 +583,6 @@ function alfresco_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     case 'delete revision':
       db_query('DELETE FROM {alfresco_node} WHERE vid = %d', $node->vid);
       db_query('DELETE FROM {alfresco_content} WHERE vid = %d', $node->vid);
-      break;
-
-    case 'presave':
       break;
   }
 }
@@ -591,7 +628,6 @@ function alfresco_load($node) {
 
   return $alfresco_node;
 }
-
 
 // -----------------------------------------------------------------------
 // =5 View functions
@@ -721,7 +757,7 @@ function alfresco_theme() {
  */
 function alfresco_url_download($node) {
 
-  if ($node->type == 'alfresco_item' && !empty($node->cm_content)) {
+  if ($node && $node->type == 'alfresco_item' && !empty($node->cm_content)) {
     return 'node/'. $node->nid .'/download/'. $node->cm_name;
   }
 }
@@ -747,7 +783,7 @@ function alfresco_file_transfer($reference, $disposition = NULL) {
     ob_end_clean();
   }
 
-  $alf_node = alfresco_service_load_node($reference);
+  $alf_node = alfresco_service_node_load($reference);
   if (!$alf_node) {
     drupal_not_found();
     exit();
@@ -916,27 +952,34 @@ function alfresco_file_put($filepath, $url, $headers = array()) {
 // ------------------------------------------------------------------
 
 /**
- * Verify the syntax of the given Alfresco Node Reference.
+ * Verify the syntax of the given Alfresco node reference.
  *
  * @param $reference
  *   A string containing an Alfresco Node Reference.
  * @return
  *   TRUE if the reference is in a valid format.
  *
- * @see http://wiki.alfresco.com/wiki/Web_Service_Data_Types
+ * Examples of valid references:
+ * - "workspace://SpacesStore/804005fd-0a68-11df-a238-b1a1e5d9b300"
+ * - "system://system/1aa150d5-bc5e-11dd-8590-695888b0c20c"
  */
 function alfresco_valid_reference($reference) {
-
-  $pattern = "/^\w+:\/\/\w+\/". ALFRESCO_REGEX_NODE_UUID ."$/";
+  $pattern = '|^\w+://\w+/'. ALFRESCO_REGEX_NODE_UUID .'$|';
   return preg_match($pattern, $reference);
 }
 
 /**
- * @todo: Add documentation.
+ * Verify the syntax of the given Alfresco node path.
+ *
+ * Examples of valid paths:
+ * - "/"
+ * - "/app:company_home"
+ * - "/app:company_home/app:guest_home"
+ * - "/app:company_home/app:guest_home/cm:alfresco.pdf"
+ * - "/sys:user"
  */
 function alfresco_valid_path($path) {
-
-  $pattern = '/^(\/\w+:\w+)+$/';
+  $pattern = '|^(/\w+:.+)+$|';
   return preg_match($pattern, $path);
 }
 
@@ -956,14 +999,13 @@ function alfresco_valid_path($path) {
  *   instead of an array.
  */
 function alfresco_parse_reference($reference, $component = '') {
-
-  $pattern = "/^(\w+):\/\/(\w+)\/(". ALFRESCO_REGEX_NODE_UUID .")$/";
+  $pattern = '|^(\w+)://(\w+)/('. ALFRESCO_REGEX_NODE_UUID .')$|';
   if (preg_match($pattern, $reference, $matches)) {
     $info = array();
     $info['reference'] = $matches[0];
-    $info['scheme']    = $matches[1];
-    $info['address']   = $matches[2];
-    $info['uuid']      = $matches[3];
+    $info['scheme'] = $matches[1];
+    $info['address'] = $matches[2];
+    $info['uuid'] = $matches[3];
     if (!empty($component)) {
       return $info[$component];
     }
@@ -1090,14 +1132,14 @@ function alfresco_sync_node($node) {
   }
 
   // check alfresco node in repository
-  $alf_node = alfresco_service_load_node($reference);
+  $alf_node = alfresco_service_node_load($reference);
   if (!$alf_node) {
     // @todo el nodo de Alfresco no existe, decidir que hacer.
     return FALSE;
   }
 
   // update properties
-  $properties = alfresco_service_load_properties($alf_node);
+  $properties = _alfresco_map($alf_node);
   if ($properties) {
     foreach ($properties as $key => $value) {
       $node->$key = $value;
@@ -1169,7 +1211,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
     return FALSE;
   }
 
-  $alf_node = alfresco_service_load_node($reference);
+  $alf_node = alfresco_service_node_load($reference);
   if (!$alf_node) {
     return FALSE;
   }
@@ -1218,7 +1260,8 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
   // Alfresco node stuff
   $node->reference = $reference;
 
-  $properties = alfresco_service_load_properties($alf_node);
+  // Execute mappings from $alf_node to $node.
+  $properties = _alfresco_map($alf_node);
   if ($properties) {
     foreach ($properties as $key => $value) {
       $node->$key = $value;

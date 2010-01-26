@@ -91,6 +91,14 @@ function alfresco_browser_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['alfresco/browser/service/delete'] = array(
+    'page callback' => 'alfresco_browser_service_delete',
+    'access callback' => 'user_access',
+    'access arguments' => array('access alfresco browser'),
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
   // Pages
 
   $items['alfresco/repository'] = array(
@@ -149,6 +157,7 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   $variables['service_grid'] = url('alfresco/browser/service/grid.json');
   $variables['service_dl'] = url('alfresco/browser/service/download');
   $variables['service_ul'] = url('alfresco/browser/service/upload');
+  $variables['service_del'] = url('alfresco/browser/service/delete');
 
   $variables['query_limit'] = variable_get('alfresco_browser_query_limit', 20);
 
@@ -203,7 +212,7 @@ function alfresco_browser_process($element, $form_state) {
   );
 
   // @todo Obtener nombre del fichero de base de datos
-  $alfNode = alfresco_service_load_node($element['#value']);
+  $alfNode = alfresco_service_node_load($element['#value']);
 
   $element['alfresco_browser_path'] = array(
     '#type' => 'textfield',
@@ -229,5 +238,5 @@ function theme_alfresco_browser($element) {
  *
  */
 function _alfresco_browser_load_home_node() {
-  return alfresco_service_load_node(variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME));
+  return alfresco_service_node_load(variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME));
 }
