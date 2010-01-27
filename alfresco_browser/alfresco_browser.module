@@ -103,8 +103,8 @@ function alfresco_browser_menu() {
 
   $items['alfresco/repository'] = array(
     'title' => 'Repository browser',
-    'description' => 'i18n Permite navegar, buscar y añadir contenido al repositorio de Alfresco.',
-    'page callback' => 'alfresco_repository_browser_page',
+    'description' => 'Visualize, search, browse and retrieve nodes of the Alfresco repository.',
+    'page callback' => 'alfresco_browser_repository_page',
     'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',

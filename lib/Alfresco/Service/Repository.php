@@ -23,22 +23,21 @@
  * the FLOSS exception, and it is also available here:
  * http://www.alfresco.com/legal/licensing"
  */
-
 require_once 'Alfresco/Service/WebService/WebServiceFactory.php';
 require_once 'Alfresco/Service/BaseObject.php';
 
-// aw@abcona.de 2009-10-09:
-// This is bullsh**, as it interferes with the applications control
-// when and how to start a session!
-// THIS is a class definiton, control flow has no place here!
-//
-
+/**
+ *
+ */
 class AlfRepository extends AlfBaseObject {
+
   private $_connectionUrl;
+
   private $_host;
+
   private $_port;
 
-  public function __construct($connectionUrl="http://localhost:8080/alfresco/api") {
+  public function __construct($connectionUrl = "http://localhost:8080/alfresco/api") {
     $this->_connectionUrl = $connectionUrl;
     $parts = parse_url($connectionUrl);
     $this->_host = $parts["host"];
@@ -59,46 +58,38 @@ class AlfRepository extends AlfBaseObject {
 
   public function authenticate($userName, $password) {
     // TODO need to handle exceptions!
-
     $authenticationService = AlfWebServiceFactory::getAuthenticationService($this->_connectionUrl);
-    $result = $authenticationService->startSession(array (
-            "username" => $userName,
-            "password" => $password
+    $result = $authenticationService->startSession(array(
+      "username" => $userName,
+      "password" => $password
     ));
-
     // Get the ticket and sessionId
     $ticket = $result->startSessionReturn->ticket;
     $sessionId = $result->startSessionReturn->sessionid;
-
     // Store the session id for later use
     if ($sessionId != null) {
       $sessionIds = null;
       if (isset($_SESSION["sessionIds"]) == false) {
         $sessionIds = array();
-      }
-      else {
+      } else {
         $sessionIds = $_SESSION["sessionIds"];
       }
       $sessionIds[$ticket] = $sessionId;
       $_SESSION["sessionIds"] = $sessionIds;
     }
-
     return $ticket;
   }
 
-  public function createSession($ticket=null) {
+  public function createSession($ticket = null) {
     $session = null;
-
     if ($ticket == null) {
       // TODO get ticket from some well known location ie: the $_SESSION
-    }
-    else {
-      // TODO would be nice to be able to check that the ticket is still valid!
 
+    } else {
+      // TODO would be nice to be able to check that the ticket is still valid!
       // Create new session
       $session = new AlfSession($this, $ticket);
     }
-
     return $session;
   }
 
@@ -111,7 +102,5 @@ class AlfRepository extends AlfBaseObject {
       $result = $_SESSION["sessionIds"][$ticket];
     }
     return $result;
-
   }
-
 }

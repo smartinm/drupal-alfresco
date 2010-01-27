@@ -23,91 +23,67 @@
  * the FLOSS exception, and it is also available here:
  * http://www.alfresco.com/legal/licensing"
  */
-
-require_once("Alfresco/Service/Repository.php");
-require_once("Alfresco/Service/Session.php");
+require_once ("Alfresco/Service/Repository.php");
+require_once ("Alfresco/Service/Session.php");
 
 /**
-* Uploads a file into content store and returns the content data string which
-* can be used to populate a content property.
-*
-* @param $session the session
-* @param $filePath the file location
-* @return String the content data that can be used to update the content property
-*/
-function alf_upload_file($session, $filePath, $mimetype=null, $encoding=null)
-{
+ * Uploads a file into content store and returns the content data string which
+ * can be used to populate a content property.
+ *
+ * @param $session the session
+ * @param $filePath the file location
+ * @return String the content data that can be used to update the content property
+ */
+function alf_upload_file($session, $filePath, $mimetype = null, $encoding = null) {
   $result = null;
-
   // Check for the existance of the file
-  if (file_exists($filePath) == false)
-  {
-  	throw new Exception("The file ".$filePath."does no exist.");
+  if (file_exists($filePath) == false) {
+    throw new Exception("The file " . $filePath . "does no exist.");
   }
-
   // Get the file name and size
   $fileName = basename($filePath);
   $fileSize = filesize($filePath);
-
   // Get the address and the
   $host = $session->repository->host;
   $port = $session->repository->port;
-
   // Get the IP address for the target host
   $address = gethostbyname($host);
-
   // Create a TCP/IP socket
   $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-  if ($socket === false)
-  {
-      throw new Exception ("socket_create() failed: reason: " . socket_strerror(socket_last_error()));
+  if ($socket === false) {
+    throw new Exception("socket_create() failed: reason: " . socket_strerror(socket_last_error()));
   }
-
   // Connect the socket to the repository
   $result = socket_connect($socket, $address, $port);
-  if ($result === false)
-  {
-      throw new Exception("socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)));
+  if ($result === false) {
+    throw new Exception("socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)));
   }
-
   // Write the request header onto the socket
-  $url = "/alfresco/upload/".urlencode($fileName)."?ticket=".$session->ticket;
-  if ($mimetype != null)
-  {
-  	// Add mimetype if specified
-  	$url .= "&mimetype=".$mimetype;
+  $url = "/alfresco/upload/" . urlencode($fileName) . "?ticket=" . $session->ticket;
+  if ($mimetype != null) {
+    // Add mimetype if specified
+    $url.= "&mimetype=" . $mimetype;
   }
-  if ($encoding != null)
-  {
-  	// Add encoding if specified
-  	$url .= "&encoding=".$encoding;
+  if ($encoding != null) {
+    // Add encoding if specified
+    $url.= "&encoding=" . $encoding;
   }
-  $in = "PUT ".$url." HTTP/1.1\r\n".
-                "Content-Length: ".$fileSize."\r\n".
-                "Host: ".$address.":".$port."\r\n".
-                "Connection: Keep-Alive\r\n".
-                "\r\n";
+  $in = "PUT " . $url . " HTTP/1.1\r\n" . "Content-Length: " . $fileSize . "\r\n" . "Host: " . $address . ":" . $port . "\r\n" . "Connection: Keep-Alive\r\n" . "\r\n";
   socket_write($socket, $in, strlen($in));
-
   // Write the content found in the file onto the socket
   $handle = fopen($filePath, "r");
-  while (feof($handle) == false)
-  {
-  	$content = fread($handle, 1024);
-  	socket_write($socket, $content, strlen($content));
+  while (feof($handle) == false) {
+    $content = fread($handle, 1024);
+    socket_write($socket, $content, strlen($content));
   }
   fclose($handle);
-
   // Read the response
-  $recv = socket_read ($socket, 2048, PHP_BINARY_READ);
+  $recv = socket_read($socket, 2048, PHP_BINARY_READ);
   $index = strpos($recv, "contentUrl");
-  if ($index !== false)
-  {
-  	$result = substr($recv, $index);
+  if ($index !== false) {
+    $result = substr($recv, $index);
   }
-
   // Close the socket
   socket_close($socket);
-
   return $result;
 }

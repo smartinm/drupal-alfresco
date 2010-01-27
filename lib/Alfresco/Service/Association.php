@@ -24,31 +24,29 @@
  * http://www.alfresco.com/legal/licensing"
  */
 
-class AlfAssociation extends AlfBaseObject
-{
-	private $_from;
-	private $_to;
-	private $_type;
+class AlfAssociation extends AlfBaseObject {
 
-	public function __construct($from, $to, $type)
-	{
-		$this->_from = $from;
-		$this->_to = $to;
-		$this->_type = $type;
-	}
+  private $_from;
 
-	public function getFrom()
-	{
-		return $this->_from;
-	}
+  private $_to;
 
-	public function getTo()
-	{
-		return $this->_to;
-	}
+  private $_type;
 
-	public function getType()
-	{
-		return $this->_type;
-	}
+  public function __construct($from, $to, $type) {
+    $this->_from = $from;
+    $this->_to = $to;
+    $this->_type = $type;
+  }
+
+  public function getFrom() {
+    return $this->_from;
+  }
+
+  public function getTo() {
+    return $this->_to;
+  }
+
+  public function getType() {
+    return $this->_type;
+  }
 }

@@ -6,7 +6,6 @@
  * Provides functions for access to Alfresco repository through of web service.
  */
 
-
 /**
  * Authenticate against the repository and create a new session.
  *
@@ -30,24 +29,30 @@ function alfresco_service_create_session() {
       // The user credentials we are going to use
       if ($user->uid == 0 || $user->uid == 1 && variable_get('alfresco_authentication_admin', TRUE)
           || variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE) == ALFRESCO_AUTH_SINGLE) {
+
         $username = variable_get('alfresco_credentials_username', 'guest');
         $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
       }
       else {
+
         $username = $_SESSION['alfresco']['credentials']['username'];
         $password = base64_decode($_SESSION['alfresco']['credentials']['password']);
       }
 
-      // Create the repository object baseed on the repository URL.  The repository represents the Alfresco repository we are connecting to.
+      // Create the repository object baseed on the repository URL.  The
+      // repository represents the Alfresco repository we are connecting to.
       // It can be used to authenticate users and as a session factory.
       $repository = new AlfRepository($repository_url);
 
-      // Authenticate the user details for the repository we want to connect to.  Assuming authentication is succesful we will be returned
-      // a ticket.  The ticket is a string which can be used to create Session's
+      // Authenticate the user details for the repository we want to connect to.
+      // Assuming authentication is succesful we will be returned a ticket.
+      // The ticket is a string which can be used to create Session's
       $ticket = $repository->authenticate($username, $password);
 
-      // Using the ticket we can now create a session.  In general it is better to create a new session for a new page or page sequence rather
-      // than creating one and using across many pages as this helps to prevent resource usage from creaping up.
+      // Using the ticket we can now create a session.  In general it is better
+      // to create a new session for a new page or page sequence rather than
+      // creating one and using across many pages as this helps to prevent
+      // resource usage from creaping up.
       $session = $repository->createSession($ticket);
     }
     catch (Exception $e) {
@@ -174,14 +179,13 @@ function alfresco_service_node_delete($reference_or_path, $session = NULL) {
       );
 
       $session->repositoryService->update(array('statements' => $statements));
+
+      return TRUE;
     }
   }
   catch (Exception $e) {
     drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
-    watchdog('alfresco', 'Error loading node from alfresco repository, with reference %reference. Exception=%msg', array(
-      '%reference' => $reference,
-      '%msg' => _alfresco_service_error_message($e)),
-      WATCHDOG_ERROR);
+    watchdog('alfresco', 'Error loading node from alfresco repository (%msg)', array('%msg' => $e->getMessage()), WATCHDOG_ERROR);
   }
 }
 
@@ -245,7 +249,7 @@ function alfresco_service_search($text, $property = '@cm:name', $session = NULL)
  * @see alf_upload_file()
  * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
-function alfresco_service_add_content($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $properties = array(), $session = NULL) {
+function alfresco_service_node_add($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $properties = array(), $session = NULL) {
 
   if (!$session && !($session = alfresco_service_create_session())) {
     return FALSE;
@@ -258,7 +262,7 @@ function alfresco_service_add_content($space, $filepath, $filename = NULL, $mime
       return FALSE;
     }
 
-    // Get the address and the
+    // Get the address and the port
     $host = $session->repository->host;
     $port = $session->repository->port;
 
@@ -360,7 +364,7 @@ function _alfresco_service_error_message(Exception $ex) {
   return $message;
 }
 
-function alfresco_service_node_content($node) {
+function alfresco_service_node_get_content($node) {
 
   if (isset($node) && is_object($node->cm_content)) {
     if ($node->cm_content instanceof AlfContentData) {

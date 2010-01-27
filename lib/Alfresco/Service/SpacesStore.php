@@ -23,31 +23,26 @@
  * the FLOSS exception, and it is also available here:
  * http://www.alfresco.com/legal/licensing"
  */
-
 require_once 'Alfresco/Service/Store.php';
 require_once 'Alfresco/Service/Node.php';
 
-class AlfSpacesStore extends AlfStore
-{
-	private $_companyHome;
+class AlfSpacesStore extends AlfStore {
 
-	public function __construct($session)
-	{
-		parent::__construct($session, "SpacesStore");
-	}
+  private $_companyHome;
 
-	public function __toString()
-	{
-		return $this->scheme . "://" . $this->address;
-	}
+  public function __construct($session) {
+    parent::__construct($session, "SpacesStore");
+  }
 
-	public function getCompanyHome()
-	{
-		if ($this->_companyHome == null)
-		{
-			$nodes = $this->_session->query($this, 'PATH:"app:company_home"');
-	        $this->_companyHome = $nodes[0];
-		}
-		return $this->_companyHome;
-	}
+  public function __toString() {
+    return $this->scheme . "://" . $this->address;
+  }
+
+  public function getCompanyHome() {
+    if ($this->_companyHome == null) {
+      $nodes = $this->_session->query($this, 'PATH:"app:company_home"');
+      $this->_companyHome = $nodes[0];
+    }
+    return $this->_companyHome;
+  }
 }

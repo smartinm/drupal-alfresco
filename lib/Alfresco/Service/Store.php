@@ -23,58 +23,53 @@
  * the FLOSS exception, and it is also available here:
  * http://www.alfresco.com/legal/licensing"
  */
-
 require_once 'Alfresco/Service/BaseObject.php';
 require_once 'Alfresco/Service/Node.php';
 
-class AlfStore extends AlfBaseObject
-{
-	protected $_session;
-	protected $_address;
-	protected $_scheme;
-	protected $_rootNode;
+class AlfStore extends AlfBaseObject {
 
-	public function __construct($session, $address, $scheme = "workspace")
-	{
-		$this->_session = $session;
-		$this->_address = $address;
-		$this->_scheme = $scheme;
-	}
+  protected $_session;
 
-	public function __toString()
-	{
-		return $this->scheme . "://" . $this->address;
-	}
+  protected $_address;
 
-	public function __toArray()
-	{
-		return array(
-			"scheme" => $this->_scheme,
-			"address" => $this->_address);
-	}
+  protected $_scheme;
 
-	public function getAddress()
-	{
-		return $this->_address;
-	}
+  protected $_rootNode;
 
-	public function getScheme()
-	{
-		return $this->_scheme;
-	}
+  public function __construct($session, $address, $scheme = "workspace") {
+    $this->_session = $session;
+    $this->_address = $address;
+    $this->_scheme = $scheme;
+  }
 
-	public function getRootNode()
-	{
-		if (isset ($this->_rootNode) == false)
-		{
-			$result = $this->_session->repositoryService->get(
-				array(
-					"where" => array(
-						"store" => $this->__toArray())));
+  public function __toString() {
+    return $this->scheme . "://" . $this->address;
+  }
 
-			$this->_rootNode = AlfNode::createFromWebServiceData($this->_session, $result->getReturn);
-		}
+  public function __toArray() {
+    return array(
+      "scheme" => $this->_scheme,
+      "address" => $this->_address
+    );
+  }
 
-		return $this->_rootNode;
-	}
+  public function getAddress() {
+    return $this->_address;
+  }
+
+  public function getScheme() {
+    return $this->_scheme;
+  }
+
+  public function getRootNode() {
+    if (isset($this->_rootNode) == false) {
+      $result = $this->_session->repositoryService->get(array(
+        "where" => array(
+          "store" => $this->__toArray()
+      )
+      ));
+      $this->_rootNode = AlfNode::createFromWebServiceData($this->_session, $result->getReturn);
+    }
+    return $this->_rootNode;
+  }
 }

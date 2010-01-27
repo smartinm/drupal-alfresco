@@ -408,9 +408,11 @@ function alfresco_add_form_submit($form, &$form_state) {
 
   // Save new file uploads.
   if (!empty($form_state['values']['file'])) {
+    /*
     drupal_set_message(t("'!filename' was uploaded successfully.", array(
       '!filename' => $form_state['values']['file']['filename'])
     ));
+    */
     $form_state['rebuild'] = TRUE;
   }
 }
@@ -430,7 +432,7 @@ function alfresco_add_form_upload($form, &$form_state) {
     $mimetype = $form_state['values']['mimetype'];
     $encoding = $form_state['values']['encoding'];
 
-    if (alfresco_service_add_content($space, $filepath, $filename, $mimetype, $encoding)) {
+    if (alfresco_service_node_add($space, $filepath, $filename, $mimetype, $encoding)) {
       drupal_set_message(t("'!filename' was created successfully.", array(
         '!filename' => $file['filename'])
       ));

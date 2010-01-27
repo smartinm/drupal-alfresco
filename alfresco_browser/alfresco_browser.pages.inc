@@ -9,12 +9,10 @@
 /**
  *
  */
-function alfresco_repository_browser_page() {
-
+function alfresco_browser_repository_page() {
   drupal_set_title('');
   $url = url('alfresco/browser');
-  $frame = '<iframe id="embedded-browser" style="width: 100%; height: 600px; border: 2px solid #ccc" frameborder="0"  src="'. $url .'"></iframe>';
-
+  $frame = '<iframe id="embedded-browser" style="width:100%;height:600px;border:2px solid #ccc;" frameborder="0"  src="'. $url .'"></iframe>';
   return $frame;
 }
 
@@ -82,7 +80,7 @@ function alfresco_browser_service_tree_json() {
       }
     }
 
-    usort($nodes, '_alfresco_browser_sort_nodes');
+    usort($nodes, '_alfresco_browser_node_sort');
 
     if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
       cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
@@ -124,7 +122,7 @@ function alfresco_browser_service_documents_json() {
       $cache = cache_get($cache_key, 'cache_alfresco_browser');
       if ($cache && !empty($cache->data)) {
         $rows = $limit > 0 ? array_slice($cache->data, $start, $limit) : $cache->data;
-        drupal_json(array('total' => count($nodes), 'rows' => $rows));
+        drupal_json(array('total' => count($cache->data), 'rows' => $rows));
         exit();
       }
     }
@@ -136,7 +134,7 @@ function alfresco_browser_service_documents_json() {
 
     if (!empty($query)) {
       $spacesStore = new AlfStore($session, 'SpacesStore');
-      $queryResults = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $query .'*"');
+      $queryResults = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
     }
     else {
       $reference = 'workspace://SpacesStore/'. $node;
@@ -183,6 +181,7 @@ function alfresco_browser_service_documents_json() {
         'id'          => $childNode->id,
         'nid'         => $nid ? url('node/'. $nid) : '',
         'name'        => $childNode->cm_name,
+        'path'        => $childNode->getFolderPath(),
         'size'        => isset($contentData) ? format_size($contentData->size) : '',
         'mimetype'    => isset($contentData) ? $contentData->mimetype : '',
         'icon'        => file_exists($module_path .'/images/filetypes/'. $ext .'.gif') ? $ext : '_default',
@@ -234,6 +233,12 @@ function alfresco_browser_service_upload() {
   $description = isset($_POST['description']) ? trim($_POST['description']) : '';
   $author = isset($_POST['author']) ? trim($_POST['author']) : '';
 
+  /*
+  $validators = array(
+    'file_validate_size' => array(file_upload_max_size())
+  );
+  */
+
   if ($file = file_save_upload('file')) {
     $filepath = $file->filepath;
     $mimetype = $file->filemime;
@@ -241,12 +246,12 @@ function alfresco_browser_service_upload() {
     $reference = 'workspace://SpacesStore/'. $space;
 
     $properties = array(
-      'cm_title'       => $title,
+      'cm_title' => $title,
       'cm_description' => $description,
-      'cm_author'      => $author,
+      'cm_author' => $author,
     );
 
-    if (alfresco_service_add_content($reference, $filepath, $name, $mimetype, $encoding, $properties)) {
+    if (alfresco_service_node_add($reference, $filepath, $name, $mimetype, $encoding, $properties)) {
       drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
       echo drupal_to_js(array('success' => TRUE));
       exit();
@@ -263,13 +268,23 @@ function alfresco_browser_service_upload() {
 function alfresco_browser_service_delete() {
 
   $node = isset($_GET['node']) ? trim($_GET['node']) : '';
-  alfresco_service_node_delete('workspace://SpacesStore/'. $node);
+  $reference = 'workspace://SpacesStore/'. $node;
+
+  if (!alfresco_service_node_delete($reference)) {
+    drupal_json(array('success' => FALSE));
+    exit();
+  }
+
+  if ($nid = alfresco_exists_node($reference)) {
+    node_delete($nid);
+  }
+
   drupal_json(array('success' => TRUE));
 }
 
 /**
  * Función auxiliar para los nodos alfabéticamente por su nombre.
  */
-function _alfresco_browser_sort_nodes($node1, $node2) {
+function _alfresco_browser_node_sort($node1, $node2) {
   return strnatcmp($node1['text'], $node2['text']);
 }

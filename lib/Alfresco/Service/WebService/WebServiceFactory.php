@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Copyright (C) 2005 Alfresco, Inc.
  *
@@ -24,61 +23,51 @@
  * the FLOSS exception, and it is also available here:
  * http://www.alfresco.com/legal/licensing"
  */
-
 require_once 'AlfrescoWebService.php';
 
-class AlfWebServiceFactory
-{
-   public static function getAuthenticationService($path)
-   {
-        $path .= '/AuthenticationService?wsdl';
-        return new AlfrescoWebService($path, array());
-   }
+class AlfWebServiceFactory {
 
-   public static function getRepositoryService($path, $ticket)
-   {
-        $path .= '/RepositoryService?wsdl';
-        return new AlfrescoWebService($path, array(), $ticket);
-   }
+  public static function getAuthenticationService($path) {
+    $path.= '/AuthenticationService?wsdl';
+    return new AlfrescoWebService($path, array());
+  }
 
-   public static function getContentService($path, $ticket)
-   {
-        $path .= '/ContentService?wsdl';
-        return new AlfrescoWebService($path, array(), $ticket);
-   }
+  public static function getRepositoryService($path, $ticket) {
+    $path.= '/RepositoryService?wsdl';
+    return new AlfrescoWebService($path, array() , $ticket);
+  }
 
-   public static function getAdministrationService($path, $ticket)
-   {
-        $path .= '/AdministrationService?wsdl';
-        return new AlfrescoWebService($path, array(), $ticket);
-   }
+  public static function getContentService($path, $ticket) {
+    $path.= '/ContentService?wsdl';
+    return new AlfrescoWebService($path, array() , $ticket);
+  }
 
-   public static function getAuthoringService($path, $ticket)
-   {
-        $path .= '/AuthoringService?wsdl';
-        return new AlfrescoWebService($path, array(), $ticket);
-   }
+  public static function getAdministrationService($path, $ticket) {
+    $path.= '/AdministrationService?wsdl';
+    return new AlfrescoWebService($path, array() , $ticket);
+  }
 
-   public static function getDictionaryService($path, $ticket)
-   {
-        // Workaround for incorrect targetNamespace WSDL file.
-        // @see https://issues.alfresco.com/jira/browse/ALFCOM-1913
-        $wsdl_path = drupal_get_path('module', 'alfresco') . '/misc/wsdl/dictionary-service.wsdl';
+  public static function getAuthoringService($path, $ticket) {
+    $path.= '/AuthoringService?wsdl';
+    return new AlfrescoWebService($path, array() , $ticket);
+  }
 
-        $options = array(
-          'location' => $path .'/DictionaryService',
-          //'uri' => 'http://www.alfresco.org/ws/service/dictionary/1.0',
-          'trace' => true,
-          'exceptions' => true
-        );
+  public static function getDictionaryService($path, $ticket) {
+    // Workaround for incorrect targetNamespace WSDL file.
+    // @see https://issues.alfresco.com/jira/browse/ALFCOM-1913
+    $wsdl_path = drupal_get_path('module', 'alfresco') . '/misc/wsdl/dictionary-service.wsdl';
+    $options = array(
+      'location' => $path . '/DictionaryService',
+    //'uri' => 'http://www.alfresco.org/ws/service/dictionary/1.0',
+      'trace' => true,
+      'exceptions' => true
+    );
+    //$path .= '/DictionaryService?wsdl';
+    return new AlfrescoWebService($wsdl_path, $options, $ticket);
+  }
 
-        //$path .= '/DictionaryService?wsdl';
-        return new AlfrescoWebService($wsdl_path, $options, $ticket);
-   }
-
-   public static function getClassificationService($path, $ticket)
-   {
-        $path .= '/ClassificationService?wsdl';
-        return new AlfrescoWebService($path, array(), $ticket);
-   }
+  public static function getClassificationService($path, $ticket) {
+    $path.= '/ClassificationService?wsdl';
+    return new AlfrescoWebService($path, array() , $ticket);
+  }
 }

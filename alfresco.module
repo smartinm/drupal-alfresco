@@ -250,6 +250,7 @@ function alfresco_menu() {
 
   $items['alfresco/add'] = array(
     'title' => 'Add content',
+    'description' => 'Add content to a space and enter information about the content to be uploaded.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_add_form'),
     'access arguments' => array('add alfresco content'),
@@ -260,6 +261,7 @@ function alfresco_menu() {
   if (module_exists('views')) {
     $items['alfresco/items'] = array(
       'title' => 'View items',
+      'description' => 'Displays a list of alfresco items nodes.',
       'page callback' => 'alfresco_items_page',
       'access arguments' => array('access content'),
       //'weight' => 5,
@@ -555,7 +557,7 @@ function _alfresco_map($node) {
   $properties['cm_created'] = alfresco_date_convert($node->cm_created);
   $properties['cm_modified'] = alfresco_date_convert($node->cm_modified);
 
-  if ($content_data = alfresco_service_node_content($node)) {
+  if ($content_data = alfresco_service_node_get_content($node)) {
     $properties['cm_content'] = array();
     $properties['cm_content']['url'] = $content_data->guestUrl;
     $properties['cm_content']['mimetype'] = $content_data->mimetype;
@@ -1333,4 +1335,14 @@ function alfresco_elements() {
 
 function alfresco_process($element, $edit, $form_state, $complete_form) {
 
+}
+
+/**
+ * Utility for handling Alfresco errors.
+ *
+ * @param $e Exception
+ */
+function alfresco_error_handler($type, $e) {
+  watchdog($type, $e->getMessage(), NULL, WATCHDOG_ERROR);
+  drupal_set_message($e->getMessage(), 'error');
 }

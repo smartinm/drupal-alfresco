@@ -8,11 +8,19 @@
  */
 Ext.ns('AlfrescoBrowser');
 
-AlfrescoBrowser.ViewItem = function (url, title) {
+AlfrescoBrowser.ViewItem = function (itemsGrid) {
+  var items = itemsGrid.getSelectionModel().getSelections();
+  if (items.length == 0) {
+    return;
+  }
+
+  var node = items[0].data;
+  var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + node.name + "?node=" + node.id;
   var size = Ext.getCmp('alfresco-browser-viewport').getSize();
+  
   var iframeWin = new Ext.Window({
     id: 'preview-window',
-    title: title,
+    title: node.name,
     width: size.width - 100,
     height: size.height - 100,
     maximizable: true,
@@ -28,6 +36,7 @@ AlfrescoBrowser.ViewItem = function (url, title) {
       }
     }]
   });
+  
   iframeWin.show();
   
   var mask = new Ext.LoadMask(iframeWin.body);
@@ -41,7 +50,13 @@ AlfrescoBrowser.ViewItemOnLoad = function () {
   }
 }
 
-AlfrescoBrowser.SendToDrupal = function (node) {
+AlfrescoBrowser.SendItem = function (itemsGrid) {
+  var items = itemsGrid.getSelectionModel().getSelections();
+  if (items.length == 0 || !window.opener) {
+    return;
+  }
+  
+  var node = items[0].data;
   var title = Ext.util.Format.trim(node.title);
   var reference = 'workspace://SpacesStore/' + node.id;
   
@@ -56,8 +71,56 @@ AlfrescoBrowser.SendToDrupal = function (node) {
   self.close();
 }
 
-AlfrescoBrowser.UploadItem = function (folderTree, dataStore) {
+AlfrescoBrowser.DownloadItem = function (itemsGrid, forceDownload) {
+  var items = itemsGrid.getSelectionModel().getSelections();
+  if (items.length == 0) {
+    return;
+  }
+
+  var node = items[0].data;
+  var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + node.name + "?node=" + node.id;
   
+  if (forceDownload) {
+    url += "&mode=attachment";
+  }
+  
+  if (Ext.isIE) {
+    window.location = url;
+  } else {
+    window.open(url);
+  }
+}
+
+AlfrescoBrowser.DeleteItem = function (itemsGrid) {
+  var items = itemsGrid.getSelectionModel().getSelections();
+  if (items.length == 0) {
+    return;
+  }
+  
+  var node = items[0].data;
+  
+  Ext.MessageBox.confirm('Confirm', 'Are you sure you want to delete "' + node.name + '" and all previous versions?', function(btn) {
+    if (btn == 'yes') {
+      var url = AlfrescoBrowser.Settings['serviceDeleteUrl'] + "/" + node.name + "?node=" + node.id;
+      Ext.Ajax.request({
+        url: url,
+        success: function(response, options) {
+          var result = Ext.decode(response.responseText);
+          if (result.success) {
+            itemsGrid.store.load({params:{start: 0, cache: 'node'}});
+          } else {
+            Ext.MessageBox.alert('Ha ocurrido un error.');
+          }
+        },
+        failure: function() {
+          Ext.MessageBox.alert('Ha ocurrido un error.');
+        }
+      });
+    }
+  });
+}
+
+AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
   var space = folderTree.getSelectionModel().getSelectedNode();
   if (Ext.isEmpty(space)) {
     return;
@@ -95,7 +158,8 @@ AlfrescoBrowser.UploadItem = function (folderTree, dataStore) {
       id: 'form-name',
       name: 'name',
       fieldLabel: 'Name',
-      labelStyle: 'font-weight:bold;'
+      labelStyle: 'font-weight:bold;',
+      maxLength: 255
     }, {
       xtype: 'hidden',
       name: 'space',
@@ -116,14 +180,16 @@ AlfrescoBrowser.UploadItem = function (folderTree, dataStore) {
         fieldLabel: 'Title',
         name: 'title',
         allowBlank: false,
-        labelStyle: 'font-weight:bold;'
+        labelStyle: 'font-weight:bold;',
+        maxLength: 255
       },{
         xtype: 'textarea',
         fieldLabel: 'Description',
         name: 'description'
       },{
         fieldLabel: 'Author',
-        name: 'author'
+        name: 'author',
+        maxLength: 255
       }]
     }],
     buttons: [{
@@ -134,7 +200,7 @@ AlfrescoBrowser.UploadItem = function (folderTree, dataStore) {
             url: AlfrescoBrowser.Settings['serviceUploadUrl'],
             waitMsg: 'Uploading your content...',
             success: function(form, o) {
-              dataStore.reload();
+              dataStore.load({params:{start: 0, cache: 'node'}});
               uploadWindow.close();
             },
             failure: function(form, o){
@@ -170,18 +236,6 @@ AlfrescoBrowser.App = function() {
   var propsGrid;
   var dataStore;
   var currentPath;
-
-  function deleteItem(dataRow) {
-    var url = AlfrescoBrowser.Settings['serviceDeleteUrl'] + "/" + dataRow.name + "?node=" + dataRow.id;
-    Ext.Ajax.request({
-      url: url,
-      success: function(r, o) {
-        dataStore.reload();
-      },
-      failure: function(r, o) {
-      }
-    });
-  }
 
   return {
     init: function() {
@@ -270,6 +324,7 @@ AlfrescoBrowser.App = function() {
             dataStore.load({params:{start:0}});
             itemsGrid.setTitle(node.text);
             node.expand();
+            Ext.getCmp('btn-add').enable();
         }},
         
         tools: [{
@@ -337,6 +392,7 @@ AlfrescoBrowser.App = function() {
               return;
             }
             itemsGrid.setTitle('Search items: ' + Ext.util.Format.htmlEncode(v));
+            Ext.getCmp('btn-add').disable();
 
             this.store.baseParams[this.paramName] = v;
             this.store.load({params:{start:0}});
@@ -362,6 +418,7 @@ AlfrescoBrowser.App = function() {
         {name: 'nid'},  /* drupal node id */
         {name: 'type'},
         {name: 'name'},
+        {name: 'path'},
         {name: 'icon'},
         {name: 'author'},
         {name: 'creator'},
@@ -434,8 +491,6 @@ AlfrescoBrowser.App = function() {
             o[pn.limit] = this.pageSize;
             o['cache'] = 'node';
             if (this.fireEvent('beforechange', this, o) !== false) {
-              //itemsGrid.getEl().mask('Loading', 'x-mask-loading');
-              //this.store.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
               this.store.load({params:o});
             }
             return;
@@ -457,16 +512,17 @@ AlfrescoBrowser.App = function() {
               Ext.getCmp('btn-download').enable();
               Ext.getCmp('btn-delete').enable();
               Ext.getCmp('btn-open').enable();
-              Ext.getCmp('btn-send').enable();
+              if (window.opener) {
+                Ext.getCmp('btn-send').enable();
+              }
               Ext.getCmp('grid-details').enable();
             },
             rowdeselect: function(sm, row, rec) {
             }
-          } 
+          }
         }),
         
         title: AlfrescoBrowser.Settings['homeText'],
-        //title: 'Content Items',
         region: 'center',
         loadMask: true,
         
@@ -476,19 +532,10 @@ AlfrescoBrowser.App = function() {
             propsGrid.setSource(dataRow.data);
           },
           'rowdblclick': function(grid, dataIndex) {
-            var dataRow = dataStore.getAt(dataIndex);
             if (window.opener) {
-              AlfrescoBrowser.SendToDrupal(dataRow.data);
-            }
-            else {
-              var name = dataRow.data.name;
-              var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + name + "?node=" + dataRow.id;
-              if (Ext.isIE) {
-                window.location = url;
-              }
-              else {
-                window.open(url);
-              }
+              AlfrescoBrowser.SendItem(grid);
+            } else {
+              AlfrescoBrowser.DownloadItem(grid, false);
             }
         }},
         
@@ -499,12 +546,13 @@ AlfrescoBrowser.App = function() {
         },
 
         tbar: [{
-          id: 'btn-add-content',
+          id: 'btn-add',
           text: 'Add',
           tooltip: 'Add content to this space.',
           iconCls: 'upload',
+          disabled: true,
           handler: function() {
-            AlfrescoBrowser.UploadItem(folderTree, dataStore);
+            AlfrescoBrowser.AddItem(folderTree, dataStore);
           }
         }, '-', {
           id: 'btn-delete',
@@ -513,15 +561,7 @@ AlfrescoBrowser.App = function() {
           iconCls: 'delete',
           disabled: true,
           handler: function() {
-            var items = itemsGrid.getSelectionModel().getSelections();
-            if (items.length > 0) {
-              var name = items[0].data.name;
-              Ext.MessageBox.confirm('Confirm', 'Are you sure you want to delete "' + name + '"?', function(btn) {
-                if (btn == 'yes') {
-                  deleteItem(items[0].data);
-                }
-              });
-            }
+            AlfrescoBrowser.DeleteItem(itemsGrid);
           }
         }, '-', {
           id: 'btn-download',
@@ -530,17 +570,7 @@ AlfrescoBrowser.App = function() {
           iconCls: 'download',
           disabled: true,
           handler: function() {
-            var items = itemsGrid.getSelectionModel().getSelections();
-            if (items.length > 0) {
-              var name = items[0].data.name;
-              var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + name + "?node=" + items[0].data.id + "&mode=attachment";
-              if (Ext.isIE) {
-                window.location = url;
-              }
-              else {
-                window.open(url);
-              }
-            }
+            AlfrescoBrowser.DownloadItem(itemsGrid, true);
           }
         }, '-', {
           id: 'btn-open',
@@ -549,35 +579,16 @@ AlfrescoBrowser.App = function() {
           iconCls: 'view',
           disabled: true,
           handler: function() {
-            var items = itemsGrid.getSelectionModel().getSelections();
-            if (items.length > 0) {
-              var name = items[0].data.name;
-              var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + name + "?node=" + items[0].data.id;
-              AlfrescoBrowser.ViewItem(url, items[0].data.name);
-            }
+            AlfrescoBrowser.ViewItem(itemsGrid);
           }
         },'-',{
           id: 'btn-send',
           text: 'Send to Drupal',
           tooltip: 'Send selected item to Drupal.',
           iconCls: 'drupal',
-          disabled: false,
+          disabled: true,
           handler: function() {
-            if (!window.opener) {
-              return;
-            }
-            if (window.opener.$("form#alfresco-import-form").length == 0) {
-              var items = itemsGrid.getSelectionModel().getSelections();
-              if (items.length > 0) {
-                AlfrescoBrowser.SendToDrupal(items[0].data);
-              }
-            }
-            else {
-              var node = folderTree.getSelectionModel().getSelectedNode();
-              if (!Ext.isEmpty(node)) {
-                AlfrescoBrowser.SendToDrupal(node);
-              }
-            }
+            AlfrescoBrowser.SendItem(itemsGrid);
           }
         }, /*'-',*/ {
           id: 'grid-details',
@@ -590,8 +601,7 @@ AlfrescoBrowser.App = function() {
           toggleHandler: function(item, pressed){
             if (pressed) {
               propsGrid.expand();
-            }
-            else {
+            } else {
               propsGrid.collapse();
             }
           }
@@ -603,8 +613,6 @@ AlfrescoBrowser.App = function() {
           on: {
             click: function(){
               var o = {start: 0, cache: 'all'};
-              //itemsGrid.getEl().mask('Loading', 'x-mask-loading');
-              //dataStore.load({params:o,callback:function(){itemsGrid.getEl().unmask();}});
               dataStore.load({params:o});
             }}
         }]

@@ -24,52 +24,50 @@
  * http://www.alfresco.com/legal/licensing"
  */
 
-class AlfChildAssociation extends AlfBaseObject
-{
-	private $_parent;
-	private $_child;
-	private $_type;
-	private $_name;
-	private $_isPrimary;
-	private $_nthSibling;
+class AlfChildAssociation extends AlfBaseObject {
 
-	public function __construct($parent, $child, $type, $name, $isPrimary=false, $nthSibling=0)
-	{
-		$this->_parent = $parent;
-		$this->_child = $child;
-		$this->_type = $type;
-		$this->_name = $name;
-		$this->_isPrimary = $isPrimary;
-		$this->_nthSibling = $nthSibling;
-	}
+  private $_parent;
 
-	public function getParent()
-	{
-		return $this->_parent;
-	}
+  private $_child;
 
-	public function getChild()
-	{
-		return $this->_child;
-	}
+  private $_type;
 
-	public function getType()
-	{
-		return $this->_type;
-	}
+  private $_name;
 
-	public function getName()
-	{
-		return $this->_name;
-	}
+  private $_isPrimary;
 
-	public function getIsPrimary()
-	{
-		return $this->_isPrimary;
-	}
+  private $_nthSibling;
 
-	public function getNthSibling()
-	{
-		return $this->_nthSibling;
-	}
+  public function __construct($parent, $child, $type, $name, $isPrimary = false, $nthSibling = 0) {
+    $this->_parent = $parent;
+    $this->_child = $child;
+    $this->_type = $type;
+    $this->_name = $name;
+    $this->_isPrimary = $isPrimary;
+    $this->_nthSibling = $nthSibling;
+  }
+
+  public function getParent() {
+    return $this->_parent;
+  }
+
+  public function getChild() {
+    return $this->_child;
+  }
+
+  public function getType() {
+    return $this->_type;
+  }
+
+  public function getName() {
+    return $this->_name;
+  }
+
+  public function getIsPrimary() {
+    return $this->_isPrimary;
+  }
+
+  public function getNthSibling() {
+    return $this->_nthSibling;
+  }
 }

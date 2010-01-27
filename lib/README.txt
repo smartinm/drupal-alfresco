@@ -1,6 +1,13 @@
 // $Id$
 
 CHANGELOG
- * PHP_Beautifier
 
-http://drupal.org/node/422996
+ * Cambios de estilos de código y estándares:
+
+   * Ejecutado PHP_Beautifier con la siguiente configuración:
+     $ php_beautifier -s2 -l "ArrayNested() NewLines(before=T_CLASS:public:private:protected)" -r "*.php" .
+     
+   * Eliminadas las etiquetas de cierre de php.
+
+   * 3rd party libraries in Drupal CVS
+     http://drupal.org/node/422996
