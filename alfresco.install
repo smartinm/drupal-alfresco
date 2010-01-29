@@ -60,15 +60,16 @@ function alfresco_requirements($phase) {
   if ($phase == 'runtime') {
     // Check Alfresco PHP Library
     $result = _alfresco_check_php_library();
-    $requirements['alfresco_php_library'] = array(
-      'title'       => $t('Alfresco PHP library'),
-      'value'       => $result['value'],
-      'severity'    => $result['severity'],
-      'description' => isset($result['description']) ? $result['description'] : NULL,
-    );
-
-    // Check connection Alfresco Repository only if Alfresco PHP Library is installed
-    if ($result['severity'] == REQUIREMENT_OK) {
+    if ($result['severity'] != REQUIREMENT_OK) {
+      $requirements['alfresco_php_library'] = array(
+        'title'       => $t('Alfresco PHP library'),
+        'value'       => $result['value'],
+        'severity'    => $result['severity'],
+        'description' => isset($result['description']) ? $result['description'] : NULL,
+      );
+    }
+    else {
+      // Check connection Alfresco Repository only if Alfresco PHP Library is installed
       $result = _alfresco_check_connection_repository();
       $requirements['alfresco_repository'] = array(
         'title'       => $t('Alfresco repository'),
@@ -379,7 +380,7 @@ function _alfresco_check_connection_repository() {
   }
 
   try {
-    _alfresco_service_include_library();
+    alfresco_service_include('Repository');
 
     $username = variable_get('alfresco_credentials_username', 'guest');
     $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
@@ -419,8 +420,8 @@ function _alfresco_check_connection_repository() {
       );
     }
   }
-  catch (SoapFault $sf) {
-    $error = alfresco_parse_soap_fault($sf);
+  catch (SoapFault $exception) {
+    $error = alfresco_parse_soap_fault($exception);
     return array(
       'value'       => $t('SOAP request failed'),
       'description' => $t('SOAP Fault Code: !code, Message: !message, Detail: !detail', array(

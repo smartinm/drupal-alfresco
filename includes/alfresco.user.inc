@@ -21,6 +21,7 @@ function alfresco_user_login($edit) {
  *
  */
 function alfresco_user_logout() {
+  // Limpiamos los datos de la sesión del usuario referente a Alfresco
   unset($_SESSION['alfresco']);
 }
 

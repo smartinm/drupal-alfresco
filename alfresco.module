@@ -33,9 +33,8 @@ define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
 // Alfresco authentication methods.
-define('ALFRESCO_AUTH_SINGLE',      1);
-define('ALFRESCO_AUTH_USER',        2);
-define('ALFRESCO_AUTH_USER_UPLOAD', 3);
+define('ALFRESCO_AUTH_SINGLE', 1);
+define('ALFRESCO_AUTH_USER',   2);
 
 // Regex string for any variety of ISO and DATETIME formats
 // @see date_api.module
@@ -46,7 +45,7 @@ define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(
 define('ALFRESCO_REGEX_NODE_UUID', '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}');
 
 // Including dependencies.
-require_once(dirname(__FILE__) .'/includes/alfresco.service.inc');
+require_once dirname(__FILE__) .'/includes/alfresco.service.inc';
 
 // ------------------------------------------------------------------
 // =1 Help hooks
@@ -279,6 +278,17 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
+  // Callbacks
+
+  $items['alfresco/download/%/%'] = array(
+    'title' => 'Alfresco download',
+    'page callback' => 'alfresco_download',
+    'page arguments' => array(2),
+    'access arguments' => array('download alfresco content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'alfresco.pages.inc',
+  );
+
   return $items;
 }
 
@@ -395,6 +405,14 @@ function alfresco_form(&$node, $form_state) {
   $form['#submit'][] = 'alfresco_form_submit';
 
   return $form;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function alfresco_form_search_form_alter(&$form, &$form_state) {
+  require_once drupal_get_path('module', 'alfresco') .'/includes/alfresco.search.inc';
+  alfresco_search_form_alter(&$form, &$form_state);
 }
 
 // ------------------------------------------------------------------
@@ -557,12 +575,13 @@ function _alfresco_map($node) {
   $properties['cm_created'] = alfresco_date_convert($node->cm_created);
   $properties['cm_modified'] = alfresco_date_convert($node->cm_modified);
 
-  if ($content_data = alfresco_service_node_get_content($node)) {
+  $content = $node->cm_content;
+  if ($content instanceof AlfContentData) {
     $properties['cm_content'] = array();
-    $properties['cm_content']['url'] = $content_data->guestUrl;
-    $properties['cm_content']['mimetype'] = $content_data->mimetype;
-    $properties['cm_content']['size'] = $content_data->size;
-    $properties['cm_content']['encoding'] = $content_data->encoding;
+    $properties['cm_content']['url'] = $content->guestUrl;
+    $properties['cm_content']['mimetype'] = $content->mimetype;
+    $properties['cm_content']['size'] = $content->size;
+    $properties['cm_content']['encoding'] = $content->encoding;
   }
   else {
     $properties['cm_content'] = NULL;
@@ -707,6 +726,11 @@ function alfresco_admin_theme($op = 'info', $option = NULL) {
  * @see ALFRESCO_SYNC_LIMIT
  */
 function alfresco_cron() {
+
+  // Limpiamos el ticket para forzar la autenticación contra el repositorio y
+  // evitar el timeout del ticket.
+  // @todo esto no funciona por que la sesión es por usuario
+  //unset($_SESSION['alfresco']['ticket']);
 
   if (variable_get('alfresco_sync_enabled', FALSE)) {
     $limit = (int)variable_get('alfresco_sync_cron_limit', 100);
@@ -952,6 +976,11 @@ function alfresco_file_put($filepath, $url, $headers = array()) {
 // ------------------------------------------------------------------
 // =7 Utils helper functions
 // ------------------------------------------------------------------
+
+function alfresco_valid_uuid($uuid) {
+  $pattern = '|^'. ALFRESCO_REGEX_NODE_UUID .'$|';
+  return preg_match($pattern, $uuid);
+}
 
 /**
  * Verify the syntax of the given Alfresco node reference.
@@ -1285,7 +1314,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
  * Implementation of hook_user().
  */
 function alfresco_user($op, &$edit, &$account, $category = NULL) {
-  require_once(drupal_get_path('module', 'alfresco') .'/includes/alfresco.user.inc');
+  require_once drupal_get_path('module', 'alfresco') .'/includes/alfresco.user.inc';
 
   switch ($op) {
     case 'login':
@@ -1321,6 +1350,21 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
 }
 
 /**
+ * Implementation of hook_search().
+ */
+function alfresco_search($op = 'search', $keys = NULL) {
+  require_once drupal_get_path('module', 'alfresco') .'/includes/alfresco.search.inc';
+
+  switch ($op) {
+    case 'name':
+      return alfresco_search_name();
+
+    case 'search':
+      return alfresco_search_search($keys);
+  }
+}
+
+/**
  * Implementation of hook_elements().
  */
 function alfresco_elements() {
@@ -1342,7 +1386,17 @@ function alfresco_process($element, $edit, $form_state, $complete_form) {
  *
  * @param $e Exception
  */
-function alfresco_error_handler($type, $e) {
-  watchdog($type, $e->getMessage(), NULL, WATCHDOG_ERROR);
-  drupal_set_message($e->getMessage(), 'error');
+function alfresco_error_handler($type, $exception) {
+
+  if ($exception instanceof SoapFault) {
+    watchdog($type, 'Unable to connect to Alfresco repository via SOAP. Exception: <pre>@exception</pre>', array('@exception' => $exception->__toString()), WATCHDOG_ERROR);
+    drupal_set_message(t('Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance.'), 'error');
+
+    // Limpiamos el TICKET para forzar a crear una nueva sesión en la siguiente petición
+    unset($_SESSION['alfresco']['ticket']);
+  }
+  else {
+    watchdog($type, $exception->getMessage(), array(), WATCHDOG_ERROR);
+    drupal_set_message($exception->getMessage(), 'error');
+  }
 }

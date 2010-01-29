@@ -25,6 +25,7 @@
  */
 require_once 'Alfresco/Service/WebService/WebServiceFactory.php';
 require_once 'Alfresco/Service/BaseObject.php';
+require_once 'Alfresco/Service/Session.php';
 
 /**
  *
@@ -98,7 +99,7 @@ class AlfRepository extends AlfBaseObject {
    */
   public static function getSessionId($ticket) {
     $result = null;
-    if (isset($_SESSION["sessionIds"]) == true) {
+    if (isset($_SESSION["sessionIds"][$ticket])) {
       $result = $_SESSION["sessionIds"][$ticket];
     }
     return $result;

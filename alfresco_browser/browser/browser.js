@@ -25,7 +25,7 @@ AlfrescoBrowser.ViewItem = function (itemsGrid) {
     height: size.height - 100,
     maximizable: true,
     modal: 'true',
-    layout: 'fit', 
+    layout: 'fit',
     html: '<iframe id="preview-frame" frameborder="0"  src="' + url + '" onLoad="AlfrescoBrowser.ViewItemOnLoad()"></iframe>',
     buttonAlign: 'center',
     defaultButton: 0,
@@ -85,7 +85,13 @@ AlfrescoBrowser.DownloadItem = function (itemsGrid, forceDownload) {
   }
   
   if (Ext.isIE) {
-    window.location = url;
+    if (forceDownload) {
+      window.location = url;
+    } else if (top.location.href != window.location.href) {
+      top.open(url);
+    } else {
+      window.open(url);
+    }
   } else {
     window.open(url);
   }
@@ -149,7 +155,8 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       listeners: {
         'fileselected': function(fb, value) {
           if (value) {
-            Ext.getCmp('form-name').setValue(value);
+            var filename = value.replace(/^.*\\/, '')
+            Ext.getCmp('form-name').setValue(filename);
           }
         }
       }
@@ -221,7 +228,8 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
     id: 'upload-window',
     title: 'Add content to current space: ' + space.text,
     autoHeight: true,
-    minWidth: 500,
+    width: 500,
+    minWidth: 300,
     modal: 'true',
     layout: 'fit', 
     items: [ uploadForm ]

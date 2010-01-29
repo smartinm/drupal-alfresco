@@ -59,6 +59,15 @@ function alfresco_page_download($node) {
   exit();
 }
 
+function alfresco_download($uuid) {
+  if (!alfresco_valid_uuid($uuid)) {
+    drupal_not_found();
+    exit();
+  }
+
+  alfresco_file_transfer('workspace://SpacesStore/'. $uuid);
+}
+
 // ------------------------------------------------------------------
 // Alfresco synchronize page
 // ------------------------------------------------------------------
@@ -181,7 +190,7 @@ function alfresco_autocomplete() {
 
   if ($last_string != '') {
 
-    if (!$session = alfresco_service_create_session()) {
+    if (!$session = alfresco_service_get_session()) {
       drupal_json($matches);
       exit();
     }

@@ -50,8 +50,7 @@ function alfresco_browser_service_tree_json() {
 
   try {
     $reference = 'workspace://SpacesStore/'. $node;
-    $session = alfresco_service_create_session();
-    $currentNode = alfresco_service_node_load($reference, $session);
+    $currentNode = alfresco_service_node_load($reference);
 
     if (!$currentNode) {
       // node not found
@@ -61,6 +60,7 @@ function alfresco_browser_service_tree_json() {
 
     $nodes = array();
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+    $session = alfresco_service_get_session();
 
     foreach ($currentNode->getChildren() as $child) {
       /* @var $childNode AlfNode */
@@ -129,7 +129,6 @@ function alfresco_browser_service_documents_json() {
   }
 
   try {
-    $session = alfresco_service_create_session();
     $queryResults = array();
 
     if (!empty($query)) {
@@ -138,7 +137,7 @@ function alfresco_browser_service_documents_json() {
     }
     else {
       $reference = 'workspace://SpacesStore/'. $node;
-      $folder = alfresco_service_node_load($reference, $session);
+      $folder = alfresco_service_node_load($reference);
 
       if (!$folder) {
         drupal_json(array('total' => 0, 'rows' => array()));
@@ -146,6 +145,7 @@ function alfresco_browser_service_documents_json() {
       }
 
       $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+      $session = alfresco_service_get_session();
 
       foreach ($folder->children as $childAssoc) {
         // @todo: Enhanced suppport other folder types

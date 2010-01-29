@@ -71,9 +71,8 @@ function alfresco_admin_overview(&$form_state) {
     '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE),
     '#required' => TRUE,
     '#options' => array(
-      ALFRESCO_AUTH_SINGLE      => t('Single. Use always the above username and password to connect to repository.'),
-      ALFRESCO_AUTH_USER        => t('Per user. Use users accounts and passwords to connect to repository.'),
-      ALFRESCO_AUTH_USER_UPLOAD => t('Per user only upload. Use users accounts and passwords to connect to repository.'),
+      ALFRESCO_AUTH_SINGLE => t('Single. Use always the above username and password to connect to repository.'),
+      ALFRESCO_AUTH_USER   => t('Per user. Use users accounts and passwords to connect to repository.'),
     ),
     '#description' => $auth_more,
   );
@@ -310,7 +309,7 @@ function alfresco_admin_model() {
   $headers = array('Namespace', 'Prefix');
   $rows = array();
 
-  _alfresco_service_include_library();
+  alfresco_service_include('NamespaceMap');
   $namespaceMap = AlfNamespaceMap::getInstance();
   foreach($namespaceMap->getMappings() as $prefix => $name) {
     $rows[] = array($name, $prefix);

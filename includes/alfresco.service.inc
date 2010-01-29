@@ -7,6 +7,19 @@
  */
 
 /**
+ * Devuelve un objeto AlfSession que permite realizar peticiones a Alfresco.
+ *
+ * @return AlfSession
+ */
+function alfresco_service_get_session() {
+  static $session = NULL;
+  if (!isset($session)) {
+    $session = alfresco_service_create_session();
+  }
+  return $session;
+}
+
+/**
  * Authenticate against the repository and create a new session.
  *
  * @return Session
@@ -15,53 +28,32 @@
  * @see http://wiki.alfresco.com/wiki/PHP_Tutorial_One_Complete_Script
  */
 function alfresco_service_create_session() {
-  static $session = NULL;
+  $session = NULL;
 
-  if (!isset($session)) {
-    _alfresco_service_include_library();
+  alfresco_service_include('Repository');
 
-    try {
-      global $user;
+  try {
+    // The web service end point URL for the Alfresco repository
+    $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
 
-      // The web service end point URL for the Alfresco repository
-      $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+    // Create the repository object baseed on the repository URL.  The
+    // repository represents the Alfresco repository we are connecting to.
+    // It can be used to authenticate users and as a session factory.
+    $repository = new AlfRepository($repository_url);
 
-      // The user credentials we are going to use
-      if ($user->uid == 0 || $user->uid == 1 && variable_get('alfresco_authentication_admin', TRUE)
-          || variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE) == ALFRESCO_AUTH_SINGLE) {
+    // Authenticate the user details for the repository we want to connect to.
+    // Assuming authentication is succesful we will be returned a ticket.
+    // The ticket is a string which can be used to create Session's
+    $ticket = _alfresco_service_authenticate($repository);
 
-        $username = variable_get('alfresco_credentials_username', 'guest');
-        $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
-      }
-      else {
-
-        $username = $_SESSION['alfresco']['credentials']['username'];
-        $password = base64_decode($_SESSION['alfresco']['credentials']['password']);
-      }
-
-      // Create the repository object baseed on the repository URL.  The
-      // repository represents the Alfresco repository we are connecting to.
-      // It can be used to authenticate users and as a session factory.
-      $repository = new AlfRepository($repository_url);
-
-      // Authenticate the user details for the repository we want to connect to.
-      // Assuming authentication is succesful we will be returned a ticket.
-      // The ticket is a string which can be used to create Session's
-      $ticket = $repository->authenticate($username, $password);
-
-      // Using the ticket we can now create a session.  In general it is better
-      // to create a new session for a new page or page sequence rather than
-      // creating one and using across many pages as this helps to prevent
-      // resource usage from creaping up.
-      $session = $repository->createSession($ticket);
-    }
-    catch (Exception $e) {
-      drupal_set_message(t('Error connecting to Alfresco repository. Please contact the server administrator for assistance.'), 'error');
-      watchdog('alfresco', 'Error connecting to Alfresco repository. URL=%url, Exception=%msg', array(
-        '%url' => $repository_url,
-        '%msg' => _alfresco_service_error_message($e)),
-        WATCHDOG_ERROR);
-    }
+    // Using the ticket we can now create a session.  In general it is better
+    // to create a new session for a new page or page sequence rather than
+    // creating one and using across many pages as this helps to prevent
+    // resource usage from creaping up.
+    $session = $repository->createSession($ticket);
+  }
+  catch (SoapFault $exception) {
+    alfresco_error_handler('alfresco', $exception);
   }
 
   return $session;
@@ -81,7 +73,7 @@ function alfresco_service_create_session() {
  * @return AlfNode
  *  A fully-populated Alfresco node object.
  */
-function alfresco_service_node_load($reference_or_path, $session = NULL, $reset = NULL) {
+function alfresco_service_node_load($reference_or_path, $reset = NULL) {
   static $nodes = array();
 
   if ($reset) {
@@ -102,11 +94,11 @@ function alfresco_service_node_load($reference_or_path, $session = NULL, $reset 
     }
   }
 
-  if (!$session && !($session = alfresco_service_create_session())) {
-    return FALSE;
-  }
-
   try {
+    if (!$session = alfresco_service_get_session()) {
+      return FALSE;
+    }
+
     if ($inforef) {
       // @see https://issues.alfresco.com/jira/browse/AR-1063
       $store = new AlfStore($session, $inforef['address'], $inforef['scheme']);
@@ -128,12 +120,8 @@ function alfresco_service_node_load($reference_or_path, $session = NULL, $reset 
       return $node;
     }
   }
-  catch (Exception $e) {
-    drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
-    watchdog('alfresco', 'Error loading node from alfresco repository, with reference %reference. Exception=%msg', array(
-      '%reference' => $reference,
-      '%msg' => _alfresco_service_error_message($e)),
-      WATCHDOG_ERROR);
+  catch (SoapFault $exception) {
+    alfresco_error_handler('alfresco', $exception);
   }
 }
 
@@ -144,7 +132,7 @@ function alfresco_service_node_load($reference_or_path, $session = NULL, $reset 
  * @param $reset
  * @return unknown_type
  */
-function alfresco_service_node_delete($reference_or_path, $session = NULL) {
+function alfresco_service_node_delete($reference_or_path) {
 
   if (!$inforef = alfresco_parse_reference($reference_or_path)) {
     if (!alfresco_valid_path($reference_or_path)) {
@@ -152,11 +140,11 @@ function alfresco_service_node_delete($reference_or_path, $session = NULL) {
     }
   }
 
-  if (!$session && !($session = alfresco_service_create_session())) {
-    return FALSE;
-  }
-
   try {
+    if (!$session = alfresco_service_get_session()) {
+      return FALSE;
+    }
+
     if ($inforef) {
       // @see https://issues.alfresco.com/jira/browse/AR-1063
       $store = new AlfStore($session, $inforef['address'], $inforef['scheme']);
@@ -183,9 +171,8 @@ function alfresco_service_node_delete($reference_or_path, $session = NULL) {
       return TRUE;
     }
   }
-  catch (Exception $e) {
-    drupal_set_message(t('Error loading node from alfresco repository.'), 'error');
-    watchdog('alfresco', 'Error loading node from alfresco repository (%msg)', array('%msg' => $e->getMessage()), WATCHDOG_ERROR);
+  catch (SoapFault $exception) {
+    alfresco_error_handler('alfresco', $exception);
   }
 }
 
@@ -205,13 +192,13 @@ function alfresco_service_node_delete($reference_or_path, $session = NULL) {
  *
  * @see http://wiki.alfresco.com/wiki/Search
  */
-function alfresco_service_search($text, $property = '@cm:name', $session = NULL) {
-
-  if (!$session && !($session = alfresco_service_create_session())) {
-    return FALSE;
-  }
+function alfresco_service_search($text, $property = '@cm:name') {
 
   try {
+    if (!$session = alfresco_service_get_session()) {
+      return FALSE;
+    }
+
     // Lucene requires the : to be escaped using the \ character
     $property = !empty($property) ? str_replace(':', '\:', $property) : 'ALL';
     $query = '+ISNODE:T +TYPE:"cm:content" +'. $property .':"*'. $text .'*"';
@@ -223,12 +210,8 @@ function alfresco_service_search($text, $property = '@cm:name', $session = NULL)
 
     return $queryResults;
   }
-  catch (Exception $e) {
-    drupal_set_message(t('Error searching nodes from alfresco repository.'), 'error');
-    watchdog('alfresco', 'Error searching node from alfresco repository, with reference %reference. Exception=%msg', array(
-      '%reference' => $reference,
-      '%msg' => _alfresco_service_error_message($e)),
-      WATCHDOG_ERROR);
+  catch (SoapFault $exception) {
+    alfresco_error_handler('alfresco', $exception);
   }
 }
 
@@ -249,15 +232,14 @@ function alfresco_service_search($text, $property = '@cm:name', $session = NULL)
  * @see alf_upload_file()
  * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
-function alfresco_service_node_add($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $properties = array(), $session = NULL) {
-
-  if (!$session && !($session = alfresco_service_create_session())) {
-    return FALSE;
-  }
+function alfresco_service_node_add($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $properties = array()) {
 
   try {
+    if (!$session = alfresco_service_get_session()) {
+      return FALSE;
+    }
 
-    $space_node = alfresco_service_node_load($space, $session);
+    $space_node = alfresco_service_node_load($space);
     if (!$space_node) {
       return FALSE;
     }
@@ -310,66 +292,60 @@ function alfresco_service_node_add($space, $filepath, $filename = NULL, $mimetyp
       return TRUE;
     }
   }
-  catch (Exception $e) {
-    drupal_set_message(t('Error saving alfresco node.'), 'error');
-    watchdog('alfresco', 'Error saving alfresco node. Exception=%msg', array(
-      '%msg' => _alfresco_service_error_message($e)),
-      WATCHDOG_ERROR);
+  catch (SoapFault $exception) {
+    alfresco_error_handler('alfresco', $exception);
   }
 }
 
 /**
- * Include the Alfresco PHP library.
+ * Include Alfresco/Alfredo PHP files as necessary.
  */
-function _alfresco_service_include_library() {
-  static $included = FALSE;
+function alfresco_service_include($file, $path = 'Alfresco/Service') {
+  static $used = NULL;
 
-  if (!$included) {
+  if (!isset($used)) {
     // Add the Alfresco PHP library directory to include path
     $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
     if (is_dir($lib_path)) {
       set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
     }
-
-    // Include the required Alfresco PHP API objects
-    include_once 'Alfresco/Service/SpacesStore.php';
-    include_once 'Alfresco/Service/Repository.php';
-    include_once 'Alfresco/Service/Session.php';
-
-    $included = TRUE;
   }
+
+  $filepath = $path .'/'. $file;
+  if (!isset($used[$filepath])) {
+    require_once "$filepath.php";
+  }
+
+  $used[$filepath] = TRUE;
 }
 
 /**
- *
+ * Authenticate against the repository and return a ticket.
  */
-function _alfresco_service_error_message(Exception $ex) {
+function _alfresco_service_authenticate($repository) {
+  global $user;
 
-  if (empty($ex)) {
-    return NULL;
+  if (isset($_SESSION['alfresco']['ticket'])) {
+    return $_SESSION['alfresco']['ticket'];
   }
 
-  if ($ex instanceof SoapFault) {
-    $error = alfresco_parse_soap_fault($ex);
-    $message = t('SOAP Fault Code: !code, Message: !message, Detail: !detail', array(
-      '!code'    => !empty($error['code'])    ? $error['code']    : t('None'),
-      '!message' => !empty($error['message']) ? $error['message'] : t('None'),
-      '!detail'  => !empty($error['detail'])  ? $error['detail']  : t('None'),
-    ));
+  // The user credentials we are going to use
+  $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
+
+  if ($user->uid == 0 || $user->uid == 1 && variable_get('alfresco_authentication_admin', TRUE) || $auth_method == ALFRESCO_AUTH_SINGLE) {
+    $username = variable_get('alfresco_credentials_username', 'guest');
+    $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
   }
   else {
-    $message = $ex->getMessage();
+    $username = $_SESSION['alfresco']['credentials']['username'];
+    $password = base64_decode($_SESSION['alfresco']['credentials']['password']);
   }
 
-  return $message;
-}
+  $ticket = $repository->authenticate($username, $password);
 
-function alfresco_service_node_get_content($node) {
-
-  if (isset($node) && is_object($node->cm_content)) {
-    if ($node->cm_content instanceof AlfContentData) {
-      return $node->cm_content;
-    }
+  if ($ticket) {
+    $_SESSION['alfresco']['ticket'] = $ticket;
   }
-  return FALSE;
+
+  return $ticket;
 }

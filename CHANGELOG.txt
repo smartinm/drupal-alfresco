@@ -21,6 +21,8 @@ Nuevas funcionalidades y mejoras:
 - Mejorada la integración con Views
   * Añadida una vista por defecto
 
+- Implementación inicial de búsqueda en el repositorio
+
 - Añadida integración con Admin Theme
 
 Cambios para desarrolladores:
@@ -31,6 +33,11 @@ Otros cambios:
 - Actualizada la traducción
 - Añadida una solución para el fallo del NameSpace del dictionary-service.wsdl
 - Fixed a variety of other bugs.
+
+Pendiente:
+- Implementación de filtros para añadir contenido de Alfresco
+- Mejoras de la sincronización/creación de usuarios Drupal-Alfresco
+
 
 Alfresco 6.x-1.0, 2009-03-23
 ============================
