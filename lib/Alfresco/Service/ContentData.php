@@ -23,7 +23,7 @@
  * the FLOSS exception, and it is also available here:
  * http://www.alfresco.com/legal/licensing"
  */
-require_once ("Alfresco/Service/Functions.php");
+require_once 'Alfresco/Service/Functions.php';
 
 class AlfContentData extends AlfBaseObject {
 

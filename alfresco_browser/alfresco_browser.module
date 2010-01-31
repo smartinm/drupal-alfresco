@@ -212,7 +212,8 @@ function alfresco_browser_process($element, $form_state) {
   );
 
   // @todo Obtener nombre del fichero de base de datos
-  $alfNode = alfresco_service_node_load($element['#value']);
+  alfresco_include('soap');
+  $alfNode = alfresco_soap_node_load($element['#value']);
 
   $element['alfresco_browser_path'] = array(
     '#type' => 'textfield',
@@ -238,5 +239,6 @@ function theme_alfresco_browser($element) {
  *
  */
 function _alfresco_browser_load_home_node() {
-  return alfresco_service_node_load(variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME));
+  alfresco_include('soap');
+  return alfresco_soap_node_load(variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME));
 }

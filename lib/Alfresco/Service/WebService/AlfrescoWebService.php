@@ -38,9 +38,12 @@ class AlfrescoWebService extends SoapClient {
   private $ticket;
 
   public function __construct($wsdl, $options = array('trace' => true, 'exceptions' => true), $ticket = null) {
+    /*
+     * @todo: Mejorar forzado de location
     if (!isset($options['location'])) {
       $options['location'] = $wsdl;
     }
+    */
     // Store the current ticket
     $this->ticket = $ticket;
     // Call the base class
@@ -75,6 +78,7 @@ class AlfrescoWebService extends SoapClient {
         throw new Exception("Expected length: 1, Received: " . $securityHeader->length . ". No Security Header, or more than one element called Security!");
       }
       $securityHeader = $securityHeader->item(0);
+
       // Construct Timestamp Header
       $timeStamp = $dom->createElementNS($this->wsUtilityNS, "Timestamp");
       $createdDate = date("Y-m-d\TH:i:s\Z", mktime(date("H") + 24, date("i") , date("s") , date("m") , date("d") , date("Y")));
@@ -83,6 +87,7 @@ class AlfrescoWebService extends SoapClient {
       $expires = new DOMElement("Expires", $expiresDate, $this->wsUtilityNS);
       $timeStamp->appendChild($created);
       $timeStamp->appendChild($expires);
+
       // Construct UsernameToken Header
       $userNameToken = $dom->createElementNS($this->securityExtNS, "UsernameToken");
       $userName = new DOMElement("Username", "username", $this->securityExtNS);
@@ -92,9 +97,11 @@ class AlfrescoWebService extends SoapClient {
       $passWord->appendChild($dom->createTextNode($this->ticket));
       $userNameToken->appendChild($userName);
       $userNameToken->appendChild($passWord);
+
       // Construct Security Header
       $securityHeader->appendChild($timeStamp);
       $securityHeader->appendChild($userNameToken);
+
       // Save the XML Request
       $request = $dom->saveXML();
     }

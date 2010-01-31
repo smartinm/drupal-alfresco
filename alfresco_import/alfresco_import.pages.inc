@@ -50,7 +50,8 @@ function alfresco_import_form($form_state) {
   );
 
   if (!empty($reference)) {
-    $alf_node = alfresco_service_node_load($reference);
+    alfresco_include('soap');
+    $alf_node = alfresco_soap_node_load($reference);
     if (!$alf_node) {
       $form['none_found'] = array(
         '#type'  => 'item',

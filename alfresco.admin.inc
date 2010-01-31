@@ -309,7 +309,7 @@ function alfresco_admin_model() {
   $headers = array('Namespace', 'Prefix');
   $rows = array();
 
-  alfresco_service_include('NamespaceMap');
+  alfresco_include_lib('NamespaceMap');
   $namespaceMap = AlfNamespaceMap::getInstance();
   foreach($namespaceMap->getMappings() as $prefix => $name) {
     $rows[] = array($name, $prefix);
@@ -369,6 +369,31 @@ function alfresco_admin_advanced(&$form_state) {
   $limits = drupal_map_assoc(array(10, 20, 50, 100, 200, 500));
   $period = drupal_map_assoc(array(900, 1800, 3600, 7200, 10800, 21600, 32400, 43200, 64800, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
 
+  $form['authentication'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Authentication'),
+  );
+
+  $form['authentication']['alfresco_forget_passwords'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Do not store users\' passwords during sessions'),
+    '#default_value' => 0,
+    '#description' => t('Allow this module to store the user\'s password, in clear text, during the session. Physically, these passwords are stored in the Drupal\'s session table in clear text. This is not ideal and is not the recomended configuration.</p>'),
+  );
+
+  $form['authentication']['alfresco_tickets_timeout'] = array(
+    '#type' => 'select',
+    '#title' => t('Ticket valid duration'),
+    '#default_value' => variable_get('alfresco_sync_cron_refresh', 3600),
+    '#options' => $period,
+    '#description' => t('The period for which tickets are valid.'),
+  );
+
+  // -------------
+  // Synchronizing
+  // -------------
+
+  /*
   $form['synchronizing'] = array(
     '#type' => 'fieldset',
     '#title' => t('Synchronizing'),
@@ -399,6 +424,7 @@ function alfresco_admin_advanced(&$form_state) {
     '#description' => t('The length of time between node synchronizes. (Requires a correctly configured <a href="@cron">cron maintenance task</a>)', array('@cron' => url('admin/reports/status'))),
     '#disabled' => TRUE,  // @todo eliminar cuando sea estable
   );
+  */
 
   $tip = t('El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl.');
   $tipo_more = t('For more info, visit <a href="@url">ALFCOM-1913 issue</a> on Alfresco JIRA.', array(

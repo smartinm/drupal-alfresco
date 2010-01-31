@@ -44,9 +44,6 @@ define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(
 // @eee http://wiki.alfresco.com/wiki/Web_Service_Data_Types_XML_Schema
 define('ALFRESCO_REGEX_NODE_UUID', '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}');
 
-// Including dependencies.
-require_once dirname(__FILE__) .'/includes/alfresco.service.inc';
-
 // ------------------------------------------------------------------
 // =1 Help hooks
 // ------------------------------------------------------------------
@@ -86,7 +83,7 @@ function alfresco_node_info() {
     'alfresco_item' => array(
       'name'        => t('Alfresco item'),
       'module'      => 'alfresco',
-      'description' => t('An <em>alfresco item</em> is a reference to node stored in Alfresco repository.'),
+      'description' => t('An <em>alfresco item</em> is a representation of a node held in the Alfresco repository. Alfresco nodes provide meta-data and structure to content.'),
       'has_title'   => TRUE,
       'title_label' => t('Title'),
       'has_body'    => TRUE,
@@ -411,7 +408,7 @@ function alfresco_form(&$node, $form_state) {
  * Implementation of hook_form_FORM_ID_alter().
  */
 function alfresco_form_search_form_alter(&$form, &$form_state) {
-  require_once drupal_get_path('module', 'alfresco') .'/includes/alfresco.search.inc';
+  alfresco_include('search');
   alfresco_search_form_alter(&$form, &$form_state);
 }
 
@@ -435,7 +432,8 @@ function alfresco_form_validate($form, &$form_state) {
     }
     else {
       // Load node from alfresco repository.
-      $alf_node = alfresco_service_node_load($reference);
+      alfresco_include('soap');
+      $alf_node = alfresco_soap_node_load($reference);
       if ($alf_node) {
         $form_state['alf_node'] = $alf_node;
       }
@@ -809,22 +807,23 @@ function alfresco_file_transfer($reference, $disposition = NULL) {
     ob_end_clean();
   }
 
-  $alf_node = alfresco_service_node_load($reference);
+  alfresco_include('soap');
+  $alf_node = alfresco_soap_node_load($reference);
   if (!$alf_node) {
     drupal_not_found();
     exit();
   }
 
-  $alf_data = $alf_node->cm_content;
-  if (!$alf_data) {
+  $content = $alf_node->cm_content;
+  if (!($content instanceof AlfContentData)) {
     drupal_not_found();
     exit();
   }
 
   $name = $alf_node->cm_name;
-  $url  = $alf_data->url;
-  $size = $alf_data->size;
-  $mime = $alf_data->mimetype;
+  $url  = $content->url;
+  $size = $content->size;
+  $mime = $content->mimetype;
 
   drupal_set_header('Content-Type: '. $mime);
   drupal_set_header('Content-Length: '. $size);
@@ -863,13 +862,11 @@ function alfresco_file_put($filepath, $url, $headers = array()) {
 
   if ($uri == FALSE) {
     $result->error = 'unable to parse URL';
-    $result->code = -1001;
     return $result;
   }
 
   if (!isset($uri['scheme'])) {
     $result->error = 'missing schema';
-    $result->code = -1002;
     return $result;
   }
 
@@ -887,7 +884,6 @@ function alfresco_file_put($filepath, $url, $headers = array()) {
       break;
     default:
       $result->error = 'invalid schema '. $uri['scheme'];
-      $result->code = -1003;
       return $result;
   }
 
@@ -1163,7 +1159,8 @@ function alfresco_sync_node($node) {
   }
 
   // check alfresco node in repository
-  $alf_node = alfresco_service_node_load($reference);
+  alfresco_include('soap');
+  $alf_node = alfresco_soap_node_load($reference);
   if (!$alf_node) {
     // @todo el nodo de Alfresco no existe, decidir que hacer.
     return FALSE;
@@ -1242,7 +1239,8 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
     return FALSE;
   }
 
-  $alf_node = alfresco_service_node_load($reference);
+  alfresco_include('soap');
+  $alf_node = alfresco_soap_node_load($reference);
   if (!$alf_node) {
     return FALSE;
   }
@@ -1314,7 +1312,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
  * Implementation of hook_user().
  */
 function alfresco_user($op, &$edit, &$account, $category = NULL) {
-  require_once drupal_get_path('module', 'alfresco') .'/includes/alfresco.user.inc';
+  alfresco_include('user');
 
   switch ($op) {
     case 'login':
@@ -1353,7 +1351,7 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
  * Implementation of hook_search().
  */
 function alfresco_search($op = 'search', $keys = NULL) {
-  require_once drupal_get_path('module', 'alfresco') .'/includes/alfresco.search.inc';
+  alfresco_include('search');
 
   switch ($op) {
     case 'name':
@@ -1384,19 +1382,57 @@ function alfresco_process($element, $edit, $form_state, $complete_form) {
 /**
  * Utility for handling Alfresco errors.
  *
- * @param $e Exception
+ * @param $type
+ * @param $exception Exception
+ * @param $message
  */
-function alfresco_error_handler($type, $exception) {
+function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
 
   if ($exception instanceof SoapFault) {
-    watchdog($type, 'Unable to connect to Alfresco repository via SOAP. Exception: <pre>@exception</pre>', array('@exception' => $exception->__toString()), WATCHDOG_ERROR);
+    watchdog($type, 'Unable to connect to Alfresco repository via SOAP.', array(), WATCHDOG_ERROR);
     drupal_set_message(t('Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance.'), 'error');
 
-    // Limpiamos el TICKET para forzar a crear una nueva sesión en la siguiente petición
-    unset($_SESSION['alfresco']['ticket']);
+    // @todo: Añadir configuración para habilitar/deshabilitar mensajes de debug
+    if (module_exists('devel')) {
+      dpm(strval($exception));
+    }
   }
   else {
-    watchdog($type, $exception->getMessage(), array(), WATCHDOG_ERROR);
-    drupal_set_message($exception->getMessage(), 'error');
+    $message = !isset($message) ? $exception->getMessage() : $message;
+    watchdog($type, $message, array(), WATCHDOG_ERROR);
+    drupal_set_message($message, 'error');
   }
+}
+
+/**
+ * Include alfresco .inc files as necessary.
+ */
+function alfresco_include($file) {
+  static $used = array();
+  if (!isset($used[$file])) {
+    require_once './' . drupal_get_path('module', 'alfresco') . "/includes/alfresco.$file.inc";
+  }
+
+  $used[$file] = TRUE;
+}
+
+/**
+ * Include alfresco library .php files as necessary.
+ */
+function alfresco_include_lib($file, $path = 'Alfresco/Service') {
+  static $used = array();
+  if (empty($used)) {
+    // Add the Alfresco PHP library directory to include path
+    $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
+    if (is_dir($lib_path)) {
+      set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
+    }
+  }
+
+  $filepath = $path .'/'. $file;
+  if (!isset($used[$filepath])) {
+    require_once "$filepath.php";
+  }
+
+  $used[$filepath] = TRUE;
 }

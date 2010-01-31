@@ -19,7 +19,8 @@ Próximo
  * Módulo Alfresco Browser, widget/element que permite navegar por la estructura de Alfresco para obtener la referencia de un nodo
  * Añadir tests
  * Estádisticas de descargas de ficheros
- 
+ * Múltiples repositorios
+  
 Ideas
 -----
  * Integración completa: permitir crear/modificar/eliminar nodos de Alfresco desde Drupal

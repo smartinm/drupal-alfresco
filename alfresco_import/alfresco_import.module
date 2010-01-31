@@ -12,7 +12,7 @@
 function alfresco_import_help($path, $arg) {
 
   switch ($path) {
-    case 'admin/content/alfresco_import':
+    case 'alfresco/import':
       return '<p>'. t('Import multiple alfresco nodes from a space of Alfresco.') .'</p>';
     case 'admin/help#alfresco_import':
       return '<p>'. t('Allows importing multiple alfresco nodes from a space of Alfresco.') .'</p>';
@@ -31,8 +31,8 @@ function alfresco_import_perm() {
  */
 function alfresco_import_menu() {
 
-  $items['admin/content/alfresco_import'] = array(
-    'title' => 'Alfresco import',
+  $items['alfresco/import'] = array(
+    'title' => 'Import items',
     'description' => 'Import <em>Alfresco item</em> nodes from an Alfresco space.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_import_form'),

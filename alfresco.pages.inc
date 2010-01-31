@@ -18,7 +18,7 @@ function alfresco_overview_page() {
 
 function alfresco_items_page() {
   //drupal_set_title(check_plain(''));
-  $view = views_embed_view('alfresco_items', 'page');
+  $view = views_embed_view('alfresco_items');
   return $view;
 }
 
@@ -47,7 +47,8 @@ function alfresco_page_download($node) {
       break;
 
     case ALFRESCO_FILE_DOWNLOADS_TICKET:
-      $alf_node = alfresco_service_node_load($node->reference);
+      alfresco_include('soap');
+      $alf_node = alfresco_soap_node_load($node->reference);
       $alf_data = $alf_node->cm_content;
       if ($alf_data) {
         drupal_goto($alf_data->url);
@@ -101,7 +102,8 @@ function alfresco_page_sync($node) {
  */
 function alfresco_page_details($node) {
 
-  $alf_node = alfresco_service_node_load($node->reference);
+  alfresco_include('soap');
+  $alf_node = alfresco_soap_node_load($node->reference);
   if (!$alf_node) {
     return $node;
   }
@@ -163,7 +165,8 @@ function alfresco_autocomplete2($string = '') {
   $matches = array();
   if ($string) {
 
-    $results = alfresco_service_search($string);
+    alfresco_include('soap');
+    $results = alfresco_soap_search($string);
     if (is_array($results)) {
       foreach ($results as $anode) {
         $matches[$anode->getId()] = check_plain($anode->getFolderPath()) .'/'. check_plain($anode->cm_name);
@@ -190,7 +193,8 @@ function alfresco_autocomplete() {
 
   if ($last_string != '') {
 
-    if (!$session = alfresco_service_get_session()) {
+    alfresco_include('soap');
+    if (!$session = alfresco_soap_get_session()) {
       drupal_json($matches);
       exit();
     }
@@ -441,7 +445,8 @@ function alfresco_add_form_upload($form, &$form_state) {
     $mimetype = $form_state['values']['mimetype'];
     $encoding = $form_state['values']['encoding'];
 
-    if (alfresco_service_node_add($space, $filepath, $filename, $mimetype, $encoding)) {
+    alfresco_include('soap');
+    if (alfresco_soap_node_add($space, $filepath, $filename, $mimetype, $encoding)) {
       drupal_set_message(t("'!filename' was created successfully.", array(
         '!filename' => $file['filename'])
       ));

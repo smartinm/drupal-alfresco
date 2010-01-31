@@ -49,8 +49,10 @@ function alfresco_browser_service_tree_json() {
   }
 
   try {
+    alfresco_include('soap');
+
     $reference = 'workspace://SpacesStore/'. $node;
-    $currentNode = alfresco_service_node_load($reference);
+    $currentNode = alfresco_soap_node_load($reference);
 
     if (!$currentNode) {
       // node not found
@@ -60,7 +62,7 @@ function alfresco_browser_service_tree_json() {
 
     $nodes = array();
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-    $session = alfresco_service_get_session();
+    $session = alfresco_soap_get_session();
 
     foreach ($currentNode->getChildren() as $child) {
       /* @var $childNode AlfNode */
@@ -129,6 +131,8 @@ function alfresco_browser_service_documents_json() {
   }
 
   try {
+    alfresco_include('soap');
+
     $queryResults = array();
 
     if (!empty($query)) {
@@ -137,7 +141,7 @@ function alfresco_browser_service_documents_json() {
     }
     else {
       $reference = 'workspace://SpacesStore/'. $node;
-      $folder = alfresco_service_node_load($reference);
+      $folder = alfresco_soap_node_load($reference);
 
       if (!$folder) {
         drupal_json(array('total' => 0, 'rows' => array()));
@@ -145,7 +149,7 @@ function alfresco_browser_service_documents_json() {
       }
 
       $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-      $session = alfresco_service_get_session();
+      $session = alfresco_soap_get_session();
 
       foreach ($folder->children as $childAssoc) {
         // @todo: Enhanced suppport other folder types
@@ -238,6 +242,7 @@ function alfresco_browser_service_upload() {
     'file_validate_size' => array(file_upload_max_size())
   );
   */
+  alfresco_include('soap');
 
   if ($file = file_save_upload('file')) {
     $filepath = $file->filepath;
@@ -251,7 +256,7 @@ function alfresco_browser_service_upload() {
       'cm_author' => $author,
     );
 
-    if (alfresco_service_node_add($reference, $filepath, $name, $mimetype, $encoding, $properties)) {
+    if (alfresco_soap_node_add($reference, $filepath, $name, $mimetype, $encoding, $properties)) {
       drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
       echo drupal_to_js(array('success' => TRUE));
       exit();
@@ -270,7 +275,8 @@ function alfresco_browser_service_delete() {
   $node = isset($_GET['node']) ? trim($_GET['node']) : '';
   $reference = 'workspace://SpacesStore/'. $node;
 
-  if (!alfresco_service_node_delete($reference)) {
+  alfresco_include('soap');
+  if (!alfresco_soap_node_delete($reference)) {
     drupal_json(array('success' => FALSE));
     exit();
   }
