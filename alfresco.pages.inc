@@ -317,9 +317,9 @@ function _alfresco_add_form_properties($form_state) {
   $form['properties']['type'] = array(
     '#type' => 'select',
     '#title' => t('Type'),
-    '#default_value' => '{http://www.alfresco.org/model/content/1.0}content',
+    '#default_value' => 'cm_content',
     '#options' => array(
-      '{http://www.alfresco.org/model/content/1.0}content' => 'Content'
+      'cm_content' => 'Content'
     ),
   );
 
@@ -441,18 +441,25 @@ function alfresco_add_form_upload($form, &$form_state) {
 
   if ($file) {
     $filepath = $file['filepath'];
-    $filename = $form_state['values']['name'];
+    $name = $form_state['values']['name'];
+    $type = $form_state['values']['type'];
     $mimetype = $form_state['values']['mimetype'];
     $encoding = $form_state['values']['encoding'];
 
+    $properties = array(
+      'cm_title' => $form_state['values']['title'],
+      'cm_description' => $form_state['values']['description'],
+      'cm_author' => $form_state['values']['author'],
+    );
+
     alfresco_include('soap');
-    if (alfresco_soap_node_add($space, $filepath, $filename, $mimetype, $encoding)) {
-      drupal_set_message(t("'!filename' was created successfully.", array(
-        '!filename' => $file['filename'])
-      ));
+    $result = alfresco_soap_node_add($space, $filepath, $name, $mimetype, $encoding, $type, $properties);
+    if (!isset($result->error)) {
+      $name = $result->node->cm_name;
+      drupal_set_message(t("'!name' was created successfully.", array('!name' => $name)));
     }
     else {
-      //form_set_error('file', t('Error'));
+      form_set_error('file', $result->error);
 
       $form_state['values']['file'] = (array)$file;
       $form_state['rebuild'] = TRUE;

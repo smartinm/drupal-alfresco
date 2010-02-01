@@ -137,6 +137,9 @@ function alfresco_browser_theme() {
 function template_preprocess_alfresco_browser_page(&$variables) {
   global $base_path, $language;
 
+  $variables['closure'] = theme('closure');
+  $variables['scripts'] = drupal_get_js();
+
   $module_path = drupal_get_path('module', 'alfresco_browser');
   $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
   $locale_path = $extjs_path .'/source/locale/ext-lang-'. $language->language .'.js';

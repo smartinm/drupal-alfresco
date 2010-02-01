@@ -20,6 +20,16 @@ function alfresco_browser_repository_page() {
  *
  */
 function alfresco_browser_page() {
+  $module_path = drupal_get_path('module', 'alfresco_browser');
+  $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+
+  drupal_add_js($extjs_path .'/adapter/ext/ext-base.js', 'module', 'footer', FALSE, FALSE, FALSE);
+  drupal_add_js($extjs_path .'/ext-all.js', 'module', 'footer', FALSE, FALSE, FALSE);
+  drupal_add_js($extjs_path .'/source/locale/ext-lang-'. $language->language .'.js', 'module', 'footer', FALSE, FALSE, FALSE);
+
+  drupal_add_js($module_path .'/browser/FileUploadField.js', 'module', 'footer');
+  drupal_add_js($module_path .'/browser/browser.js', 'module', 'footer');
+
   print theme('alfresco_browser_page');
 }
 
@@ -247,6 +257,7 @@ function alfresco_browser_service_upload() {
   if ($file = file_save_upload('file')) {
     $filepath = $file->filepath;
     $mimetype = $file->filemime;
+    // @see Fix for https://issues.alfresco.com/jira/browse/ETWOONE-400
     $encoding = 'UTF-8';
     $reference = 'workspace://SpacesStore/'. $space;
 
@@ -256,28 +267,34 @@ function alfresco_browser_service_upload() {
       'cm_author' => $author,
     );
 
-    if (alfresco_soap_node_add($reference, $filepath, $name, $mimetype, $encoding, $properties)) {
-      drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
-      echo drupal_to_js(array('success' => TRUE));
-      exit();
-    }
-  }
+    $result = alfresco_soap_node_add($reference, $filepath, $name, $mimetype, $encoding, 'cm_content', $properties);
 
-  drupal_set_header('Content-Type: text/html;charset=ISO-8859-1');
-  echo drupal_to_js(array('success' => FALSE));
+    if (!isset($result->error)) {
+      $success = array('success' => TRUE);
+    }
+    else {
+      $success = array('success' => FALSE, 'error' => $result->error);
+    }
+
+    drupal_set_header('Content-Type: text/html;charset=UTF-8');
+    echo drupal_to_js($success);
+    exit();
+  }
 }
 
 /**
  *
  */
 function alfresco_browser_service_delete() {
+  alfresco_include('soap');
 
   $node = isset($_GET['node']) ? trim($_GET['node']) : '';
   $reference = 'workspace://SpacesStore/'. $node;
 
-  alfresco_include('soap');
-  if (!alfresco_soap_node_delete($reference)) {
-    drupal_json(array('success' => FALSE));
+  $result = alfresco_soap_node_delete($reference);
+  dpm($result);
+  if (isset($result->error)) {
+    drupal_json(array('success' => FALSE, 'error' => $result->error));
     exit();
   }
 

@@ -105,24 +105,41 @@ AlfrescoBrowser.DeleteItem = function (itemsGrid) {
   
   var node = items[0].data;
   
-  Ext.MessageBox.confirm('Confirm', 'Are you sure you want to delete "' + node.name + '" and all previous versions?', function(btn) {
-    if (btn == 'yes') {
-      var url = AlfrescoBrowser.Settings['serviceDeleteUrl'] + "/" + node.name + "?node=" + node.id;
-      Ext.Ajax.request({
-        url: url,
-        success: function(response, options) {
-          var result = Ext.decode(response.responseText);
-          if (result.success) {
-            itemsGrid.store.load({params:{start: 0, cache: 'node'}});
-          } else {
-            Ext.MessageBox.alert('Ha ocurrido un error.');
+  Ext.MessageBox.confirm(
+    Drupal.t('Confirm'),
+    Drupal.t('Are you sure you want to delete "!name" and all previous versions?', {'!name' : node.name}),
+    function(btn) {
+      if (btn == 'yes') {
+        var url = AlfrescoBrowser.Settings['serviceDeleteUrl'] + "/" + node.name + "?node=" + node.id;
+        Ext.Ajax.request({
+          url: url,
+          success: function(response, options) {
+            var result = Ext.decode(response.responseText);
+            if (result.success) {
+              itemsGrid.store.load({params:{start: 0, cache: 'node'}});
+            } else {
+              Ext.Msg.show({
+                title: Drupal.t('Aviso'),
+                msg: result.error,
+                minWidth: 200,
+                modal: true,
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.Msg.OK
+              });
+            }
+          },
+          failure: function() {
+            Ext.Msg.show({
+              title: Drupal.t('Fail'),
+              msg: Drupal.t('Request failed.'),
+              minWidth: 200,
+              modal: true,
+              icon: Ext.MessageBox.ERROR,
+              buttons: Ext.Msg.OK
+            });
           }
-        },
-        failure: function() {
-          Ext.MessageBox.alert('Ha ocurrido un error.');
-        }
-      });
-    }
+        });
+      }
   });
 }
 
@@ -149,8 +166,8 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       xtype: 'fileuploadfield',
       id: 'form-file',
       name: 'files[file]',  // No change: required for Drupal Form API
-      emptyText: 'Locate content to upload',
-      fieldLabel: 'File',
+      emptyText: Drupal.t('Locate content to upload'),
+      fieldLabel: Drupal.t('File'),
       labelStyle: 'font-weight:bold;',
       listeners: {
         'fileselected': function(fb, value) {
@@ -164,7 +181,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       xtype: 'textfield',
       id: 'form-name',
       name: 'name',
-      fieldLabel: 'Name',
+      fieldLabel: Drupal.t('Name'),
       labelStyle: 'font-weight:bold;',
       maxLength: 255
     }, {
@@ -173,7 +190,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       value: space.id
     }, {
       xtype: 'fieldset',
-      title: 'Content properties',
+      title: Drupal.t('Content properties'),
       defaultType: 'textfield',
       labelWidth: 70,
       anchor: '100%',
@@ -184,34 +201,41 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       },
       autoHeight:true,
       items: [{
-        fieldLabel: 'Title',
+        fieldLabel: Drupal.t('Title'),
         name: 'title',
         allowBlank: false,
         labelStyle: 'font-weight:bold;',
         maxLength: 255
       },{
         xtype: 'textarea',
-        fieldLabel: 'Description',
+        fieldLabel: Drupal.t('Description'),
         name: 'description'
       },{
-        fieldLabel: 'Author',
+        fieldLabel: Drupal.t('Author'),
         name: 'author',
         maxLength: 255
       }]
     }],
     buttons: [{
-      text: 'Add',
+      text: Drupal.t('Add'),
       handler: function() {
         if (uploadForm.getForm().isValid()) {
           uploadForm.getForm().submit({
             url: AlfrescoBrowser.Settings['serviceUploadUrl'],
-            waitMsg: 'Uploading your content...',
+            waitMsg: Drupal.t('Uploading your content...'),
             success: function(form, o) {
               dataStore.load({params:{start: 0, cache: 'node'}});
               uploadWindow.close();
             },
             failure: function(form, o){
-              Ext.MessageBox.alert('Ha ocurrido un error.', o.result);
+              Ext.Msg.show({
+                title: Drupal.t('Ha ocurrido un error'),
+                msg: o.result.error,
+                minWidth: 200,
+                modal: true,
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.Msg.OK
+              });
             }
           });
         }
@@ -226,7 +250,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
 
   var uploadWindow = new Ext.Window({
     id: 'upload-window',
-    title: 'Add content to current space: ' + space.text,
+    title: Drupal.t('Add content to current space: !space', {'!space' : space.text}),
     autoHeight: true,
     width: 500,
     minWidth: 300,
@@ -291,7 +315,7 @@ AlfrescoBrowser.App = function() {
         id: 'folder-tree',
         region: 'west',
         collapsible: true,
-        title: 'Browse Spaces',
+        title: Drupal.t('Browse Spaces'),
         margins: '5 0 5 5',
         cmargins: '5 5 5 5',
         width: 240,
@@ -399,7 +423,8 @@ AlfrescoBrowser.App = function() {
             if (v.length < 3) {
               return;
             }
-            itemsGrid.setTitle('Search items: ' + Ext.util.Format.htmlEncode(v));
+            var title = Drupal.t('Search items: !query', {'!query': Ext.util.Format.htmlEncode(v)});
+            itemsGrid.setTitle(title);
             Ext.getCmp('btn-add').disable();
 
             this.store.baseParams[this.paramName] = v;
@@ -413,7 +438,7 @@ AlfrescoBrowser.App = function() {
         region: 'west',
         store: dataStore,
         width: 320,
-        emptyText: 'Search (minimum 3 characters)',
+        emptyText: Drupal.t('Search (minimum 3 characters)'),
         applyTo: 'search'
       })
     },

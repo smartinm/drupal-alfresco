@@ -32,6 +32,10 @@ define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);  // Private transfer
 define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
+define('ALFRESCO_FILE_EXISTS_RENAME',  0);
+define('ALFRESCO_FILE_EXISTS_REPLACE', 1);
+define('ALFRESCO_FILE_EXISTS_ERROR',   2);
+
 // Alfresco authentication methods.
 define('ALFRESCO_AUTH_SINGLE', 1);
 define('ALFRESCO_AUTH_USER',   2);
@@ -153,7 +157,7 @@ function alfresco_menu() {
     'title' => 'Alfresco',
     'description' => 'Configure Alfresco.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('alfresco_admin_overview'),
+    'page arguments' => array('alfresco_admin_settings'),
     'access arguments' => array('administer alfresco'),
     'file' => 'alfresco.admin.inc',
   );
@@ -754,7 +758,7 @@ function alfresco_theme() {
   return array(
     'alfresco_properties_table' => array(
       'arguments' => array('form' => NULL),
-      'file' => 'alfresco.admin.inc',
+      'file' => 'alfresco.theme.inc',
     ),
     'alfresco_teaser' => array(
       'arguments' => array('node' => NULL),
@@ -1396,6 +1400,10 @@ function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
     if (module_exists('devel')) {
       dpm(strval($exception));
     }
+
+    // Limpiamos el ticket actual para forzar la autenticación
+    unset($_SESSION['alfresco_ticket']);
+    unset($_SESSION['alfresco_last_access']);
   }
   else {
     $message = !isset($message) ? $exception->getMessage() : $message;

@@ -15,14 +15,20 @@ function alfresco_user_login($edit) {
   // @todo: Analizar otros métodos, como guardar la sesión de alfresco
   $_SESSION['alfresco_credentials']['username'] = $edit['name'];
   $_SESSION['alfresco_credentials']['password'] = base64_encode($edit['pass']);
+
+  // Eliminamos cualquier ticket anterior para forzar a realizar un nueva
+  // autenticación con las credenciales del usuario.
+  unset($_SESSION['alfresco_ticket']);
+  unset($_SESSION['alfresco_last_access']);
 }
 
 /**
  *
  */
 function alfresco_user_logout() {
-  // Limpiamos los datos de la sesión del usuario referente a Alfresco
-  unset($_SESSION['alfresco_credentials']);
+  // No es necesario limpiar el ticket porque la sesión se destruye cuando un
+  // usuario cierra la conexión.
+  // @see user_logout()
 }
 
 /**

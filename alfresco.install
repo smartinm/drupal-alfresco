@@ -112,7 +112,7 @@ function alfresco_uninstall() {
     'alfresco_sync_cron_limit',
     'alfresco_sync_cron_refresh',
     'alfresco_sync_enabled',
-    'alfresco_ticket_timeout',
+    'alfresco_tickets_timeout',
   );
   foreach ($variables as $variable) {
     variable_del($variable);
@@ -458,5 +458,7 @@ function alfresco_update_6100() {
     'wcm_avmlayeredfolder',
   );
   variable_set('alfresco_folder_types', $default_folder_types);
+
+  // Clear session table
 }
 */

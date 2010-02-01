@@ -87,3 +87,39 @@ function theme_alfresco_display($node) {
 function theme_alfresco($element) {
   return drupal_render($element);
 }
+
+/**
+ *
+ * @see http://cvs.drupal.org/viewvc.py/drupal/contributions/docs/developer/examples/scaffolding_example/scaffolding_example.admin.inc?revision=1.1
+ * @see http://api.drupal.org/api/function/drupal_add_tabledrag/6
+ */
+function theme_alfresco_properties_table($form) {
+
+  $rows = array();
+  foreach (element_children($form) as $key) {
+    $row = array();
+
+    $row[] = drupal_render($form[$key]['key']);
+    $row[] = drupal_render($form[$key]['name']);
+    $row[] = drupal_render($form[$key]['display']);
+    $row[] = drupal_render($form[$key]['title']);
+    $row[] = drupal_render($form[$key]['body']);
+    $row[] = drupal_render($form[$key]['show']);
+
+    $form[$key]['weight']['#attributes']['class'] = 'alfresco-properties-order-weight';
+    $row[] = drupal_render($form[$key]['weight']);
+
+    $rows[] = array(
+      'data'  => $row,
+      'class' => 'draggable',
+    );
+  }
+
+  $header = array(t('Property'), t('Name'), t('Display'), t('Title'), t('Body'),  t('Show'), '');
+  $output = theme('table', $header, $rows, array('id' => 'alfresco-properties-table'));
+  $output .= drupal_render($form);
+
+  drupal_add_tabledrag('alfresco-properties-table', 'order', 'self', 'alfresco-properties-order-weight');
+
+  return $output;
+}

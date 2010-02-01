@@ -13,9 +13,10 @@
 /**
  * Form builder for the alfresco settings page.
  *
- * @see alfresco_admin_overview_submit()
+ * @see alfresco_admin_settings_submit()
+ * @see alfresco_admin_settings_validate()
  */
-function alfresco_admin_overview(&$form_state) {
+function alfresco_admin_settings() {
 
   /*
   module_load_install('alfresco');
@@ -77,13 +78,6 @@ function alfresco_admin_overview(&$form_state) {
     '#description' => $auth_more,
   );
 
-  $form['authentication']['alfresco_authentication_admin'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Admin use account repository'),
-    '#default_value' => variable_get('alfresco_authentication_admin', TRUE),
-    '#required' => TRUE,
-  );
-
   $download_help = t('Select the download method of the files stored in Alfresco repository:');
   $download_tips = array(
     t('<strong>Module method</strong>, use this method if you Alfresco repository is not publicly accessible (default).'),
@@ -112,16 +106,16 @@ function alfresco_admin_overview(&$form_state) {
     '#description' => $download_more,
   );
 
-  $form['#validate'][] = 'alfresco_admin_overview_validate';
-  $form['#submit'][] = 'alfresco_admin_overview_submit';
+  $form['#validate'][] = 'alfresco_admin_settings_validate';
+  $form['#submit'][] = 'alfresco_admin_settings_submit';
 
   return system_settings_form($form);
 }
 
 /**
- * Validate the alfresco overview settings form.
+ * Validate the alfresco admin settings form.
  */
-function alfresco_admin_overview_validate($form, &$form_state) {
+function alfresco_admin_settings_validate($form, &$form_state) {
   // Ensure URL is valid.
   if (!valid_url($form_state['values']['alfresco_repository_url'], TRUE)) {
     form_set_error('url', t('The URL repository %url is invalid. Please enter a fully-qualified URL, such as http://share.alfresco.com/alfresco/api.', array('%url' => $form_state['values']['alfresco_repository_url'])));
@@ -131,7 +125,7 @@ function alfresco_admin_overview_validate($form, &$form_state) {
 /**
  *
  */
-function alfresco_admin_overview_submit($form, &$form_state) {
+function alfresco_admin_settings_submit($form, &$form_state) {
 
   if (empty($form_state['values']['alfresco_credentials_password'])) {
     $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
@@ -246,42 +240,6 @@ function alfresco_admin_display() {
   return system_settings_form($form);
 }
 
-/**
- *
- * @see http://cvs.drupal.org/viewvc.py/drupal/contributions/docs/developer/examples/scaffolding_example/scaffolding_example.admin.inc?revision=1.1
- * @see http://api.drupal.org/api/function/drupal_add_tabledrag/6
- */
-function theme_alfresco_properties_table($form) {
-
-  $rows = array();
-  foreach (element_children($form) as $key) {
-    $row = array();
-
-    $row[] = drupal_render($form[$key]['key']);
-    $row[] = drupal_render($form[$key]['name']);
-    $row[] = drupal_render($form[$key]['display']);
-    $row[] = drupal_render($form[$key]['title']);
-    $row[] = drupal_render($form[$key]['body']);
-    $row[] = drupal_render($form[$key]['show']);
-
-    $form[$key]['weight']['#attributes']['class'] = 'alfresco-properties-order-weight';
-    $row[] = drupal_render($form[$key]['weight']);
-
-    $rows[] = array(
-      'data'  => $row,
-      'class' => 'draggable',
-    );
-  }
-
-  $header = array(t('Property'), t('Name'), t('Display'), t('Title'), t('Body'),  t('Show'), '');
-  $output = theme('table', $header, $rows, array('id' => 'alfresco-properties-table'));
-  $output .= drupal_render($form);
-
-  drupal_add_tabledrag('alfresco-properties-table', 'order', 'self', 'alfresco-properties-order-weight');
-
-  return $output;
-}
-
 // ------------------------------------------------------------------
 // Alfresco Namespaces settings page
 // ------------------------------------------------------------------
@@ -364,29 +322,34 @@ function alfresco_admin_model() {
 /**
  * Form builder for the alfresco advanced settings page.
  */
-function alfresco_admin_advanced(&$form_state) {
+function alfresco_admin_advanced() {
 
   $limits = drupal_map_assoc(array(10, 20, 50, 100, 200, 500));
   $period = drupal_map_assoc(array(900, 1800, 3600, 7200, 10800, 21600, 32400, 43200, 64800, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
 
-  $form['authentication'] = array(
+  $form['advanced'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Authentication'),
+    '#title' => t('Advanced settings'),
   );
 
-  $form['authentication']['alfresco_forget_passwords'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Do not store users\' passwords during sessions'),
-    '#default_value' => 0,
-    '#description' => t('Allow this module to store the user\'s password, in clear text, during the session. Physically, these passwords are stored in the Drupal\'s session table in clear text. This is not ideal and is not the recomended configuration.</p>'),
-  );
-
-  $form['authentication']['alfresco_tickets_timeout'] = array(
+  $form['advanced']['alfresco_tickets_timeout'] = array(
     '#type' => 'select',
     '#title' => t('Ticket valid duration'),
-    '#default_value' => variable_get('alfresco_sync_cron_refresh', 3600),
+    '#default_value' => variable_get('alfresco_ticket_timeout', 3600),
     '#options' => $period,
-    '#description' => t('The period for which tickets are valid.'),
+    '#description' => t('The period for which tickets are valid (the default is one hour).'),
+  );
+
+  $tip = t('El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl.');
+  $tipo_more = t('For more info, visit <a href="@url">ALFCOM-1913 issue</a> on Alfresco JIRA.', array(
+    '@url' => 'https://issues.alfresco.com/jira/browse/ALFCOM-1913')
+  );
+
+  $form['advanced']['alfresco_workaround_dictionary_service_wsdl'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
+    '#description' => $tip . $tipo_more,
+    '#default_value' => variable_get('alfresco_local_dictionary_service_wsdl', TRUE),
   );
 
   // -------------
@@ -425,18 +388,6 @@ function alfresco_admin_advanced(&$form_state) {
     '#disabled' => TRUE,  // @todo eliminar cuando sea estable
   );
   */
-
-  $tip = t('El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl.');
-  $tipo_more = t('For more info, visit <a href="@url">ALFCOM-1913 issue</a> on Alfresco JIRA.', array(
-    '@url' => 'https://issues.alfresco.com/jira/browse/ALFCOM-1913')
-  );
-
-  $form['alfresco_workaround_dictionary_service_wsdl'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
-    '#description' => $tip . $tipo_more,
-    '#default_value' => variable_get('alfresco_local_dictionary_service_wsdl', TRUE),
-  );
 
   return system_settings_form($form);
 }

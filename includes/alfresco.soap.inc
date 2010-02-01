@@ -47,9 +47,11 @@ function alfresco_soap_create_session() {
     // It can be used to authenticate users and as a session factory.
     $repository = new AlfRepository($repository_url);
 
-    if (isset($_SESSION['alfresco_ticket'])) {
-      $last_access = isset($_SESSION['alfresco_last_access']) ? $_SESSION['alfresco_last_access'] : 0;
-      if (time() < ($last_access + variable_get('alfresco_ticket_timeout', 3600))) {
+    if (isset($_SESSION['alfresco_ticket']) && isset($_SESSION['alfresco_last_access'])) {
+      $last_access = $_SESSION['alfresco_last_access'];
+      $ticket_timeout = variable_get('alfresco_tickets_timeout', 3600);
+
+      if (time() < (intval($last_access) + intval($ticket_timeout))) {
         $ticket = $_SESSION['alfresco_ticket'];
       }
     }
@@ -57,7 +59,7 @@ function alfresco_soap_create_session() {
     if (!isset($ticket)) {
       // Authenticate the user details for the repository we want to connect to.
       // Assuming authentication is succesful we will be returned a ticket.
-      $ticket = alfresco_soap_authenticate($repository);
+      $ticket = _alfresco_soap_authenticate($repository);
     }
 
     // Using the ticket we can now create a session.
@@ -147,20 +149,22 @@ function alfresco_soap_node_load($reference_or_path, $reset = NULL) {
  * @return unknown_type
  */
 function alfresco_soap_node_delete($reference_or_path) {
+  $result = new stdClass();
 
   if (!$inforef = alfresco_parse_reference($reference_or_path)) {
     if (!alfresco_valid_path($reference_or_path)) {
-      return FALSE;
+      $result->error = TRUE;
+      return $result;
     }
   }
 
   try {
     if (!$session = alfresco_soap_get_session()) {
-      return FALSE;
+      $result->error = TRUE;
+      return $result;
     }
 
     if ($inforef) {
-      // @see https://issues.alfresco.com/jira/browse/AR-1063
       $store = new AlfStore($session, $inforef['address'], $inforef['scheme']);
       $nodes = $session->query($store, '+ISNODE:T +ID:"'. $inforef['reference'] .'"');
     }
@@ -182,12 +186,18 @@ function alfresco_soap_node_delete($reference_or_path) {
 
       $session->repositoryService->update(array('statements' => $statements));
 
-      return TRUE;
+      $result->node = $node;
     }
   }
   catch (SoapFault $exception) {
     alfresco_error_handler('alfresco', $exception);
+    $error = isset($exception->faultstring) ? $exception->faultstring : $exception->getMessage();
+    if (empty($error)) {
+      $result->error = t('Imposible borrar contenido. Asegúrese que tiene los permisos nececesarios para poder borrar el contenido.');
+    }
   }
+
+  return $result;
 }
 
 /**
@@ -233,41 +243,62 @@ function alfresco_soap_search($text, $property = '@cm:name') {
  * Uploads a file into content store and returns the content data string which
  * can be used to populate a content property.
  *
- * @param $session the session
- * @param $filepath the file location
+ * @param $space
+ * @param $filepath
+ * @param $name
  * @param $mimetype
  * @param $encoding
  * @param $properties
- *  cm_title
- *  cm_description
- *  cm_author
- * @return String the content data that can be used to update the content property
+ *   - cm_title - Title
+ *   - cm_description - Description
+ *   - cm_author - Author
+ * @param $replace Replace behavior when the destination file already exists.
+ *   - ALFRESCO_FILE_EXISTS_REPLACE - Replace the existing file
+ *   - ALFRESCO_FILE_EXISTS_RENAME - Append _{incrementing number} until the filename is unique
+ *   - ALFRESCO_FILE_EXISTS_ERROR - Do nothing and return a message error (default)
  *
  * @see alf_upload_file()
  * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
-function alfresco_soap_node_add($space, $filepath, $filename = NULL, $mimetype = NULL, $encoding = 'UTF-8', $properties = array()) {
+function alfresco_soap_node_add($space, $filepath, $name = NULL, $mimetype = NULL, $encoding = NULL, $type = 'cm_content', $properties = array(), $replace = ALFRESCO_FILE_EXISTS_ERROR) {
+  $result = new stdClass();
 
   try {
-    if (!$session = alfresco_soap_get_session()) {
-      return FALSE;
+    $session = alfresco_soap_get_session();
+    if (!$session) {
+      $result->error = t('Imposible obtener una sesión de Alfresco.');
+      return $result;
     }
 
     $space_node = alfresco_soap_node_load($space);
     if (!$space_node) {
-      return FALSE;
+      $result->error = t('El espacio especificado no existe.');
+      return $result;
     }
 
     // Get the address and the port
     $host = $session->repository->host;
     $port = $session->repository->port;
 
-    if (empty($filename)) {
-      $filename = basename($filepath);
+    if (empty($name)) {
+      $name = basename($filepath);
+    }
+
+    $current_node = _alfresco_soap_node_exists($space_node, $name);
+    if ($current_node) {
+      switch ($replace) {
+        case ALFRESCO_FILE_EXISTS_RENAME:
+          $name = _alfresco_soap_generate_name($space_node->getChildren(), $name);
+          break;
+
+        case ALFRESCO_FILE_EXISTS_ERROR:
+          $result->error = t('The selected file %file could not be copied, because a file by that name already exists in the destination.', array('%file' => $name));
+          return $result;
+      }
     }
 
     // Write the request header onto the socket
-    $url = 'http://'. $host .':'. $port .'/alfresco/upload/'. urlencode($filename) .'?ticket='. $session->ticket;
+    $url = 'http://'. $host .':'. $port .'/alfresco/upload/'. urlencode($name) .'?ticket='. $session->ticket;
 
     if (!empty($mimetype)) {
       // Add mimetype if specified
@@ -279,20 +310,28 @@ function alfresco_soap_node_add($space, $filepath, $filename = NULL, $mimetype =
       $url .= '&encoding='. $encoding;
     }
 
-    $result = alfresco_file_put($filepath, $url);
+    // Return the content data that can be used to update the content property.
+    $response = alfresco_file_put($filepath, $url);
 
-    if ($result->code != 200) {
-      return FALSE;
+    if ($response->code != 200) {
+      $result->error = isset($response->error) ? $response->error : $response->code;
+      return $result;
     }
 
-    if (($index = strpos($result->data, 'contentUrl')) === FALSE) {
-      return FALSE;
+    if (($index = strpos($response->data, 'contentUrl')) === FALSE) {
+      $result->error = t('Respuesta no esperada del servidor');
+      return $result;
     }
 
-    $content_data = substr($result->data, $index);
+    $content_data = substr($response->data, $index);
     if ($content_data) {
-      $new_node = $space_node->createChild('cm_content', 'cm_contains', 'cm_'. $filename);
-      $new_node->cm_name = $filename;
+      if ($replace == ALFRESCO_FILE_EXISTS_REPLACE && $current_node) {
+        $new_node = $current_node;
+      }
+      else {
+        $new_node = $space_node->createChild($type, 'cm_contains', 'cm_'. $name);
+      }
+      $new_node->cm_name = $name;
       $new_node->cm_content = $content_data;
 
       if (is_array($properties) && count($properties)) {
@@ -301,33 +340,93 @@ function alfresco_soap_node_add($space, $filepath, $filename = NULL, $mimetype =
         }
       }
 
-      $session->save();
+      $result->node = $new_node;
 
-      return TRUE;
+      $session->save();
     }
   }
   catch (SoapFault $exception) {
     alfresco_error_handler('alfresco', $exception);
+    $error = isset($exception->faultstring) ? $exception->faultstring : $exception->getMessage();
+    if (empty($error)) {
+      $result->error = t('Imposible añadir el contenido. Por favor, compruebe que tiene los permisos necesarios para añadir contenido al espacio.');
+    }
   }
+
+  return $result;
+}
+
+function _alfresco_soap_node_exists($space, $name) {
+  // @todo: No recorrer todos los hijos
+  foreach ($space->getChildren() as $child) {
+    $child_node = $child->getChild();
+    if ($child_node->cm_name === $name) {
+      return $child_node;
+    }
+  }
+}
+
+function _alfresco_soap_generate_name($children, $basename) {
+  $alt_name = $basename;
+
+  // Destination file already exists, generate an alternative.
+  if ($pos = strrpos($basename, '.')) {
+    $name = substr($basename, 0, $pos);
+    $ext = substr($basename, $pos);
+  }
+  else {
+    $name = $basename;
+  }
+
+  $counter = 1;
+  do {
+    $alt_name = $name .'_'. $counter++ . $ext;
+
+    $exists = FALSE;
+    foreach ($children as $child) {
+      $child_node = $child->getChild();
+      if ($child_node->cm_name === $alt_name) {
+        $exists = TRUE;
+        break;
+      }
+    }
+
+  } while ($exists);
+
+  return $alt_name;
 }
 
 /**
  * Authenticate against the repository and return a ticket.
  */
-function alfresco_soap_authenticate($repository) {
+function _alfresco_soap_authenticate($repository) {
   global $user;
 
-  // The user credentials we are going to use
-  $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
+  $ticket = NULL;
 
-  if ($user->uid == 0 || $user->uid == 1 && variable_get('alfresco_authentication_admin', TRUE) || $auth_method == ALFRESCO_AUTH_SINGLE) {
-    $username = variable_get('alfresco_credentials_username', 'guest');
-    $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+  try {
+    // The user credentials we are going to use
+    $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
+
+    if ($user->uid == 0 || $auth_method == ALFRESCO_AUTH_SINGLE) {
+      $username = variable_get('alfresco_credentials_username', 'guest');
+      $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+    }
+    else {
+      $username = $_SESSION['alfresco_credentials']['username'];
+      $password = base64_decode($_SESSION['alfresco_credentials']['password']);
+    }
+
+    $ticket = $repository->authenticate($username, $password);
   }
-  else {
-    $username = $_SESSION['alfresco_credentials']['username'];
-    $password = base64_decode($_SESSION['alfresco_credentials']['password']);
+  catch (SoapFault $exception) {
+    // Si la autenticación falla, utilizamos el usuario genérico.
+    if ($user->uid != 0 && $auth_method != ALFRESCO_AUTH_SINGLE) {
+      $username = variable_get('alfresco_credentials_username', 'guest');
+      $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+      $ticket = $repository->authenticate($username, $password);
+    }
   }
 
-  return $repository->authenticate($username, $password);
+  return $ticket;
 }
