@@ -102,8 +102,8 @@ AlfrescoBrowser.DeleteItem = function (itemsGrid) {
   if (items.length == 0) {
     return;
   }
-  
   var node = items[0].data;
+  itemsGrid.disable();
   
   Ext.MessageBox.confirm(
     Drupal.t('Confirm'),
@@ -127,6 +127,7 @@ AlfrescoBrowser.DeleteItem = function (itemsGrid) {
                 buttons: Ext.Msg.OK
               });
             }
+            itemsGrid.enable();
           },
           failure: function() {
             Ext.Msg.show({
@@ -137,8 +138,11 @@ AlfrescoBrowser.DeleteItem = function (itemsGrid) {
               icon: Ext.MessageBox.ERROR,
               buttons: Ext.Msg.OK
             });
+            itemsGrid.enable();
           }
         });
+      } else {
+        itemsGrid.enable();
       }
   });
 }
