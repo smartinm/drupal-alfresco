@@ -15,7 +15,7 @@ AlfrescoBrowser.ViewItem = function (itemsGrid) {
   }
 
   var node = items[0].data;
-  var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + node.name + "?node=" + node.id;
+  var url = Drupal.settings.alfresco.serviceDownloadUrl + "/" + node.name + "?node=" + node.id;
   var size = Ext.getCmp('alfresco-browser-viewport').getSize();
   
   var iframeWin = new Ext.Window({
@@ -78,7 +78,7 @@ AlfrescoBrowser.DownloadItem = function (itemsGrid, forceDownload) {
   }
 
   var node = items[0].data;
-  var url = AlfrescoBrowser.Settings['serviceDownloadUrl'] + "/" + node.name + "?node=" + node.id;
+  var url = Drupal.settings.alfresco.serviceDownloadUrl + "/" + node.name + "?node=" + node.id;
   
   if (forceDownload) {
     url += "&mode=attachment";
@@ -110,7 +110,7 @@ AlfrescoBrowser.DeleteItem = function (itemsGrid) {
     Drupal.t('Are you sure you want to delete "!name" and all previous versions?', {'!name' : node.name}),
     function(btn) {
       if (btn == 'yes') {
-        var url = AlfrescoBrowser.Settings['serviceDeleteUrl'] + "/" + node.name + "?node=" + node.id;
+        var url = Drupal.settings.alfresco.serviceDeleteUrl + "/" + node.name + "?node=" + node.id;
         Ext.Ajax.request({
           url: url,
           success: function(response, options) {
@@ -221,7 +221,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       handler: function() {
         if (uploadForm.getForm().isValid()) {
           uploadForm.getForm().submit({
-            url: AlfrescoBrowser.Settings['serviceUploadUrl'],
+            url: Drupal.settings.alfresco.serviceUploadUrl,
             waitMsg: Drupal.t('Uploading your content...'),
             success: function(form, o) {
               dataStore.load({params:{start: 0, cache: 'node'}});
@@ -330,13 +330,13 @@ AlfrescoBrowser.App = function() {
         trackMouseOver: false,
 
         loader: new Ext.tree.TreeLoader({
-          dataUrl: AlfrescoBrowser.Settings['serviceTreeUrl'],
+          dataUrl: Drupal.settings.alfresco.serviceTreeUrl,
           requestMethod: 'GET'
         }),
         
         root: new Ext.tree.AsyncTreeNode({
-          text: AlfrescoBrowser.Settings['homeText'],
-          id: AlfrescoBrowser.Settings['homeRef'],
+          text: Drupal.settings.alfresco.homeText,
+          id: Drupal.settings.alfresco.homeRef,
           expanded: true,
           listeners: {
             'load': function() {
@@ -471,11 +471,11 @@ AlfrescoBrowser.App = function() {
       
       dataStore = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
-          url: AlfrescoBrowser.Settings['serviceGridUrl'],
+          url: Drupal.settings.alfresco.serviceGridUrl,
           method: 'GET'
         }),
         reader: reader,
-        baseParams: {node: AlfrescoBrowser.Settings['homeRef']},
+        baseParams: {node: Drupal.settings.alfresco.homeRef},
         autoLoad: false,
         //remoteSort: true,
         sortInfo: {field: 'name', direction: 'ASC'},
@@ -493,28 +493,28 @@ AlfrescoBrowser.App = function() {
       });
       
       function renderName(value, p, record){
-        var url = AlfrescoBrowser.Settings['modulePath'] + '/images/filetypes/' + record.data['icon'] + '.gif';
+        var url = Drupal.settings.alfresco.modulePath + '/images/filetypes/' + record.data['icon'] + '.gif';
         return String.format('<span class="row-icon" style="background-image: url({1})" ext:qtip="{2}">{0}</span>', value, url, record.data['title']);
       }
 
       var columns = [
-        {id: 'name', header: "Name", dataIndex: 'name', sortable: true, width: 200, renderer: renderName},
-        {header: "Size", dataIndex: 'size', sortable: false, align: 'right', width: 80},
-        {header: "Creator", dataIndex: 'creator', sortable: true, width: 100},
-        {header: "Date created", dataIndex: 'created', width: 130, hidden: true, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
-        {header: "Date modified", dataIndex: 'modified', width: 130, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
-        {header: "Title", dataIndex: 'title', width: 200, sortable: true, hidden: true},
-        {header: "Description", dataIndex: 'description', width: 200, sortable: false, hidden: true},
-        {header: "Author", dataIndex: 'author', width: 100, sortable: true, hidden: true}
+        {id: 'name', header: Drupal.t('Name'), dataIndex: 'name', sortable: true, width: 200, renderer: renderName},
+        {header: Drupal.t('Size'), dataIndex: 'size', sortable: false, align: 'right', width: 80},
+        {header: Drupal.t('Creator'), dataIndex: 'creator', sortable: true, width: 100},
+        {header: Drupal.t('Date created'), dataIndex: 'created', width: 130, hidden: true, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
+        {header: Drupal.t('Date modified'), dataIndex: 'modified', width: 130, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
+        {header: Drupal.t('Title'), dataIndex: 'title', width: 200, sortable: true, hidden: true},
+        {header: Drupal.t('Description'), dataIndex: 'description', width: 200, sortable: false, hidden: true},
+        {header: Drupal.t('Author'), dataIndex: 'author', width: 100, sortable: true, hidden: true}
       ];
       
       var bar = new Ext.PagingToolbar({
-        pageSize: AlfrescoBrowser.Settings['queryLimit'],
+        pageSize: Drupal.settings.alfresco.queryLimit,
         store: dataStore,
         displayInfo: true,
         autoWidth: true,
-        displayMsg: 'Displaying items {0} - {1} of {2}',
-        emptyMsg: 'No items to display.',
+        displayMsg: Drupal.t('Displaying items {0} - {1} of {2}'),
+        emptyMsg: Drupal.t('No items to display.'),
 
         // override private event
         onClick: function(which){
@@ -555,7 +555,7 @@ AlfrescoBrowser.App = function() {
           }
         }),
         
-        title: AlfrescoBrowser.Settings['homeText'],
+        title: Drupal.settings.alfresco.homeText,
         region: 'center',
         loadMask: true,
         
@@ -580,8 +580,8 @@ AlfrescoBrowser.App = function() {
 
         tbar: [{
           id: 'btn-add',
-          text: 'Add',
-          tooltip: 'Add content to this space.',
+          text: Drupal.t('Add'),
+          tooltip: Drupal.t('Add content to this space.'),
           iconCls: 'upload',
           disabled: true,
           handler: function() {
@@ -589,8 +589,8 @@ AlfrescoBrowser.App = function() {
           }
         }, '-', {
           id: 'btn-delete',
-          text: 'Delete',
-          tooltip: 'Delete selected content.',
+          text: Drupal.t('Delete'),
+          tooltip: Drupal.t('Delete selected content.'),
           iconCls: 'delete',
           disabled: true,
           handler: function() {
@@ -598,8 +598,8 @@ AlfrescoBrowser.App = function() {
           }
         }, '-', {
           id: 'btn-download',
-          text: 'Download',
-          tooltip: 'Download selected item.',
+          text: Drupal.t('Download'),
+          tooltip: Drupal.t('Download selected item.'),
           iconCls: 'download',
           disabled: true,
           handler: function() {
@@ -607,8 +607,8 @@ AlfrescoBrowser.App = function() {
           }
         }, '-', {
           id: 'btn-open',
-          text: 'View',
-          tooltip: 'View selected item in new window.',
+          text: Drupal.t('View'),
+          tooltip: Drupal.t('View selected item in new window.'),
           iconCls: 'view',
           disabled: true,
           handler: function() {
@@ -616,8 +616,8 @@ AlfrescoBrowser.App = function() {
           }
         },'-',{
           id: 'btn-send',
-          text: 'Send to Drupal',
-          tooltip: 'Send selected item to Drupal.',
+          text: Drupal.t('Send to Drupal'),
+          tooltip: Drupal.t('Send selected item to Drupal.'),
           iconCls: 'drupal',
           disabled: true,
           handler: function() {
@@ -625,8 +625,8 @@ AlfrescoBrowser.App = function() {
           }
         }, /*'-',*/ {
           id: 'grid-details',
-          text: 'Properties',
-          tooltip: 'View node properties.',
+          text: Drupal.t('Properties'),
+          tooltip: Drupal.t('View node properties.'),
           iconCls: 'details',
           disabled: true,
           hidden: true,
@@ -642,7 +642,7 @@ AlfrescoBrowser.App = function() {
 
         tools: [{
           id: 'refresh',
-          qtip: 'Clear content and search cache.',
+          qtip: Drupal.t('Clear content and search cache.'),
           on: {
             click: function(){
               var o = {start: 0, cache: 'all'};
@@ -652,7 +652,7 @@ AlfrescoBrowser.App = function() {
       });
       
       propsGrid = new Ext.grid.PropertyGrid({
-        title: 'Properties',
+        title: Drupal.t('Properties'),
         region: 'south',
         margins: '0 0 0 0',
         cmargins: '5 0 0 0',

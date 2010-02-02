@@ -20,15 +20,60 @@ function alfresco_browser_repository_page() {
  *
  */
 function alfresco_browser_page() {
-  $module_path = drupal_get_path('module', 'alfresco_browser');
+  global $language;
+
   $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+  $module_path = drupal_get_path('module', 'alfresco_browser');
 
-  drupal_add_js($extjs_path .'/adapter/ext/ext-base.js', 'module', 'footer', FALSE, FALSE, FALSE);
-  drupal_add_js($extjs_path .'/ext-all.js', 'module', 'footer', FALSE, FALSE, FALSE);
-  drupal_add_js($extjs_path .'/source/locale/ext-lang-'. $language->language .'.js', 'module', 'footer', FALSE, FALSE, FALSE);
+  alfresco_include('soap');
+  $home_path = variable_get('alfresco_browser_home', '/app:company_home');
+  $home_node = alfresco_soap_node_load($home_path);
 
-  drupal_add_js($module_path .'/browser/FileUploadField.js', 'module', 'footer');
-  drupal_add_js($module_path .'/browser/browser.js', 'module', 'footer');
+  // Alfresco Browser Settings
+  $settings = array('alfresco' => array(
+    'homeRef'            => $home_node ? $home_node->id : '',
+    'homeText'           => $home_node ? $home_node->cm_name : '- Error -',
+    'modulePath'         => url($module_path),
+    'serviceTreeUrl'     => url('alfresco/browser/service/tree.json'),
+    'serviceGridUrl'     => url('alfresco/browser/service/grid.json'),
+    'serviceDownloadUrl' => url('alfresco/browser/service/download'),
+    'serviceUploadUrl'   => url('alfresco/browser/service/upload'),
+    'serviceDeleteUrl'   => url('alfresco/browser/service/delete'),
+    'queryLimit'         => variable_get('alfresco_browser_query_limit', 20),
+  ));
+  drupal_add_js($settings, 'setting');
+
+  // CSS files
+  drupal_add_css($extjs_path . '/resources/css/ext-all.css', 'module', 'all', FALSE);
+  drupal_add_css($extjs_path . '/resources/css/xtheme-gray.css', 'module', 'all', FALSE);
+  drupal_add_css($module_path . '/css/browser.css', 'module');
+
+  // Ext JS files
+  drupal_add_js($extjs_path .'/'. ALFRESCO_BROWSER_EXT_ADAPTER, 'module', 'footer', FALSE, FALSE, FALSE);
+  drupal_add_js($extjs_path .'/'. ALFRESCO_BROWSER_EXT_ALL, 'module', 'footer', FALSE, FALSE, FALSE);
+
+  // Ext JS locale files
+  $locale_path = $extjs_path .'/source/locale/ext-lang-'. $language->language .'.js';
+  if (!file_exists('./'. $locale_path)) {
+    $locale_path = $extjs_path .'/src/locale/ext-lang-'. $language->language .'.js';
+    if (!file_exists('./'. $locale_path)) {
+      $locale_path = NULL;
+    }
+  }
+
+  if ($locale_path) {
+    drupal_add_js($locale_path, 'module', 'footer', FALSE, FALSE, FALSE);
+  }
+
+  // Blank Image URL
+  $blank_image_url = url($extjs_path .'/resources/images/default/s.gif');
+  drupal_add_js("Ext.BLANK_IMAGE_URL = '$blank_image_url';", 'inline', 'footer');
+
+  // Alfresco Browser JS
+  drupal_add_js($module_path .'/js/FileUploadField.js', 'module', 'footer');
+  drupal_add_js($module_path .'/js/AlfrescoBrowser.js', 'module', 'footer');
+
+  drupal_set_title(t('Alfresco Browser for Drupal'));
 
   print theme('alfresco_browser_page');
 }
@@ -142,6 +187,7 @@ function alfresco_browser_service_documents_json() {
 
   try {
     alfresco_include('soap');
+    $session = alfresco_soap_get_session();
 
     $queryResults = array();
 
@@ -159,7 +205,6 @@ function alfresco_browser_service_documents_json() {
       }
 
       $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-      $session = alfresco_soap_get_session();
 
       foreach ($folder->children as $childAssoc) {
         // @todo: Enhanced suppport other folder types
@@ -292,7 +337,6 @@ function alfresco_browser_service_delete() {
   $reference = 'workspace://SpacesStore/'. $node;
 
   $result = alfresco_soap_node_delete($reference);
-  dpm($result);
   if (isset($result->error)) {
     drupal_json(array('success' => FALSE, 'error' => $result->error));
     exit();
