@@ -60,45 +60,23 @@ function alfresco_page_download($node) {
   exit();
 }
 
-function alfresco_download($uuid) {
+function alfresco_download_content($workspace, $store, $uuid) {
+
   if (!alfresco_valid_uuid($uuid)) {
     drupal_not_found();
     exit();
   }
 
-  alfresco_file_transfer('workspace://SpacesStore/'. $uuid);
+  $reference = "$workspace://$store/$uuid";
+  alfresco_file_transfer($reference);
 }
-
-// ------------------------------------------------------------------
-// Alfresco synchronize page
-// ------------------------------------------------------------------
-
-/**
- * Menu callback; synchronize Drupal Node data with Alfresco Node data.
- */
-function alfresco_page_sync($node) {
-
-  // Synchronize node
-  alfresco_sync_node($node);
-
-  $node_link = l(t('view'), 'node/'. $node->nid);
-  $watchdog_args = array('@type' => $node->type, '%title' => $node->title);
-  $t_args = array('@type'  => node_get_types('name', $node), '%title' => $node->title);
-
-  watchdog('alfresco', '@type: synchronized %title.', $watchdog_args, WATCHDOG_NOTICE, $node_link);
-  drupal_set_message(t('@type %title has been synchronized.', $t_args));
-
-  // Redirect view node
-  drupal_goto('node/'. $node->nid);
-}
-
 
 // ------------------------------------------------------------------
 // Alfresco details page
 // ------------------------------------------------------------------
 
 /**
- * Menu callback; synchronize Drupal Node data with Alfresco Node data.
+ * Menu callback; Alfresco node details.
  */
 function alfresco_page_details($node) {
 
@@ -161,55 +139,14 @@ function alfresco_page_details($node) {
 /**
  * Menu callback; Retrieve a JSON object containing autocomplete suggestions for existing alfresco nodes.
  */
-function alfresco_autocomplete2($string = '') {
+function alfresco_autocomplete($string = '') {
   $matches = array();
   if ($string) {
-
     alfresco_include('soap');
     $results = alfresco_soap_search($string);
     if (is_array($results)) {
       foreach ($results as $anode) {
         $matches[$anode->getId()] = check_plain($anode->getFolderPath()) .'/'. check_plain($anode->cm_name);
-      }
-    }
-  }
-
-  drupal_json($matches);
-}
-
-/**
- * Helper function for autocompletion of paths.
- *
- * @see http://drupal.org/node/93854
- */
-function alfresco_autocomplete() {
-  $array = func_get_args();
-  $string = implode('/', $array);
-
-  //$array = explode('/', $string);
-
-  $last_string = trim(array_pop($array));
-  $matches = array();
-
-  if ($last_string != '') {
-
-    alfresco_include('soap');
-    if (!$session = alfresco_soap_get_session()) {
-      drupal_json($matches);
-      exit();
-    }
-
-    $prefix = count($array) ? implode('/', $array) .'/' : '/';
-
-    $query = '+PARENT:"'. $prefix .'" +@cm:name:"'. $last_string . '*"';
-    $query = '+PARENT:"/""';
-    $spacesStore = new AlfSpacesStore($session);
-    $results = $session->query($spacesStore, $query);
-
-    if (is_array($results)) {
-      foreach ($results as $result) {
-        $n = $result->cm_name;
-        $matches[$result->getId()] = check_plain($prefix . $n);
       }
     }
   }
@@ -255,7 +192,6 @@ function _alfresco_add_form($form_state) {
     '#title' => t('Space'),
     '#required' => TRUE,
     //'#autocomplete_path' => 'alfresco/autocomplete',
-    //'#description' => t('Space.'),
     '#default_value' => '/app:company_home/app:guest_home',
   );
 

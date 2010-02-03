@@ -6,30 +6,32 @@
 #  alfresco.admin.inc: n/a
 #  alfresco.module: n/a
 #  alfresco.pages.inc: n/a
-#  alfresco.theme.inc: n/a
+#  alfresco_browser/js/AlfrescoBrowser.js: n/a
 #  alfresco_import/alfresco_import.pages.inc: n/a
+#  includes/alfresco.theme.inc: n/a
 #  views/alfresco.views.inc: n/a
-#  alfresco_media/alfresco_media.module: n/a
 #  alfresco_attach/alfresco_attach.module: n/a
-#  includes/alfresco.service.inc: n/a
 #  alfresco.info: n/a
 #  alfresco_attach/alfresco_attach.info: n/a
 #  alfresco_browser/alfresco_browser.info: n/a
 #  alfresco_import/alfresco_import.info: n/a
-#  alfresco_media/alfresco_media.info: n/a
+#  includes/alfresco.search.inc: n/a
 #  alfresco.install: n/a
 #  alfresco_attach/alfresco_attach.install: n/a
+#  alfresco_browser/alfresco-browser-page.tpl.php: n/a
 #  alfresco_browser/alfresco_browser.admin.inc: n/a
 #  alfresco_browser/alfresco_browser.module: n/a
+#  alfresco_browser/alfresco_browser.pages.inc: n/a
 #  alfresco_browser/alfresco_browser.install: n/a
 #  alfresco_import/alfresco_import.module: n/a
+#  includes/alfresco.soap.inc: n/a
 #  views/alfresco_handler_field_url_download.inc: n/a
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2010-01-22 10:14+0100\n"
+"POT-Creation-Date: 2010-02-03 11:42+0100\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -38,291 +40,271 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: alfresco.admin.inc:33 alfresco.module:161
+#: alfresco.admin.inc:34 alfresco.module:151
 msgid "Repository"
 msgstr ""
 
-#: alfresco.admin.inc:38
+#: alfresco.admin.inc:39
 msgid "The web service end point URL for the Alfresco repository. Example: http://localhost:8080/alfresco/api"
 msgstr ""
 
-#: alfresco.admin.inc:39
+#: alfresco.admin.inc:40
 msgid "URL repository"
 msgstr ""
 
-#: alfresco.admin.inc:46
+#: alfresco.admin.inc:47
 msgid "Username"
 msgstr ""
 
-#: alfresco.admin.inc:53
+#: alfresco.admin.inc:54
 msgid "To change the current password, enter the new password in both fields. Default password is <em>guest</em>"
 msgstr ""
 
-#: alfresco.admin.inc:57
+#: alfresco.admin.inc:58
 msgid "Select the authentication method to connect Alfresco repository."
 msgstr ""
 
-#: alfresco.admin.inc:58
+#: alfresco.admin.inc:59
 msgid "Anonymous users always uses account repository."
 msgstr ""
 
-#: alfresco.admin.inc:62
+#: alfresco.admin.inc:63
 msgid "Authentication"
 msgstr ""
 
-#: alfresco.admin.inc:70
+#: alfresco.admin.inc:71
 msgid "Choose authentication mode"
 msgstr ""
 
-#: alfresco.admin.inc:74
+#: alfresco.admin.inc:75
 msgid "Single. Use always the above username and password to connect to repository."
 msgstr ""
 
-#: alfresco.admin.inc:75
+#: alfresco.admin.inc:76
 msgid "Per user. Use users accounts and passwords to connect to repository."
 msgstr ""
 
-#: alfresco.admin.inc:76
-msgid "Per user only upload. Use users accounts and passwords to connect to repository."
-msgstr ""
-
-#: alfresco.admin.inc:83
-msgid "Admin use account repository"
-msgstr ""
-
-#: alfresco.admin.inc:88
+#: alfresco.admin.inc:81
 msgid "Select the download method of the files stored in Alfresco repository:"
 msgstr ""
 
-#: alfresco.admin.inc:90
+#: alfresco.admin.inc:83
 msgid "<strong>Module method</strong>, use this method if you Alfresco repository is not publicly accessible (default)."
 msgstr ""
 
-#: alfresco.admin.inc:91
+#: alfresco.admin.inc:84
 msgid "<strong>Direct guest method</strong>, this method use <em>URL Guest Access</em>, the <em>guest</em> Alfresco user must have access to the item referenced."
 msgstr ""
 
-#: alfresco.admin.inc:92
+#: alfresco.admin.inc:85
 msgid "<strong>Direct ticket method</strong>, this method use <em>Ticket URL Argument</em> to provide authentication without login."
 msgstr ""
 
-#: alfresco.admin.inc:94
+#: alfresco.admin.inc:87
 msgid "For more info, visit <a href=\"@url\">URL Addressability page</a> on Alfresco Wiki."
 msgstr ""
 
-#: alfresco.admin.inc:98
+#: alfresco.admin.inc:91
 msgid "Download method"
 msgstr ""
 
-#: alfresco.admin.inc:106
+#: alfresco.admin.inc:99
 msgid "Choose download method"
 msgstr ""
 
-#: alfresco.admin.inc:109
+#: alfresco.admin.inc:102
 msgid "Module - files are transferred by Drupal's alfresco module using <em>Ticket URL Argument</em> transparently (recommended)."
 msgstr ""
 
-#: alfresco.admin.inc:110
+#: alfresco.admin.inc:103
 msgid "Direct guest - files are available using Alfresco <em>URL Guest Access</em>."
 msgstr ""
 
-#: alfresco.admin.inc:111
+#: alfresco.admin.inc:104
 msgid "Direct ticket - files are available using Alfresco <em>Ticket URL Argument</em>."
 msgstr ""
 
-#: alfresco.admin.inc:128
+#: alfresco.admin.inc:121
 msgid "The URL repository %url is invalid. Please enter a fully-qualified URL, such as http://share.alfresco.com/alfresco/api."
 msgstr ""
 
-#: alfresco.admin.inc:152
+#: alfresco.admin.inc:145
 msgid "Check the <a href=\"@status\">status report</a> for test repository connection."
 msgstr ""
 
-#: alfresco.admin.inc:170 alfresco.pages.inc:123
+#: alfresco.admin.inc:163 alfresco.pages.inc:111 alfresco_browser/js/AlfrescoBrowser.js:0;0
 msgid "Properties"
 msgstr ""
 
-#: alfresco.admin.inc:171
+#: alfresco.admin.inc:164
 msgid "Sorry, this settings not working (under development)."
 msgstr ""
 
-#: alfresco.admin.inc:177;277 alfresco.pages.inc:275 alfresco.theme.inc:25 alfresco_import/alfresco_import.pages.inc:239 views/alfresco.views.inc:37
+#: alfresco.admin.inc:170 alfresco.pages.inc:288 alfresco_browser/js/AlfrescoBrowser.js:0;0 alfresco_import/alfresco_import.pages.inc:240 includes/alfresco.theme.inc:25;111 views/alfresco.views.inc:37
 msgid "Name"
 msgstr ""
 
-#: alfresco.admin.inc:178;277 alfresco.pages.inc:328 alfresco.theme.inc:26 alfresco.module:87 alfresco_media/alfresco_media.module:50
+#: alfresco.admin.inc:171 alfresco.pages.inc:341 alfresco.module:77 alfresco_attach/alfresco_attach.module:404 alfresco_browser/js/AlfrescoBrowser.js:0;0 includes/alfresco.theme.inc:26;111
 msgid "Title"
 msgstr ""
 
-#: alfresco.admin.inc:179 alfresco.pages.inc:335 alfresco.theme.inc:27 alfresco_attach/alfresco_attach.module:399
+#: alfresco.admin.inc:172 alfresco.pages.inc:348 alfresco_browser/js/AlfrescoBrowser.js:0;0 includes/alfresco.theme.inc:27
 msgid "Description"
 msgstr ""
 
-#: alfresco.admin.inc:187 alfresco.pages.inc:342 alfresco.theme.inc:33
+#: alfresco.admin.inc:180 alfresco.pages.inc:355 alfresco_browser/js/AlfrescoBrowser.js:0;0 includes/alfresco.theme.inc:33
 msgid "Author"
 msgstr ""
 
-#: alfresco.admin.inc:188 alfresco.theme.inc:34
+#: alfresco.admin.inc:181 alfresco_browser/js/AlfrescoBrowser.js:0 includes/alfresco.theme.inc:34
 msgid "Creator"
 msgstr ""
 
-#: alfresco.admin.inc:189 alfresco.theme.inc:35
+#: alfresco.admin.inc:182 includes/alfresco.theme.inc:35
 msgid "Created date"
 msgstr ""
 
-#: alfresco.admin.inc:190 alfresco.theme.inc:36
+#: alfresco.admin.inc:183 includes/alfresco.theme.inc:36
 msgid "Modifier"
 msgstr ""
 
-#: alfresco.admin.inc:191 alfresco.theme.inc:37
+#: alfresco.admin.inc:184 includes/alfresco.theme.inc:37
 msgid "Modified date"
 msgstr ""
 
-#: alfresco.admin.inc:277 alfresco.theme.inc:72
-msgid "Property"
+#: alfresco.admin.inc:255
+msgid "For more info, visit <a href=\"@url\">Data Dictionary Guide</a> on Alfresco Wiki."
 msgstr ""
 
-#: alfresco.admin.inc:277 alfresco.module:167
-msgid "Display"
+#: alfresco.admin.inc:262
+msgid "Content Model"
 msgstr ""
 
-#: alfresco.admin.inc:277 alfresco.module:89 alfresco_media/alfresco_media.module:52
-msgid "Body"
+#: alfresco.admin.inc:263
+msgid "Alfresco Repository Data Dictionary is pre-populated with definitions that describe common Content constructs such as Folders, Files and meta-data schemes."
 msgstr ""
 
-#: alfresco.admin.inc:277
-msgid "Show"
+#: alfresco.admin.inc:278
+msgid "Namespaces"
 msgstr ""
 
-#: alfresco.admin.inc:301
-msgid "Synchronizing"
+#: alfresco.admin.inc:279
+msgid "Each Content model is described in its own XML file and is identified by its defined Namespace and Name. Out-of-the-box, the Alfresco Repository is primed with several models:"
 msgstr ""
 
-#: alfresco.admin.inc:306
-msgid "Enable node synchronize"
+#: alfresco.admin.inc:297
+msgid "Custom namespaces"
 msgstr ""
 
-#: alfresco.admin.inc:307
-msgid "Check this to enable Alfresco-Drupal node synchronizing. (<strong>Experimental</strong>)"
+#: alfresco.admin.inc:308
+msgid "Content Types"
 msgstr ""
 
-#: alfresco.admin.inc:314
-msgid "Number of items to synchronize per cron run"
-msgstr ""
-
-#: alfresco.admin.inc:317
-msgid "The maximum number of items synchronized in each pass of a <a href=\"@cron\">cron maintenance task</a>. If necessary, reduce the number of items to prevent timeouts and memory errors while synchronizing."
-msgstr ""
-
-#: alfresco.admin.inc:323
-msgid "Synchronize interval"
-msgstr ""
-
-#: alfresco.admin.inc:326
-msgid "The length of time between node synchronizes. (Requires a correctly configured <a href=\"@cron\">cron maintenance task</a>)"
-msgstr ""
-
-#: alfresco.admin.inc:330
-msgid "El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl."
-msgstr ""
-
-#: alfresco.admin.inc:331
-msgid "For more info, visit <a href=\"@url\">ALFCOM-1913 issue</a> on Alfresco JIRA."
+#: alfresco.admin.inc:332
+msgid "Advanced settings"
 msgstr ""
 
 #: alfresco.admin.inc:337
+msgid "Ticket valid duration"
+msgstr ""
+
+#: alfresco.admin.inc:340
+msgid "The period for which tickets are valid (the default is one hour)."
+msgstr ""
+
+#: alfresco.admin.inc:343
+msgid "El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl."
+msgstr ""
+
+#: alfresco.admin.inc:344
+msgid "For more info, visit <a href=\"@url\">ALFCOM-1913 issue</a> on Alfresco JIRA."
+msgstr ""
+
+#: alfresco.admin.inc:350
 msgid "Use workaround for incorrect targetNamespace WSDL."
 msgstr ""
 
-#: alfresco.pages.inc:34;74
+#: alfresco.pages.inc:34
 msgid "view"
 msgstr ""
 
-#: alfresco.pages.inc:79
-msgid "@type %title has been synchronized."
-msgstr ""
-
-#: alfresco.pages.inc:105;283
+#: alfresco.pages.inc:93;296
 msgid "Type"
 msgstr ""
 
-#: alfresco.pages.inc:114
+#: alfresco.pages.inc:102
 msgid "Aspects"
 msgstr ""
 
-#: alfresco.pages.inc:123 alfresco.theme.inc:72
+#: alfresco.pages.inc:111 includes/alfresco.theme.inc:72
 msgid "Value"
 msgstr ""
 
-#: alfresco.pages.inc:213
+#: alfresco.pages.inc:226
 msgid "Upload content"
 msgstr ""
 
-#: alfresco.pages.inc:214
+#: alfresco.pages.inc:227
 msgid "This dialog helps you to add content to a space."
 msgstr ""
 
-#: alfresco.pages.inc:219;255
+#: alfresco.pages.inc:232;268
 msgid "Space"
 msgstr ""
 
-#: alfresco.pages.inc:228;264
+#: alfresco.pages.inc:241;277 alfresco_browser/js/AlfrescoBrowser.js:0
 msgid "File"
 msgstr ""
 
-#: alfresco.pages.inc:229
+#: alfresco.pages.inc:242
 msgid "Locate content to upload."
 msgstr ""
 
-#: alfresco.pages.inc:234
+#: alfresco.pages.inc:247
 msgid "Upload"
 msgstr ""
 
-#: alfresco.pages.inc:250
+#: alfresco.pages.inc:263
 msgid "Uploaded content"
 msgstr ""
 
-#: alfresco.pages.inc:270
+#: alfresco.pages.inc:283
 msgid "General properties"
 msgstr ""
 
-#: alfresco.pages.inc:306 alfresco.theme.inc:30
+#: alfresco.pages.inc:319 includes/alfresco.theme.inc:30
 msgid "Encoding"
 msgstr ""
 
-#: alfresco.pages.inc:313
+#: alfresco.pages.inc:326
 msgid "Content Type"
 msgstr ""
 
-#: alfresco.pages.inc:320
+#: alfresco.pages.inc:333 alfresco_browser/js/AlfrescoBrowser.js:0
 msgid "Content properties"
 msgstr ""
 
-#: alfresco.pages.inc:321
+#: alfresco.pages.inc:334
 msgid "Information about the content to be uploaded."
 msgstr ""
 
-#: alfresco.pages.inc:349
+#: alfresco.pages.inc:362
 msgid "OK"
 msgstr ""
 
-#: alfresco.pages.inc:355
+#: alfresco.pages.inc:368
 msgid "Cancel"
 msgstr ""
 
-#: alfresco.pages.inc:378
+#: alfresco.pages.inc:391
 msgid "File field is required."
 msgstr ""
 
-#: alfresco.pages.inc:388
-msgid "'!filename' was uploaded successfully."
+#: alfresco.pages.inc:436
+msgid "'!name' was created successfully."
 msgstr ""
 
-#: alfresco.pages.inc:411
-msgid "'!filename' was created successfully."
-msgstr ""
-
-#: alfresco.pages.inc:36;78 alfresco.module:414 includes/alfresco.service.inc:54;126;158;199;276
+#: alfresco.pages.inc:36 alfresco.module:441
 msgid "alfresco"
 msgstr ""
 
@@ -330,175 +312,175 @@ msgstr ""
 msgid "@type: downloaded %title."
 msgstr ""
 
-#: alfresco.pages.inc:78
-msgid "@type: synchronized %title."
+#: alfresco.module:47
+msgid "Alfresco project is a related set of modules which provides Drupal integration with Alfresco Content Platform."
 msgstr ""
 
-#: alfresco.theme.inc:15;55
-msgid "Download file"
-msgstr ""
-
-#: alfresco.theme.inc:29
-msgid "Mimetype"
-msgstr ""
-
-#: alfresco.theme.inc:31 alfresco_attach/alfresco_attach.module:372;399 alfresco_import/alfresco_import.pages.inc:239 views/alfresco.views.inc:127
-msgid "Size"
-msgstr ""
-
-#: alfresco.theme.inc:51
-msgid "n/a"
-msgstr ""
-
-#: alfresco.module:60
+#: alfresco.module:50;225
 msgid "Add content to a space and enter information about the content to be uploaded."
 msgstr ""
 
-#: alfresco.module:63
+#: alfresco.module:53;236
 msgid "Displays a list of alfresco items nodes."
 msgstr ""
 
-#: alfresco.module:66 alfresco_media/alfresco_media.module:29
+#: alfresco.module:56
 msgid "Alfresco and Drupal integration."
 msgstr ""
 
-#: alfresco.module:83
+#: alfresco.module:73
 msgid "Alfresco item"
 msgstr ""
 
-#: alfresco.module:85
-msgid "An <em>alfresco item</em> is a reference to node stored in Alfresco repository."
+#: alfresco.module:75
+msgid "An <em>alfresco item</em> is a representation of a node held in the Alfresco repository. Alfresco nodes provide meta-data and structure to content."
 msgstr ""
 
-#: alfresco.module:331 alfresco_attach/alfresco_attach.module:189 alfresco_media/alfresco_media.module:126
-msgid "Alfresco Node Reference. Example: workspace://SpacesStore/uuid"
+#: alfresco.module:79 includes/alfresco.theme.inc:111
+msgid "Body"
 msgstr ""
 
-#: alfresco.module:339 alfresco_media/alfresco_media.module:134
+#: alfresco.module:349 alfresco_attach/alfresco_attach.module:188
+msgid "Alfresco node reference. Example: workspace://SpacesStore/uuid"
+msgstr ""
+
+#: alfresco.module:357 alfresco_attach/alfresco_attach.module:194
 msgid "Select an item from Alfresco repository."
 msgstr ""
 
-#: alfresco.module:345 alfresco_media/alfresco_media.module:140
+#: alfresco.module:363
 msgid "Use Alfresco node title."
 msgstr ""
 
-#: alfresco.module:346 alfresco_media/alfresco_media.module:141
+#: alfresco.module:364
 msgid "Deje esta campo marcado para obtener el título automáticamente del nodo de Alfresco, si desea indicar un título desmárquelo."
 msgstr ""
 
-#: alfresco.module:394
+#: alfresco.module:420
 msgid "The alfresco node reference is not valid."
 msgstr ""
 
-#: alfresco.module:411
+#: alfresco.module:438
 msgid "The node is not found in the repository. <a href=\"@url_edit\">Edit Alfresco node reference</a> or <a href=\"@url_delete\">delete this node</a>."
 msgstr ""
 
-#: alfresco.module:418;414
+#: alfresco.module:445;441
 msgid "The node is not found in the repository."
 msgstr ""
 
-#: alfresco.module:434
+#: alfresco.module:461
 msgid "This Alfresco node already exists in your Drupal site. [<a href=\"!url\">View</a>]"
 msgstr ""
 
-#: alfresco.module:626
+#: alfresco.module:690
 msgid "Alfresco add content"
 msgstr ""
 
-#: alfresco.module:627
+#: alfresco.module:691
 msgid "Use the administration theme when viewing the Alfresco add content page."
 msgstr ""
 
-#: alfresco.module:630
+#: alfresco.module:694
 msgid "Alfresco details"
 msgstr ""
 
-#: alfresco.module:631
+#: alfresco.module:695
 msgid "Use the administration theme when viewing the Alfresco details node tab."
 msgstr ""
 
-#: alfresco.module:104
+#: alfresco.module:1269
+msgid "Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance."
+msgstr ""
+
+#: alfresco.module:94
 msgid "add alfresco content"
 msgstr ""
 
-#: alfresco.module:105
+#: alfresco.module:95
 msgid "administer alfresco"
 msgstr ""
 
-#: alfresco.module:106
+#: alfresco.module:96
 msgid "create alfresco content"
 msgstr ""
 
-#: alfresco.module:107
+#: alfresco.module:97
 msgid "delete own alfresco content"
 msgstr ""
 
-#: alfresco.module:108
+#: alfresco.module:98
 msgid "delete any alfresco content"
 msgstr ""
 
-#: alfresco.module:109
+#: alfresco.module:99
 msgid "download alfresco content"
 msgstr ""
 
-#: alfresco.module:110
+#: alfresco.module:100
 msgid "edit own alfresco content"
 msgstr ""
 
-#: alfresco.module:111
+#: alfresco.module:101
 msgid "edit any alfresco content"
 msgstr ""
 
-#: alfresco.module:152;224 alfresco.info:0;0 alfresco_attach/alfresco_attach.info:0 alfresco_browser/alfresco_browser.info:0 alfresco_import/alfresco_import.info:0 alfresco_media/alfresco_media.info:0 views/alfresco.views.inc:21;73
+#: alfresco.module:142;216 alfresco.info:0;0 alfresco_attach/alfresco_attach.info:0 alfresco_browser/alfresco_browser.info:0 alfresco_import/alfresco_import.info:0 includes/alfresco.search.inc:13 views/alfresco.views.inc:21;73
 msgid "Alfresco"
 msgstr ""
 
-#: alfresco.module:153
+#: alfresco.module:143
 msgid "Configure Alfresco."
 msgstr ""
 
-#: alfresco.module:178
+#: alfresco.module:157 includes/alfresco.theme.inc:111
+msgid "Display"
+msgstr ""
+
+#: alfresco.module:168
+msgid "Model"
+msgstr ""
+
+#: alfresco.module:179
 msgid "Advanced"
 msgstr ""
 
-#: alfresco.module:189
+#: alfresco.module:192 alfresco_browser/js/AlfrescoBrowser.js:0
 msgid "Download"
 msgstr ""
 
-#: alfresco.module:200
-msgid "Synchronize"
-msgstr ""
-
-#: alfresco.module:211
+#: alfresco.module:203
 msgid "Details"
 msgstr ""
 
-#: alfresco.module:232
+#: alfresco.module:224
 msgid "Add content"
 msgstr ""
 
-#: alfresco.module:242
-msgid "Items"
+#: alfresco.module:235 alfresco_import/alfresco_import.pages.inc:47
+msgid "View items"
 msgstr ""
 
-#: alfresco.module:253
+#: alfresco.module:247
 msgid "Alfresco node autocomplete"
 msgstr ""
 
-#: (duplicate) alfresco.install:36;355 
+#: alfresco.module:257;267
+msgid "Alfresco download"
+msgstr ""
+
+#: (duplicate) alfresco.install:37 ;355 
 msgid "Administer > Site configuration > Alfresco"
 msgstr ""
 
-#: alfresco.install:37
+#: (duplicate) alfresco.install:38 
 msgid "Alfresco module settings are available under !link"
 msgstr ""
 
-#: (duplicate) alfresco.install:63 ;85 
+#: (duplicate) alfresco.install:65 ;87 
 msgid "Alfresco PHP library"
 msgstr ""
 
-#: (duplicate) alfresco.install:73 
+#: (duplicate) alfresco.install:75 
 msgid "Alfresco repository"
 msgstr ""
 
@@ -546,7 +528,7 @@ msgstr ""
 msgid "HTTP request failed (error !code)"
 msgstr ""
 
-#: (duplicate) alfresco.install:374 ;426 ;427 ;428  alfresco_attach/alfresco_attach.module:556 includes/alfresco.service.inc:316;317;318
+#: (duplicate) alfresco.install:374  alfresco_attach/alfresco_attach.module:561
 msgid "None"
 msgstr ""
 
@@ -562,8 +544,8 @@ msgstr ""
 msgid "SOAP request failed"
 msgstr ""
 
-#: (duplicate) alfresco.install:425  includes/alfresco.service.inc:315
-msgid "SOAP Fault Code: !code, Message: !message, Detail: !detail"
+#: (duplicate) alfresco.install:425 
+msgid "Unable to connect to Alfresco repository via SOAP. Details: !message"
 msgstr ""
 
 #: alfresco.info:0
@@ -594,31 +576,35 @@ msgstr ""
 msgid "Attach alfresco item"
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:219
+#: alfresco_attach/alfresco_attach.module:224
 msgid "Error loading alfresco node."
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:228
+#: alfresco_attach/alfresco_attach.module:233
 msgid "Error creating alfresco node."
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:296
+#: alfresco_attach/alfresco_attach.module:301
 msgid "View alfresco node"
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:372
+#: alfresco_attach/alfresco_attach.module:377
 msgid "Attachment"
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:399
+#: alfresco_attach/alfresco_attach.module:377;404 alfresco_browser/js/AlfrescoBrowser.js:0 alfresco_import/alfresco_import.pages.inc:240 includes/alfresco.theme.inc:31 views/alfresco.views.inc:127
+msgid "Size"
+msgstr ""
+
+#: alfresco_attach/alfresco_attach.module:404 alfresco_browser/js/AlfrescoBrowser.js:0
 msgid "Delete"
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:399
+#: alfresco_attach/alfresco_attach.module:404
 msgid "List"
 msgstr ""
 
-#: alfresco_attach/alfresco_attach.module:399
+#: alfresco_attach/alfresco_attach.module:404
 msgid "Weight"
 msgstr ""
 
@@ -672,7 +658,11 @@ msgstr ""
 msgid "Alfresco attach"
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:22 alfresco_browser/alfresco_browser.module:39
+#: alfresco_browser/alfresco-browser-page.tpl.php:32
+msgid "Initializing..."
+msgstr ""
+
+#: alfresco_browser/alfresco_browser.admin.inc:22 alfresco_browser/alfresco_browser.module:41
 msgid "Browser"
 msgstr ""
 
@@ -692,47 +682,47 @@ msgstr ""
 msgid "The number of records to display per page (defaults to 20)"
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:43
+#: alfresco_browser/alfresco_browser.admin.inc:73
 msgid "Browser cache"
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:48
+#: alfresco_browser/alfresco_browser.admin.inc:78
 msgid "Enable cache"
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:49
+#: alfresco_browser/alfresco_browser.admin.inc:79
 msgid "Enable cache for the Alfresco browser to store the results of web services queries against Alfresco repository."
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:64
+#: alfresco_browser/alfresco_browser.admin.inc:95
 msgid "The home path you specified is not valid."
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:67
+#: alfresco_browser/alfresco_browser.admin.inc:98
 msgid "The home path you specified could not be found."
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:71
+#: alfresco_browser/alfresco_browser.admin.inc:102
 msgid "Page size value must be a number and greater than zero."
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.admin.inc:82
+#: alfresco_browser/alfresco_browser.admin.inc:113
 msgid "Alfresco browser cache cleared."
+msgstr ""
+
+#: alfresco_browser/alfresco_browser.pages.inc:65 alfresco_browser/alfresco_browser.module:167
+msgid "Alfresco Browser for Drupal"
 msgstr ""
 
 #: alfresco_browser/alfresco_browser.module:21 alfresco_browser/alfresco_browser.info:0
 msgid "Allows users to visualize, search, browse and retrieve nodes of the Alfresco repository."
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.module:120;121
-msgid "Alfresco Browser for Drupal"
-msgstr ""
-
-#: alfresco_browser/alfresco_browser.module:123
+#: alfresco_browser/alfresco_browser.module:169
 msgid "Visit the official project page"
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.module:191
+#: alfresco_browser/alfresco_browser.module:225
 msgid "Browse..."
 msgstr ""
 
@@ -740,8 +730,16 @@ msgstr ""
 msgid "access alfresco browser"
 msgstr ""
 
-#: alfresco_browser/alfresco_browser.module:50
+#: alfresco_browser/alfresco_browser.module:54
 msgid "Alfresco Browser Ext JS"
+msgstr ""
+
+#: alfresco_browser/alfresco_browser.module:107
+msgid "Repository browser"
+msgstr ""
+
+#: alfresco_browser/alfresco_browser.module:108
+msgid "Visualize, search, browse and retrieve nodes of the Alfresco repository."
 msgstr ""
 
 #: (duplicate) alfresco_browser/alfresco_browser.install:49 
@@ -754,6 +752,110 @@ msgstr ""
 
 #: alfresco_browser/alfresco_browser.info:0
 msgid "Alfresco browser"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Confirm"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Are you sure you want to delete \"!name\" and all previous versions?"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Aviso"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Fail"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Request failed."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Locate content to upload"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0;0
+msgid "Add"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Uploading your content..."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Ha ocurrido un error"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Add content to current space: !space"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Browse Spaces"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Search items: !query"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Search (minimum 3 characters)"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Date created"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Date modified"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Displaying items {0} - {1} of {2}"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "No items to display."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Add content to this space."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Delete selected content."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Download selected item."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "View"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "View selected item in new window."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Send to Drupal"
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Send selected item to Drupal."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "View node properties."
+msgstr ""
+
+#: alfresco_browser/js/AlfrescoBrowser.js:0
+msgid "Clear content and search cache."
 msgstr ""
 
 #: alfresco_import/alfresco_import.pages.inc:17
@@ -772,79 +874,75 @@ msgstr ""
 msgid "Alfresco Space Reference. Example: workspace://SpacesStore/uuid"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:47
-msgid "View items"
-msgstr ""
-
-#: alfresco_import/alfresco_import.pages.inc:57
+#: alfresco_import/alfresco_import.pages.inc:58
 msgid "Alfresco item does not exist."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:68
+#: alfresco_import/alfresco_import.pages.inc:69
 msgid "Alfresco item \"%name\" is not a space."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:86
+#: alfresco_import/alfresco_import.pages.inc:87
 msgid "No Alfresco content items were found on \"%name\""
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:131
+#: alfresco_import/alfresco_import.pages.inc:132
 msgid "Import"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:142
+#: alfresco_import/alfresco_import.pages.inc:143
 msgid "You must set an Alfresco Space Reference."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:147
+#: alfresco_import/alfresco_import.pages.inc:148
 msgid "Invalid Alfresco Space Reference."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:160
+#: alfresco_import/alfresco_import.pages.inc:161
 msgid "You must select at least one alfresco item to import."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:169
+#: alfresco_import/alfresco_import.pages.inc:170
 msgid "Importing alfresco content"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:206
+#: alfresco_import/alfresco_import.pages.inc:207
 msgid "Imported %reference as <a href=\"!node-link\">@node-title</a> @status <a href=\"!edit-link\">[edit]</a>."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:210
+#: alfresco_import/alfresco_import.pages.inc:211
 msgid "(Unpublished)"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:216
+#: alfresco_import/alfresco_import.pages.inc:217
 msgid "Error importing %reference."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:225
+#: alfresco_import/alfresco_import.pages.inc:226
 msgid "There was a problem importing the files."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:228
+#: alfresco_import/alfresco_import.pages.inc:229
 msgid "There was a problem importing files: !bad-list"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:231
+#: alfresco_import/alfresco_import.pages.inc:232
 msgid "Successfully imported: !good-list"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:323
+#: alfresco_import/alfresco_import.pages.inc:324
 msgid "The items in this space: %space"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:215;233
+#: alfresco_import/alfresco_import.pages.inc:216;234
 msgid "alfresco_import"
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:215
+#: alfresco_import/alfresco_import.pages.inc:216
 msgid "There was an error that prevented %reference from being imported."
 msgstr ""
 
-#: alfresco_import/alfresco_import.pages.inc:233
+#: alfresco_import/alfresco_import.pages.inc:234
 msgid "Completed image import."
 msgstr ""
 
@@ -860,88 +958,60 @@ msgstr ""
 msgid "import alfresco contents"
 msgstr ""
 
-#: alfresco_import/alfresco_import.module:35 alfresco_import/alfresco_import.info:0
-msgid "Alfresco import"
+#: alfresco_import/alfresco_import.module:35
+msgid "Import items"
 msgstr ""
 
 #: alfresco_import/alfresco_import.module:36
 msgid "Import <em>Alfresco item</em> nodes from an Alfresco space."
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:46
-msgid "Alfresco image"
+#: alfresco_import/alfresco_import.info:0
+msgid "Alfresco import"
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:48
-msgid "An <em>alfresco image</em> is ..."
+#: includes/alfresco.soap.inc:196
+msgid "Imposible borrar contenido. Asegúrese que tiene los permisos nececesarios para poder borrar el contenido."
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:67
-msgid "create alfresco image content"
+#: includes/alfresco.soap.inc:269
+msgid "Imposible obtener una sesión de Alfresco."
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:68
-msgid "delete own alfresco image content"
+#: includes/alfresco.soap.inc:275
+msgid "El espacio especificado no existe."
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:69
-msgid "delete any alfresco image content"
+#: includes/alfresco.soap.inc:295
+msgid "The selected file %file could not be copied, because a file by that name already exists in the destination."
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:70
-msgid "edit own alfresco image content"
+#: includes/alfresco.soap.inc:322
+msgid "Respuesta no esperada del servidor"
 msgstr ""
 
-#: alfresco_media/alfresco_media.module:71
-msgid "edit any alfresco image content"
+#: includes/alfresco.soap.inc:352
+msgid "Imposible añadir el contenido. Por favor, compruebe que tiene los permisos necesarios para añadir contenido al espacio."
 msgstr ""
 
-#: alfresco_media/alfresco_media.info:0
-msgid "Alfresco media"
+#: includes/alfresco.theme.inc:15;55
+msgid "Download file"
 msgstr ""
 
-#: alfresco_media/alfresco_media.info:0
-msgid "Allows users to create media alfresco items as images, videos and audios."
+#: includes/alfresco.theme.inc:29
+msgid "Mimetype"
 msgstr ""
 
-#: includes/alfresco.service.inc:53
-msgid "Error connecting to Alfresco repository. Please contact the server administrator for assistance."
+#: includes/alfresco.theme.inc:51
+msgid "n/a"
 msgstr ""
 
-#: includes/alfresco.service.inc:125
-msgid "Error loading node from alfresco repository."
+#: includes/alfresco.theme.inc:72;111
+msgid "Property"
 msgstr ""
 
-#: includes/alfresco.service.inc:157
-msgid "Error searching nodes from alfresco repository."
-msgstr ""
-
-#: includes/alfresco.service.inc:198
-msgid "Error loading properties from alfresco node."
-msgstr ""
-
-#: includes/alfresco.service.inc:275
-msgid "Error saving alfresco node."
-msgstr ""
-
-#: includes/alfresco.service.inc:54
-msgid "Error connecting to Alfresco repository. URL=%url, Exception=%msg"
-msgstr ""
-
-#: includes/alfresco.service.inc:126
-msgid "Error loading node from alfresco repository, with reference %reference. Exception=%msg"
-msgstr ""
-
-#: includes/alfresco.service.inc:158
-msgid "Error searching node from alfresco repository, with reference %reference. Exception=%msg"
-msgstr ""
-
-#: includes/alfresco.service.inc:199
-msgid "Error loading properties from alfresco node, with reference %reference. Exception=%msg"
-msgstr ""
-
-#: includes/alfresco.service.inc:276
-msgid "Error saving alfresco node. Exception=%msg"
+#: includes/alfresco.theme.inc:111
+msgid "Show"
 msgstr ""
 
 #: views/alfresco.views.inc:38
@@ -953,7 +1023,7 @@ msgid "Upload date"
 msgstr ""
 
 #: views/alfresco.views.inc:57
-msgid "The date the file was saved/synchronized."
+msgid "The date the file was saved."
 msgstr ""
 
 #: views/alfresco.views.inc:89

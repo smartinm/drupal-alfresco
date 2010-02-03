@@ -3,13 +3,25 @@
 
 /**
  * @file
- *
+ * Alfresco browser.
  */
 
+/**
+ * Ext adapter.
+ *  - native: adapter/ext/ext-base.js
+ *  - jQuery: adapter/jquery/ext-jquery-adapter.js
+ */
 define('ALFRESCO_BROWSER_EXT_ADAPTER', 'adapter/ext/ext-base.js');
-//define('ALFRESCO_BROWSER_EXT_ADAPTER', 'adapter/jquery/ext-jquery-adapter.js');
+
+/**
+ * Ext library.
+ */
 define('ALFRESCO_BROWSER_EXT_ALL', 'ext-all.js');
 
+/**
+ * The default Alfresco browser home path.
+ */
+define('ALFRESCO_BROWSER_HOME', '/app:company_home');
 
 /**
  * Implementation of hook_help().
@@ -61,16 +73,16 @@ function alfresco_browser_menu() {
 
   // Callbacks
 
-  $items['alfresco/browser/service/tree.json'] = array(
-    'page callback' => 'alfresco_browser_service_tree_json',
+  $items['alfresco/browser/service/spaces'] = array(
+    'page callback' => 'alfresco_browser_service_spaces',
     'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
-  $items['alfresco/browser/service/grid.json'] = array(
-    'page callback' => 'alfresco_browser_service_documents_json',
+  $items['alfresco/browser/service/items'] = array(
+    'page callback' => 'alfresco_browser_service_items',
     'access callback' => 'user_access',
     'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
@@ -147,6 +159,7 @@ function template_preprocess_alfresco_browser_page(&$variables) {
 
   $css = drupal_add_css();
   $css['all']['theme'] = array();
+  $css['print'] = array();
 
   foreach ($css['all']['module'] as $file => $style) {
     if (strpos($file, '/alfresco_browser/') === FALSE && strpos($file, '/ext/') === FALSE) {

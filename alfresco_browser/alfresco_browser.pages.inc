@@ -1,20 +1,10 @@
 <?php
-// $Id$
+// $Id: alfresco_browser.pages.inc 1143 2010-02-02 10:39:51Z semm $
 
 /**
  * @file
  *
  */
-
-/**
- *
- */
-function alfresco_browser_repository_page() {
-  drupal_set_title('');
-  $url = url('alfresco/browser');
-  $frame = '<iframe id="embedded-browser" style="width:100%;height:600px;border:2px solid #ccc;" frameborder="0"  src="'. $url .'"></iframe>';
-  return $frame;
-}
 
 /**
  *
@@ -26,7 +16,7 @@ function alfresco_browser_page() {
   $module_path = drupal_get_path('module', 'alfresco_browser');
 
   alfresco_include('soap');
-  $home_path = variable_get('alfresco_browser_home', '/app:company_home');
+  $home_path = variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME);
   $home_node = alfresco_soap_node_load($home_path);
 
   // Alfresco Browser Settings
@@ -34,8 +24,8 @@ function alfresco_browser_page() {
     'homeRef'            => $home_node ? $home_node->id : '',
     'homeText'           => $home_node ? $home_node->cm_name : '- Error -',
     'modulePath'         => url($module_path),
-    'serviceTreeUrl'     => url('alfresco/browser/service/tree.json'),
-    'serviceGridUrl'     => url('alfresco/browser/service/grid.json'),
+    'serviceTreeUrl'     => url('alfresco/browser/service/spaces'),
+    'serviceGridUrl'     => url('alfresco/browser/service/items'),
     'serviceDownloadUrl' => url('alfresco/browser/service/download'),
     'serviceUploadUrl'   => url('alfresco/browser/service/upload'),
     'serviceDeleteUrl'   => url('alfresco/browser/service/delete'),
@@ -49,8 +39,8 @@ function alfresco_browser_page() {
   drupal_add_css($module_path . '/css/browser.css', 'module');
 
   // Ext JS files
-  drupal_add_js($extjs_path .'/'. ALFRESCO_BROWSER_EXT_ADAPTER, 'module', 'footer', FALSE, FALSE, FALSE);
-  drupal_add_js($extjs_path .'/'. ALFRESCO_BROWSER_EXT_ALL, 'module', 'footer', FALSE, FALSE, FALSE);
+  drupal_add_js($extjs_path .'/'. ALFRESCO_BROWSER_EXT_ADAPTER, 'module', 'footer', FALSE, TRUE, FALSE);
+  drupal_add_js($extjs_path .'/'. ALFRESCO_BROWSER_EXT_ALL, 'module', 'footer', FALSE, TRUE, FALSE);
 
   // Ext JS locale files
   $locale_path = $extjs_path .'/source/locale/ext-lang-'. $language->language .'.js';
@@ -60,25 +50,33 @@ function alfresco_browser_page() {
       $locale_path = NULL;
     }
   }
-
   if ($locale_path) {
-    drupal_add_js($locale_path, 'module', 'footer', FALSE, FALSE, FALSE);
+    drupal_add_js($locale_path, 'module', 'footer', FALSE, TRUE, FALSE);
   }
+
+  // Alfresco Browser JS
+  drupal_add_js($module_path .'/js/FileUploadField.js', 'module', 'footer', FALSE, TRUE, FALSE);
+  drupal_add_js($module_path .'/js/AlfrescoBrowser.js', 'module', 'footer', FALSE, TRUE, FALSE);
 
   // Blank Image URL
   $blank_image_url = url($extjs_path .'/resources/images/default/s.gif');
   drupal_add_js("Ext.BLANK_IMAGE_URL = '$blank_image_url';", 'inline', 'footer');
 
-  // Alfresco Browser JS
-  drupal_add_js($module_path .'/js/FileUploadField.js', 'module', 'footer');
-  drupal_add_js($module_path .'/js/AlfrescoBrowser.js', 'module', 'footer');
-
   drupal_set_title(t('Alfresco Browser for Drupal'));
-
-  print theme('alfresco_browser_page');
+  echo theme('alfresco_browser_page');
 }
 
-function alfresco_browser_service_tree_json() {
+/**
+ *
+ */
+function alfresco_browser_repository_page() {
+  drupal_add_css(drupal_get_path('module', 'alfresco_browser') .'/alfresco_browser.css');
+  drupal_set_title('');
+  $url = url('alfresco/browser');
+  return '<iframe id="embedded-browser" frameborder="0"  src="'. $url .'"></iframe>';
+}
+
+function alfresco_browser_service_spaces() {
 
   $node = isset($_GET['node']) ? trim($_GET['node']) : '';
   $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
@@ -137,7 +135,7 @@ function alfresco_browser_service_tree_json() {
       }
     }
 
-    usort($nodes, '_alfresco_browser_node_sort');
+    usort($nodes, 'alfresco_browser_node_sort');
 
     if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
       cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
@@ -150,7 +148,7 @@ function alfresco_browser_service_tree_json() {
 }
 
 
-function alfresco_browser_service_documents_json() {
+function alfresco_browser_service_items() {
 
   $node  = isset($_GET['node'])  ? trim($_GET['node']) : '';
   $query = isset($_GET['query']) ? trim($_GET['query']) : '';
@@ -350,8 +348,8 @@ function alfresco_browser_service_delete() {
 }
 
 /**
- * Función auxiliar para los nodos alfabéticamente por su nombre.
+ * Function used by usort to sort alfresco nodes by text.
  */
-function _alfresco_browser_node_sort($node1, $node2) {
-  return strnatcmp($node1['text'], $node2['text']);
+function alfresco_browser_node_sort($a, $b) {
+  return strnatcmp($a['text'], $b['text']);
 }

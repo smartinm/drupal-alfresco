@@ -4,26 +4,10 @@
 /**
  * @file
  * Enables Alfresco and Drupal integration.
- *
- * Contents of this file
- * =====================
- * 0. Constants, includes and views support
- * 1. Help hooks
- * 2. Node info and permissions
- * 3. Menu hooks
- * 1. Edit node form
- * 2. Validate node functions
- * 3. Submit node functions
- * 4. Database functions
- * 5. View functions
- * 4. Cron hooks
- * 5. Theme hooks
- * 6. Files helper functions
- * 7. Utils helper functions
  */
 
 // ------------------------------------------------------------------
-// =0 Constants, includes and views support
+// Constants
 // ------------------------------------------------------------------
 
 // Alfresco file downloads methods.
@@ -32,9 +16,10 @@ define('ALFRESCO_FILE_DOWNLOADS_MODULE', 1);  // Private transfer
 define('ALFRESCO_FILE_DOWNLOADS_GUEST',  2);  // Direct Guest URL
 define('ALFRESCO_FILE_DOWNLOADS_TICKET', 3);  // Direct Ticket URL
 
-define('ALFRESCO_FILE_EXISTS_RENAME',  0);
-define('ALFRESCO_FILE_EXISTS_REPLACE', 1);
-define('ALFRESCO_FILE_EXISTS_ERROR',   2);
+// Alfresco file exists behavior.
+define('ALFRESCO_FILE_EXISTS_RENAME',  0);  // Appends number until name is unique.
+define('ALFRESCO_FILE_EXISTS_REPLACE', 1);  // Replace the existing file.
+define('ALFRESCO_FILE_EXISTS_ERROR',   2);  // Do nothing and return error.
 
 // Alfresco authentication methods.
 define('ALFRESCO_AUTH_SINGLE', 1);
@@ -49,7 +34,7 @@ define('ALFRESCO_REGEX_DATE_LOOSE', '/(\d{4})-?(\d{2})-?(\d{2})([T\s]?(\d{2}):?(
 define('ALFRESCO_REGEX_NODE_UUID', '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}');
 
 // ------------------------------------------------------------------
-// =1 Help hooks
+// Help hooks
 // ------------------------------------------------------------------
 
 /**
@@ -73,7 +58,7 @@ function alfresco_help($path, $arg) {
 }
 
 // ------------------------------------------------------------------
-// =2 Node info and permissions hooks
+// Node info and permissions hooks
 // ------------------------------------------------------------------
 
 /**
@@ -143,7 +128,7 @@ function alfresco_access($op, $node, $account) {
 }
 
 // ------------------------------------------------------------------
-// =3 Menu hooks
+// Menu hooks
 // ------------------------------------------------------------------
 
 /**
@@ -214,19 +199,6 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
-  /*
-  $items['node/%alfresco_node/sync'] = array(
-    'title' => 'Synchronize',
-    'page callback' => 'alfresco_page_sync',
-    'page arguments' => array(1),
-    'access callback' => '_alfresco_administer_access',
-    'access arguments' => array(1),
-    'weight' => 6,
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'alfresco.pages.inc',
-  );
-  */
-
   $items['node/%alfresco_node/details'] = array(
     'title' => 'Details',
     'page callback' => 'alfresco_page_details',
@@ -279,9 +251,19 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
-  // Callbacks
+  // Alfresco download content
 
-  $items['alfresco/download/%/%'] = array(
+  $items['alfresco/download/%/%/%'] = array(
+    'title' => 'Alfresco download',
+    'page callback' => 'alfresco_download_content',
+    'page arguments' => array(2, 3, 4),
+    'access arguments' => array('download alfresco content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'alfresco.pages.inc',
+  );
+
+  // @see http://wiki.alfresco.com/wiki/URL_Addressability#DownloadContentServlet
+  $items['alfresco/download/%/%alfresco_workspace/%alfresco_store/%alfresco_node_id/%alfresco_filename'] = array(
     'title' => 'Alfresco download',
     'page callback' => 'alfresco_download',
     'page arguments' => array(2),
@@ -343,11 +325,14 @@ function alfresco_name_to_arg($arg) {
 }
 
 // ------------------------------------------------------------------
-// =1 Edit node form
+// Form hooks
 // ------------------------------------------------------------------
 
 /**
  * Implementation of hook_form().
+ *
+ * @see alfresco_form_validate
+ * @see alfresco_form_submit
  */
 function alfresco_form(&$node, $form_state) {
 
@@ -417,7 +402,7 @@ function alfresco_form_search_form_alter(&$form, &$form_state) {
 }
 
 // ------------------------------------------------------------------
-// =2 Validate node functions
+// Validate node hooks
 // ------------------------------------------------------------------
 
 /**
@@ -480,7 +465,7 @@ function alfresco_validate($node, &$form) {
 }
 
 // ------------------------------------------------------------------
-// =3 Submit node functions
+// Submit node functions
 // ------------------------------------------------------------------
 
 /**
@@ -508,7 +493,7 @@ function alfresco_form_submit($form, &$form_state) {
 }
 
 // -----------------------------------------------------------------------
-// =4 Database functions
+// Database functions
 // -----------------------------------------------------------------------
 
 /**
@@ -653,7 +638,7 @@ function alfresco_load($node) {
 }
 
 // -----------------------------------------------------------------------
-// =5 View functions
+// View functions
 // -----------------------------------------------------------------------
 
 /**
@@ -679,6 +664,10 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   }
   return $node;
 }
+
+// ------------------------------------------------------------------
+// 3rd party module hooks
+// ------------------------------------------------------------------
 
 /**
  * Implementation of hook_views_api().
@@ -718,43 +707,28 @@ function alfresco_admin_theme($op = 'info', $option = NULL) {
 }
 
 // ------------------------------------------------------------------
-// =4 Cron hooks
+// Cron hooks
 // ------------------------------------------------------------------
 
 /**
  * Implementation of hook_cron().
- *
- * @see ALFRESCO_SYNC_TIME
- * @see ALFRESCO_SYNC_LIMIT
  */
 function alfresco_cron() {
+  // @todo: Add sync
 
-  // Limpiamos el ticket para forzar la autenticación contra el repositorio y
-  // evitar el timeout del ticket.
-  // @todo esto no funciona por que la sesión es por usuario
-  //unset($_SESSION['alfresco']['ticket']);
-
-  if (variable_get('alfresco_sync_enabled', FALSE)) {
-    $limit = (int)variable_get('alfresco_sync_cron_limit', 100);
-    $refresh = (int)variable_get('alfresco_sync_cron_refresh', 21600);
-
-    $result = db_query_range('SELECT nid FROM {alfresco_node} WHERE timestamp < %d ORDER BY timestamp DESC', time() - $refresh, 0, $limit);
-    while ($node = db_fetch_object($result)) {
-      alfresco_sync_node($node);
-    }
-  }
-
+  // @see alfresco_requirements()
   variable_set('alfresco_http_request_fails', FALSE);
 }
 
 // ------------------------------------------------------------------
-// =5 Theme hooks
+// Theme hooks
 // ------------------------------------------------------------------
 
 /**
  * Implementation of hook_theme()
  */
 function alfresco_theme() {
+
   return array(
     'alfresco_properties_table' => array(
       'arguments' => array('form' => NULL),
@@ -768,20 +742,15 @@ function alfresco_theme() {
       'arguments' => array('node' => NULL),
       'file' => 'alfresco.theme.inc',
     ),
-    // Form API element
-    'alfresco' => array(
-      'arguments' => array('element' => NULL),
-      'file' => 'alfresco.theme.inc',
-    ),
   );
 }
 
 // ------------------------------------------------------------------
-// =6 Files helper functions
+// Files helper functions
 // ------------------------------------------------------------------
 
 /**
- * Return The URL for download the alfresco file.
+ * Return the URL for download the alfresco file.
  */
 function alfresco_url_download($node) {
 
@@ -850,8 +819,11 @@ function alfresco_file_transfer($reference, $disposition = NULL) {
 }
 
 /**
+ * Uploads a file into content store and returns the content data string which
+ * can be used to populate a content property.
  *
  * @see drupal_http_request()
+ * @see http://wiki.alfresco.com/wiki/URL_Addressability#UploadContentServlet
  */
 function alfresco_file_put($filepath, $url, $headers = array()) {
   $result = new stdClass();
@@ -974,7 +946,7 @@ function alfresco_file_put($filepath, $url, $headers = array()) {
 }
 
 // ------------------------------------------------------------------
-// =7 Utils helper functions
+// Utils helper functions
 // ------------------------------------------------------------------
 
 function alfresco_valid_uuid($uuid) {
@@ -1099,93 +1071,6 @@ function alfresco_date_convert($date) {
   return sprintf("%04d-%02d-%02d %02d:%02d:%02d",
     $date['year'], $date['month'],  $date['day'],
     $date['hour'], $date['minute'], $date['second']);
-}
-
-/**
- * Parses a Soap Fault and returns an keyed array containing the components:
- *   'code'    - Error code
- *   'message' - Error message
- *   'detail'  - Exception server name
- *
- * @see http://eirikhoem.wordpress.com/2007/08/11/soapfault-vs-exceptions/
- */
-function alfresco_parse_soap_fault(SoapFault $sf) {
-
-  if (empty($sf)) {
-    return NULL;
-  }
-
-  $code = '';
-  $message = '';
-  $detail = '';
-
-  if (isset($sf->faultstring)) {
-    $pos = strpos($sf->faultstring, ':');
-    if ($pos) {
-      $code = substr($sf->faultstring, 0, $pos);
-      $message = trim(substr($sf->faultstring, $pos + 1, strlen($sf->faultstring)));
-    }
-    else {
-      $message = $sf->faultstring;
-    }
-  }
-
-  if (isset($sf->detail)) {
-    $reflectionObject = new ReflectionObject($sf->detail);
-    $properties = $reflectionObject->getProperties();
-    $exceptionName = $properties[0]->name;
-    $detail = $exceptionName;
-  }
-
-  return array('code' => $code, 'message' => $message, 'detail' => $detail);
-}
-
-/**
- * Synchronize the alfresco_item node with Alfresco Node.
- */
-function alfresco_sync_node($node) {
-  global $user;
-
-  // check permissions
-  if (!user_access('administer alfresco')) {
-    return FALSE;
-  }
-
-  // check node content type
-  if (!$node || $node->type != 'alfresco_item') {
-    return FALSE;
-  }
-
-  // check alfresco node reference
-  $reference = $node->reference;
-  if (!alfresco_valid_reference($reference)) {
-    return FALSE;
-  }
-
-  // check alfresco node in repository
-  alfresco_include('soap');
-  $alf_node = alfresco_soap_node_load($reference);
-  if (!$alf_node) {
-    // @todo el nodo de Alfresco no existe, decidir que hacer.
-    return FALSE;
-  }
-
-  // update properties
-  $properties = _alfresco_map($alf_node);
-  if ($properties) {
-    foreach ($properties as $key => $value) {
-      $node->$key = $value;
-    }
-
-    // @todo mapping
-    // $node->title = $properties->cm_title;
-    // $node->body  = $properties->cm_description;
-  }
-
-  // save node
-  node_save($node);
-
-  return TRUE;
 }
 
 /**
@@ -1364,23 +1249,6 @@ function alfresco_search($op = 'search', $keys = NULL) {
     case 'search':
       return alfresco_search_search($keys);
   }
-}
-
-/**
- * Implementation of hook_elements().
- */
-function alfresco_elements() {
-  $type['alfresco'] = array(
-    '#input' => TRUE,
-    '#default_value' => '',
-    '#process' => array('alfresco_process'),
-    //'#element_validate' => array('alfresco_element_validate'),
-  );
-  return $type;
-}
-
-function alfresco_process($element, $edit, $form_state, $complete_form) {
-
 }
 
 /**

@@ -54,7 +54,7 @@ function alfresco_views_data() {
   // timestamp field
   $data['alfresco_node']['timestamp'] = array(
     'title' => t('Upload date'),
-    'help' => t('The date the file was saved/synchronized.'),
+    'help' => t('The date the file was saved.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,

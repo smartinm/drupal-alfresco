@@ -14,41 +14,45 @@ function alfresco_search_name() {
 }
 
 /**
- * @todo: Mover la búsqueda a alfresco.service.inc
+ * @todo: Mover la lógica de las búsquedas a un método de alfresco.service.inc
  */
 function alfresco_search_search($keys) {
   $find = array();
 
   try {
     alfresco_include('soap');
+
     $session = alfresco_soap_get_session();
     $spacesStore = new AlfStore($session, 'SpacesStore');
-    $queryResults = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $keys .'*"');
+    $results = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $keys .'*"');
 
-    foreach ($queryResults as $childNode) {
-      $nodeRef = $childNode->__toString();
-      $ext = substr(strrchr($childNode->cm_name, '.'), 1);
-      $nid = alfresco_exists_node($nodeRef);
+    foreach ($results as $node) {
+      $reference = $node->__toString();
+      $nid = alfresco_exists_node($reference);
 
-      if ($childNode->cm_content instanceof AlfContentData) {
-        $contentData = $childNode->cm_content;
+      if ($node->cm_content instanceof AlfContentData) {
+        $content = $node->cm_content;
       }
 
-      $name = $childNode->cm_name;
-      $title = $childNode->cm_title;
-      $description = $childNode->cm_description;
+      $name = $node->cm_name;
+      $title = $node->cm_title;
+      $description = $node->cm_description;
+      $extension = substr(strrchr($node->cm_name, '.'), 1);
+      $type = $node->type;
+      //$path = $node->getFolderPath() . '/'. $name;
+
+      $store = $node->getStore();
+      $link = "alfresco/download/$store->scheme/$store->address/$node->id/$node->cm_name";
 
       $find[] = array(
-        'link' => url('alfresco/download/'. $childNode->id .'/'. $childNode->cm_name),
-        //'type' => $childNode->type,
-        'title' => !empty($title) ? $title : $name,
-        'user' => $childNode->cm_creator,
-        'extra' => array(
-          //'path' => $childNode->getFolderPath() . '/'. $name,
-          'size' => isset($contentData) ? format_size($contentData->size) : '',
-          'mimetype' => isset($contentData) ? $contentData->mimetype : '',
+        'link'    => url($link),
+        'title'   => !empty($title) ? $title : $name,
+        //'snippet' => $description,
+        'user'    => $node->cm_creator,
+        'extra'   => array(
+          'size'     => isset($content) ? format_size($content->size) : '',
+          'mimetype' => isset($content) ? $content->mimetype : '',
         ),
-        'snippet' => $description,
       );
     }
   }

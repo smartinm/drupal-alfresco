@@ -82,13 +82,6 @@ function theme_alfresco_display($node) {
 }
 
 /**
- * @todo documentation
- */
-function theme_alfresco($element) {
-  return drupal_render($element);
-}
-
-/**
  *
  * @see http://cvs.drupal.org/viewvc.py/drupal/contributions/docs/developer/examples/scaffolding_example/scaffolding_example.admin.inc?revision=1.1
  * @see http://api.drupal.org/api/function/drupal_add_tabledrag/6
