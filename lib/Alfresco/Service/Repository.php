@@ -59,18 +59,21 @@ class AlfRepository extends AlfBaseObject {
 
   public function authenticate($userName, $password) {
     // TODO need to handle exceptions!
+
     $authenticationService = AlfWebServiceFactory::getAuthenticationService($this->_connectionUrl);
     $result = $authenticationService->startSession(array(
       "username" => $userName,
       "password" => $password
     ));
+
     // Get the ticket and sessionId
     $ticket = $result->startSessionReturn->ticket;
     $sessionId = $result->startSessionReturn->sessionid;
+
     // Store the session id for later use
     if ($sessionId != null) {
       $sessionIds = null;
-      if (isset($_SESSION["sessionIds"]) == false) {
+      if (!isset($_SESSION["sessionIds"])) {
         $sessionIds = array();
       } else {
         $sessionIds = $_SESSION["sessionIds"];

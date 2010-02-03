@@ -49,9 +49,9 @@ function alfresco_soap_create_session() {
 
     if (isset($_SESSION['alfresco_ticket']) && isset($_SESSION['alfresco_last_access'])) {
       $last_access = $_SESSION['alfresco_last_access'];
-      $ticket_timeout = variable_get('alfresco_tickets_timeout', 3600);
+      $timeout = variable_get('alfresco_ticket_timeout', 1800);
 
-      if (time() < (intval($last_access) + intval($ticket_timeout))) {
+      if (time() < (intval($last_access) + intval($timeout))) {
         $ticket = $_SESSION['alfresco_ticket'];
       }
     }
@@ -65,8 +65,8 @@ function alfresco_soap_create_session() {
     // Using the ticket we can now create a session.
     $session = $repository->createSession($ticket);
 
-    $_SESSION['alfresco_last_access'] = time();
     $_SESSION['alfresco_ticket'] = $ticket;
+    $_SESSION['alfresco_last_access'] = time();
   }
   catch (SoapFault $exception) {
     alfresco_error_handler('alfresco', $exception);

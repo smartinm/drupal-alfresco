@@ -138,6 +138,71 @@ function alfresco_views_data() {
     ),
   );
 
+  // ----------------------------------------------------------------
+  // node_counter table
+
+  $data['alfresco_counter']['table']['group']  = t('Alfresco statistics');
+
+  $data['alfresco_counter']['table']['join'] = array(
+    // direct join to the node table via 'nid' field.
+    'node' => array(
+      'left_table' => 'alfresco_node',
+      'left_field' => 'nid',
+      'field' => 'nid',
+    ),
+  );
+
+  // totalcount
+  $data['alfresco_counter']['totalcount'] = array(
+    'title' => t('Total downloads'),
+    'help' => t('The total number of times the node has been downloaded.'),
+
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  // daycount
+  $data['alfresco_counter']['daycount'] = array(
+    'title' => t('Downloads today'),
+    'help' => t('The total number of times the node has been downloaded today.'),
+
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  // timestamp
+  $data['alfresco_counter']['timestamp'] = array(
+    'title' => t('Most recent download'),
+    'help' => t('The most recent time the node has been downloaded.'),
+
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
   return $data;
 }
 

@@ -91,7 +91,7 @@ function alfresco_node_info() {
 function alfresco_perm() {
 
   return array(
-    'add alfresco content',
+    'add alfresco content', // @todo: validar este permiso en alfresco_browsser
     'administer alfresco',
     'create alfresco content',
     'delete own alfresco content',
@@ -99,6 +99,7 @@ function alfresco_perm() {
     'download alfresco content',
     'edit own alfresco content',
     'edit any alfresco content',
+    'view alfresco download counter',
   );
 }
 
@@ -605,6 +606,9 @@ function alfresco_delete($node) {
   // Notice that we're matching all revision, by using the node's nid.
   db_query('DELETE FROM {alfresco_node} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {alfresco_content} WHERE nid = %d', $node->nid);
+
+  // clean up statistics table when node is deleted
+  db_query('DELETE FROM {alfresco_counter} WHERE nid = %d', $node->nid);
 }
 
 /**
@@ -665,6 +669,35 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
   return $node;
 }
 
+/**
+ * Implementation of hook_link().
+ */
+function alfresco_link($type, $node = NULL, $teaser = FALSE) {
+  $links = array();
+
+  if ($type == 'node' && $node->type == 'alfresco_item' && $node->cm_content) {
+    if (user_access('download alfresco content')) {
+      $url = alfresco_url_download($node);
+      $links['alfresco_download'] = array(
+        'title' => t('download content'),
+        'href' => $url,
+        'attributes' => array('title' => t("Download '!name' file", array('!name' => $node->cm_name))),
+      );
+    }
+
+    if (user_access('view alfresco download counter')) {
+      $totalcount = db_result(db_query('SELECT totalcount FROM {alfresco_counter} WHERE nid = %d', $node->nid));
+      if ($totalcount) {
+        $links['alfresco_statistics_counter'] = array(
+          'title' => format_plural($totalcount, '1 download', '@count downloads')
+        );
+      }
+    }
+  }
+
+  return $links;
+}
+
 // ------------------------------------------------------------------
 // 3rd party module hooks
 // ------------------------------------------------------------------
@@ -715,6 +748,14 @@ function alfresco_admin_theme($op = 'info', $option = NULL) {
  */
 function alfresco_cron() {
   // @todo: Add sync
+
+  $statistics_timestamp = variable_get('alfresco_statistics_day_timestamp', '');
+
+  if ((time() - $statistics_timestamp) >= 86400) {
+    // Reset day counts.
+    db_query('UPDATE {alfresco_counter} SET daycount = 0');
+    variable_set('alfresco_statistics_day_timestamp', time());
+  }
 
   // @see alfresco_requirements()
   variable_set('alfresco_http_request_fails', FALSE);
@@ -1264,14 +1305,14 @@ function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
     watchdog($type, 'Unable to connect to Alfresco repository via SOAP.', array(), WATCHDOG_ERROR);
     drupal_set_message(t('Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance.'), 'error');
 
+    // Limpiamos el ticket actual para forzar la autenticación en la siguiente petición
+    unset($_SESSION['alfresco_ticket']);
+    unset($_SESSION['alfresco_last_access']);
+
     // @todo: Añadir configuración para habilitar/deshabilitar mensajes de debug
     if (module_exists('devel')) {
       dpm(strval($exception));
     }
-
-    // Limpiamos el ticket actual para forzar la autenticación
-    unset($_SESSION['alfresco_ticket']);
-    unset($_SESSION['alfresco_last_access']);
   }
   else {
     $message = !isset($message) ? $exception->getMessage() : $message;

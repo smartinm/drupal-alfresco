@@ -23,6 +23,8 @@ Nuevas funcionalidades y mejoras:
 
 - Implementación inicial de búsqueda en el repositorio
 
+- Alfresco statistics
+
 - Añadida integración con Admin Theme
 
 Cambios para desarrolladores:

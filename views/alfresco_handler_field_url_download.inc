@@ -10,11 +10,9 @@ class alfresco_handler_field_url_download extends views_handler_field {
   function construct() {
     parent::construct();
     $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
-    $this->additional_fields['uid'] = array('table' => 'node', 'field' => 'uid');
-    $this->additional_fields['type'] = array('table' => 'node', 'field' => 'type');
+    $this->additional_fields['nid_content'] = array('table' => 'alfresco_content', 'field' => 'nid');
     $this->additional_fields['title'] = array('table' => 'node', 'field' => 'title');
-    $this->additional_fields['size'] = array('table' => 'alfresco_content', 'field' => 'size');
-    $this->additional_fields['cm_name'] = 'cm_name';
+    $this->additional_fields['name'] = 'cm_name';
   }
 
   function option_definition() {
@@ -51,17 +49,13 @@ class alfresco_handler_field_url_download extends views_handler_field {
     else {
       $value = $values->{$this->field_alias};
     }
-    $is_file = $values->{$this->aliases['size']} > 0;
-    if (!empty($this->options['display_as_link']) && user_access('download alfresco content') && $is_file) {
-      $node = new stdClass();
-      $node->nid = $values->{$this->aliases['nid']};
-      $node->uid = $values->{$this->aliases['uid']};
-      $node->type = $values->{$this->aliases['type']};
-      $node->title = $values->{$this->aliases['title']};
-      $node->cm_name = $values->{$this->aliases['cm_name']};
-      $node->cm_content = TRUE;
 
-      $url = alfresco_url_download($node);
+    $content = $values->{$this->aliases['nid_content']};
+    if (!empty($this->options['display_as_link']) && !empty($content) && user_access('download alfresco content')) {
+
+      $nid = $values->{$this->aliases['nid']};
+      $name = $values->{$this->aliases['cm_name']};
+      $url = "node/$nid/download/$name";
 
       return l(check_plain($value), $url, array('html' => TRUE));
     }

@@ -126,7 +126,7 @@ class AlfSession extends AlfBaseObject {
    * Adds a new node to the session.
    */
   public function addNode($node) {
-    $this->nodeCache[$node->__toString() ] = $node;
+    $this->nodeCache[$node->__toString()] = $node;
   }
 
   private function getNodeImpl($store, $id) {

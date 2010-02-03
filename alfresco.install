@@ -109,7 +109,7 @@ function alfresco_uninstall() {
     'alfresco_http_request_fails',
     'alfresco_local_dictionary_service_wsdl',
     'alfresco_repository_url',
-    'alfresco_tickets_timeout',
+    'alfresco_ticket_timeout',
   );
   foreach ($variables as $variable) {
     variable_del($variable);
@@ -274,6 +274,43 @@ function alfresco_schema() {
     'primary key' => array('vid'),
   );
 
+  // alfresco-6.x-1.1
+  $schema['alfresco_counter'] = array(
+    'description' => 'Download statistics for {alfresco_node}s.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The {alfresco_node}.nid for these statistics.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'totalcount' => array(
+        'description' => 'The total number of times the {alfresco_node} has been downloaded.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'big'
+      ),
+      'daycount' => array(
+        'description' => 'The total number of times the {alfresco_node} has been downloaded today.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'medium'
+      ),
+      'timestamp' => array(
+        'description' => 'The most recent time the {downloaded} has been downloaded.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0
+      )
+    ),
+    'primary key' => array('nid'),
+  );
+
   return $schema;
 }
 
@@ -431,9 +468,48 @@ function _alfresco_check_connection_repository() {
 /**
  * Implementation of hook_update_N().
  */
-/*
 function alfresco_update_6100() {
+  $ret = array();
 
+  $schema['alfresco_counter'] = array(
+    'description' => 'Download statistics for {alfresco_node}s.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The {alfresco_node}.nid for these statistics.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'totalcount' => array(
+        'description' => 'The total number of times the {alfresco_node} has been downloaded.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'big'
+      ),
+      'daycount' => array(
+        'description' => 'The total number of times the {alfresco_node} has been downloaded today.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'medium'
+      ),
+      'timestamp' => array(
+        'description' => 'The most recent time the {downloaded} has been downloaded.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0
+      )
+    ),
+    'primary key' => array('nid'),
+  );
+
+  db_create_table($ret, 'alfresco_counter', $schema['alfresco_counter']);
+
+  // Save defaults folder types
   $default_folder_types = array(
     'cm_folder',
     'cm_systemfolder',
@@ -452,6 +528,7 @@ function alfresco_update_6100() {
   );
   variable_set('alfresco_folder_types', $default_folder_types);
 
-  // Clear session table
+  // @todo: Clear session table
+
+  return $ret;
 }
-*/

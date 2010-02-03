@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: alfresco.theme.inc 1145 2010-02-03 11:47:11Z semm $
 
 /**
  * @file
@@ -10,10 +10,10 @@
  * Format the teaser for an alfresco_item node.
  */
 function theme_alfresco_teaser($node) {
-
-  $url = alfresco_url_download($node);
-  $link = l($node->cm_name, $url, array('attributes' => array('title' => t('Download file'))));
-  return '<p>'. $link .'</p>';
+  $output = '';
+  $output .= '<div id="alfresco-teaser-size">'. format_size($node->cm_content['size']) .'</div>';
+  $output .= '<div id="alfresco-teaser-date">'. format_date(strtotime($node->cm_modified), 'large') .'</div>';
+  return $output;
 }
 
 /**
@@ -22,45 +22,33 @@ function theme_alfresco_teaser($node) {
 function theme_alfresco_display($node) {
 
   $model = array(
-    'name'        => t('Name'),
-    'title'       => t('Title'),
-    'description' => t('Description'),
-    'content'     => array(
-      'mimetype'  => t('Mimetype'),
-      'encoding'  => t('Encoding'),
-      'size'      => t('Size'),
-    ),
-    'author'      => t('Author'),
-    'creator'     => t('Creator'),
-    'created'     => t('Created date'),
-    'modifier'    => t('Modifier'),
-    'modified'    => t('Modified date'),
+    'cm_name'        => t('Name'),
+    'cm_title'       => t('Title'),
+    'cm_description' => t('Description'),
+    'cm_content'     => t('Fichero'),
+    'cm_author'      => t('Author'),
+    'cm_creator'     => t('Creator'),
+    'cm_created'     => t('Created date'),
+    'cm_modifier'    => t('Modifier'),
+    'cm_modified'    => t('Modified date'),
   );
 
-  /*
-    'node-uuid'        => t('Node UUID'),
-    'node-dbid'        => t('Node DBID'),
-    'store-protocol'   => t('Store protocol'),
-    'store-identifier' => t('Store identifier'),
-   */
-
   $properties = array();
-  foreach ($model as $key => $name) {
-    $property = 'cm_'. $key;
+  foreach ($model as $property => $name) {
     if (isset($node->$property)) {
       $value = empty($node->$property) ? t('n/a') : $node->$property;
 
-      if ($key == 'name' && isset($node->cm_content) && user_access('download alfresco content')) {
+      if ($property == 'cm_name' && isset($node->cm_content) && user_access('download alfresco content')) {
         $url = alfresco_url_download($node);
         $properties[] = array($name, l($value, $url, array('attributes' => array('title' => t('Download file')))));
       }
-      elseif ($key == 'content') {
+      elseif ($property == 'cm_content') {
         $content = $node->cm_content;
-        $properties[] = array($model['content']['mimetype'], $content['mimetype']);
-        $properties[] = array($model['content']['size'], format_size($content['size']));
-        $properties[] = array($model['content']['encoding'], $content['encoding']);
+        $properties[] = array(t('Mimetype'), $content['mimetype']);
+        $properties[] = array(t('Size'), format_size($content['size']));
+        $properties[] = array(t('Encoding'), $content['encoding']);
       }
-      elseif ($key == 'created' || $key == 'modified') {
+      elseif ($property == 'cm_created' || $property == 'cm_modified') {
         $properties[] = array($name, format_date(strtotime($value), 'large'));
       }
       else {
@@ -69,16 +57,7 @@ function theme_alfresco_display($node) {
     }
   }
 
-  $header = array(t('Property'), t('Value'));
-  $table_properties = theme('table', $header, $properties, NULL);
-
-  /*
-  apm($alf_node->getChildren());
-  apm($alf_node->getParents());
-  apm($alf_node->getPrimaryParent());
-  */
-
-  return $table_properties;
+  return theme('table', array(), $properties, NULL);
 }
 
 /**

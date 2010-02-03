@@ -35,6 +35,19 @@ function alfresco_page_download($node) {
   $watchdog_args = array('@type' => $node->type, '%title' => $node->title);
   watchdog('alfresco', '@type: downloaded %title.', $watchdog_args, WATCHDOG_NOTICE, $node_link);
 
+  // @todo: No incrementar contadores si el nodo no existe?
+
+  // We are counting content downloads.
+  if (variable_get('alfresco_statistics_count_downloads', 0)) {
+    // A node has been downloaded, so update the alfresco node's counters.
+    db_query('UPDATE {alfresco_counter} SET daycount = daycount + 1, totalcount = totalcount + 1, timestamp = %d WHERE nid = %d', time(), $node->nid);
+    // If we affected 0 rows, this is the first time downloading the node.
+    if (!db_affected_rows()) {
+      // We must create a new row to store counters for the new node.
+      db_query('INSERT INTO {alfresco_counter} (nid, daycount, totalcount, timestamp) VALUES (%d, 1, 1, %d)', $node->nid, time());
+    }
+  }
+
   switch (variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_MODULE)) {
     case ALFRESCO_FILE_DOWNLOADS_MODULE:
       alfresco_file_transfer($node->reference);
@@ -61,12 +74,6 @@ function alfresco_page_download($node) {
 }
 
 function alfresco_download_content($workspace, $store, $uuid) {
-
-  if (!alfresco_valid_uuid($uuid)) {
-    drupal_not_found();
-    exit();
-  }
-
   $reference = "$workspace://$store/$uuid";
   alfresco_file_transfer($reference);
 }
@@ -109,7 +116,7 @@ function alfresco_page_details($node) {
       $details[] = array($key, $value);
     }
   }
-  $output .= theme('table', array(t('Properties'), t('Value')), $details);
+  $output .= theme('table', array(t('Properties')), $details);
 
   // VersionHistory
   $details = array();

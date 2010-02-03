@@ -29,6 +29,8 @@ function alfresco_admin_settings() {
   }
   */
 
+  // REPOSITORY INFO
+
   $form['repository'] = array(
     '#type' => 'fieldset',
     '#title' => t('Repository'),
@@ -55,6 +57,8 @@ function alfresco_admin_settings() {
     '#size'          => 25,
   );
 
+  // AUTHENTICATION METHOD
+
   $auth_help = t('Select the authentication method to connect Alfresco repository.');
   $auth_more = t('Anonymous users always uses account repository.');
 
@@ -77,6 +81,27 @@ function alfresco_admin_settings() {
     ),
     '#description' => $auth_more,
   );
+
+  // STATISTICS
+
+  // count content downloads settings
+  $form['statistics'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Statistics'),
+    '#description' => t('Content downloading counter settings')
+  );
+
+  $form['statistics']['alfresco_statistics_count_downloads'] = array(
+    '#type' => 'radios',
+    '#title' => t('Count content downloads'),
+    '#default_value' => variable_get('alfresco_statistics_count_downloads', 0),
+    '#options' => array(
+      '1' => t('Enabled'),
+      '0' => t('Disabled')
+    ),
+    '#description' => t('Increment a counter each time content is downloaded.'));
+
+  // DOWNLOAD METHOD
 
   $download_help = t('Select the download method of the files stored in Alfresco repository:');
   $download_tips = array(
@@ -324,20 +349,19 @@ function alfresco_admin_model() {
  */
 function alfresco_admin_advanced() {
 
-  $limits = drupal_map_assoc(array(10, 20, 50, 100, 200, 500));
-  $period = drupal_map_assoc(array(900, 1800, 3600, 7200, 10800, 21600, 32400, 43200, 64800, 86400, 172800, 259200, 604800, 1209600, 2419200), 'format_interval');
+  $periods = drupal_map_assoc(array(300, 900, 1800, 3600, 7200, 10800, 21600, 32400, 43200, 64800, 86400), 'format_interval');
 
   $form['advanced'] = array(
     '#type' => 'fieldset',
     '#title' => t('Advanced settings'),
   );
 
-  $form['advanced']['alfresco_tickets_timeout'] = array(
+  $form['advanced']['alfresco_ticket_timeout'] = array(
     '#type' => 'select',
     '#title' => t('Ticket valid duration'),
-    '#default_value' => variable_get('alfresco_ticket_timeout', 3600),
-    '#options' => $period,
-    '#description' => t('The period for which tickets are valid (the default is one hour).'),
+    '#default_value' => variable_get('alfresco_ticket_timeout', 1800),
+    '#options' => $periods,
+    '#description' => t('The period for which tickets are valid (the default is 30 mins).'),
   );
 
   $tip = t('El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl.');
