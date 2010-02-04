@@ -1,11 +1,10 @@
 // $Id$
 
-Actualmente en trabajo
+Implementado
 ----------------------
  * Implementación del tipo de contenido Alfresco "alfresco_item", hace referencia a un nodo de Alfresco.
  * Implementación de los métodos de descarga de fichero de Alfresco (directo invitado, ticket y a tráves del Drupal)
  * Implementación de la caché de propiedades de los nodos de Alfresco (las propiedades de los nodos de Alfresco se almacenan en base de datos)
- * Implementación de tarea periódica de comprobación/sincronización de nodos
  
 Próximo
 -------
@@ -20,6 +19,10 @@ Próximo
  * Añadir tests
  * Estádisticas de descargas de ficheros
  * Múltiples repositorios
+ * Recordar último directorio en browser
+ * Abrir directorio actual en browser
+ * Mapear etiquetas en taxonomías de drupal
+ * Implementación de tarea periódica de comprobación/sincronización de nodos
   
 Ideas
 -----

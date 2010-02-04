@@ -1,5 +1,5 @@
 <?php
-// $Id$
+// $Id: alfresco-browser-page.tpl.php 1143 2010-02-02 10:39:51Z semm $
 
 /**
  * @file alfresco-browser-page.tpl.php

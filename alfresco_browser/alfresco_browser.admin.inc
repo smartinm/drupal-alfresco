@@ -4,6 +4,8 @@
 /**
  * @file
  * Administrative page callbacks for the alfresco browser module.
+ *
+ * @todo Añadir control de acceso para las diferentes acciones del navegador.
  */
 
 // ------------------------------------------------------------------

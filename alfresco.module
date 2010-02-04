@@ -91,7 +91,7 @@ function alfresco_node_info() {
 function alfresco_perm() {
 
   return array(
-    'add alfresco content', // @todo: validar este permiso en alfresco_browsser
+    'add alfresco content',
     'administer alfresco',
     'create alfresco content',
     'delete own alfresco content',
@@ -100,8 +100,10 @@ function alfresco_perm() {
     'edit own alfresco content',
     'edit any alfresco content',
     'view alfresco download counter',
+    'search alfresco content',
   );
 }
+
 
 /**
  * Implementation of hook_access().
@@ -189,25 +191,24 @@ function alfresco_menu() {
 
   // Node local taks (tabs)
 
-  $items['node/%alfresco_node/download/%alfresco_name'] = array(
-    'title' => 'Download',
-    'page callback' => 'alfresco_page_download',
-    'page arguments' => array(1),
-    'access callback' => '_alfresco_download_access',
-    'access arguments' => array(1),
-    'weight' => 5,
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'alfresco.pages.inc',
-  );
-
   $items['node/%alfresco_node/details'] = array(
     'title' => 'Details',
     'page callback' => 'alfresco_page_details',
     'page arguments' => array(1),
     'access callback' => '_alfresco_administer_access',
     'access arguments' => array(1),
-    'weight' => 6,
+    'weight' => 2,
     'type' => MENU_LOCAL_TASK,
+    'file' => 'alfresco.pages.inc',
+  );
+
+  $items['node/%alfresco_node/download/%alfresco_name'] = array(
+    'title' => 'Download',
+    'page callback' => 'alfresco_page_download',
+    'page arguments' => array(1),
+    'access callback' => '_alfresco_download_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
   );
 
@@ -254,20 +255,11 @@ function alfresco_menu() {
 
   // Alfresco download content
 
+  // @see http://wiki.alfresco.com/wiki/URL_Addressability#DownloadContentServlet
   $items['alfresco/download/%/%/%'] = array(
     'title' => 'Alfresco download',
     'page callback' => 'alfresco_download_content',
     'page arguments' => array(2, 3, 4),
-    'access arguments' => array('download alfresco content'),
-    'type' => MENU_CALLBACK,
-    'file' => 'alfresco.pages.inc',
-  );
-
-  // @see http://wiki.alfresco.com/wiki/URL_Addressability#DownloadContentServlet
-  $items['alfresco/download/%/%alfresco_workspace/%alfresco_store/%alfresco_node_id/%alfresco_filename'] = array(
-    'title' => 'Alfresco download',
-    'page callback' => 'alfresco_download',
-    'page arguments' => array(2),
     'access arguments' => array('download alfresco content'),
     'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
@@ -532,8 +524,11 @@ function _alfresco_save($node) {
     $content['vid'] = $node->vid;
     $content['nid'] = $node->nid;
 
-    drupal_write_record('alfresco_content', $content, 'vid');
-    if (!db_affected_rows()) {
+    // @see http://drupal.org/update/modules/6/7#select_count
+    if (db_result(db_query_range('SELECT 1 FROM {alfresco_content} WHERE vid = %d', $node->vid, 0, 1))) {
+      drupal_write_record('alfresco_content', $content, 'vid');
+    }
+    else {
       drupal_write_record('alfresco_content', $content);
     }
   }
@@ -652,6 +647,7 @@ function alfresco_load($node) {
  * the output filters.
  */
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
+  drupal_add_css(drupal_get_path('module', 'alfresco') .'/alfresco.css');
 
   $node = node_prepare($node, $teaser);
   if ($teaser) {
@@ -677,11 +673,10 @@ function alfresco_link($type, $node = NULL, $teaser = FALSE) {
 
   if ($type == 'node' && $node->type == 'alfresco_item' && $node->cm_content) {
     if (user_access('download alfresco content')) {
-      $url = alfresco_url_download($node);
       $links['alfresco_download'] = array(
-        'title' => t('download content'),
-        'href' => $url,
-        'attributes' => array('title' => t("Download '!name' file", array('!name' => $node->cm_name))),
+        'title' => t('Download content'),
+        'href' => alfresco_url_download($node),
+        'attributes' => array('title' => t('Download, or open in browser window, the content of this item.')),
       );
     }
 
@@ -1281,6 +1276,10 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
  * Implementation of hook_search().
  */
 function alfresco_search($op = 'search', $keys = NULL) {
+  if (!user_access('search alfresco content')) {
+    return;
+  }
+
   alfresco_include('search');
 
   switch ($op) {
@@ -1321,6 +1320,7 @@ function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
   }
 }
 
+
 /**
  * Include alfresco .inc files as necessary.
  */
@@ -1352,4 +1352,13 @@ function alfresco_include_lib($file, $path = 'Alfresco/Service') {
   }
 
   $used[$filepath] = TRUE;
+}
+
+function alfresco_get_icon_filetype($filename, $only_name = FALSE) {
+  $extension = substr(strrchr($filename, '.'), 1);
+
+  $module_path = drupal_get_path('module', 'alfresco');
+  $image = file_exists("./$module_path/images/filetypes/$extension.gif") ? $extension : '_default';
+
+  return $only_name ? $image : "$module_path/images/filetypes/$image.gif";
 }

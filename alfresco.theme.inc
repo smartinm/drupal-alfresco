@@ -11,9 +11,17 @@
  */
 function theme_alfresco_teaser($node) {
   $output = '';
-  $output .= '<div id="alfresco-teaser-size">'. format_size($node->cm_content['size']) .'</div>';
+
+  if (isset($node->cm_content)) {
+    //$icon = alfresco_get_icon_filetype($node->cm_name);
+    //$mimetype = $node->cm_content['mimetype'];
+    //$attributes = array('style' => 'float: left; margin: 2px 5px 0 0');
+    //$output .= '<div id="alfresco-teaser-icon" style="float: left; margin: 2px 5px 0 0">'. theme('image', $icon, $node->cm_name, $mimetype, NULL) .'</div>';
+    $output .= '<div id="alfresco-teaser-size">'. format_size($node->cm_content['size']) .'</div>';
+  }
   $output .= '<div id="alfresco-teaser-date">'. format_date(strtotime($node->cm_modified), 'large') .'</div>';
-  return $output;
+
+  return '<div id="alfresco-teaser">'. $output .'</div>';
 }
 
 /**
@@ -39,8 +47,12 @@ function theme_alfresco_display($node) {
       $value = empty($node->$property) ? t('n/a') : $node->$property;
 
       if ($property == 'cm_name' && isset($node->cm_content) && user_access('download alfresco content')) {
+        //$icon = alfresco_get_icon_filetype($node->cm_name);
+        //$attributes = array('style' => 'float: left; margin: 0 5px 0 0;');
+        //$icon = theme('image', $icon, $node->cm_name, $node->cm_name, $attributes);
+
         $url = alfresco_url_download($node);
-        $properties[] = array($name, l($value, $url, array('attributes' => array('title' => t('Download file')))));
+        $properties[] = array($name, l($value, $url, array('attributes' => array('title' => t('Download, or open in browser window, the content of this item.')))));
       }
       elseif ($property == 'cm_content') {
         $content = $node->cm_content;

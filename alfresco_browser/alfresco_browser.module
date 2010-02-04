@@ -206,7 +206,8 @@ function alfresco_browser_elements() {
 /**
  * Our #process callback to expand the control.
  */
-function alfresco_browser_process($element, $form_state) {
+function alfresco_browser_process($element, $edit, $form_state, $complete_form) {
+  $node = $complete_form['#node'];
 
   drupal_add_js(array(
     'alfrescoBrowserUrl' => url('alfresco/browser'),
@@ -222,13 +223,9 @@ function alfresco_browser_process($element, $form_state) {
     '#value' => $element['#value']
   );
 
-  // @todo: Obtener nombre del fichero de base de datos
-  alfresco_include('soap');
-  $alfNode = alfresco_soap_node_load($element['#value']);
-
   $element['alfresco_browser_path'] = array(
     '#type' => 'textfield',
-    '#value' => $alfNode ? $alfNode->getFolderPath() . '/'. $alfNode->cm_name : '',
+    '#value' => isset($node->cm_name) ? $node->cm_name : '',
     '#attributes' => array('readonly' => TRUE),
   );
 

@@ -4,6 +4,8 @@
 /**
  * @file
  * Provides functions for xxx
+ *
+ * @todo: Crear un súbmodulo para búsquedas con dependencia en search ?
  */
 
 /**
@@ -19,6 +21,13 @@ function alfresco_search_name() {
 function alfresco_search_search($keys) {
   $find = array();
 
+  // @todo search_parse_query()
+
+  if (drupal_strlen($keys) < variable_get('minimum_word_size', 3)) {
+    form_set_error('keys', t('You must include at least one positive keyword with @count characters or more.', array('@count' => variable_get('minimum_word_size', 3))));
+    return $find;
+  }
+
   try {
     alfresco_include('soap');
 
@@ -29,6 +38,16 @@ function alfresco_search_search($keys) {
     foreach ($results as $node) {
       $reference = $node->__toString();
       $nid = alfresco_exists_node($reference);
+
+      // @todo: Configurar si mostrar contenido con/sin acceso
+      if (!$nid) {
+        continue;
+      }
+
+      $item = node_load($nid);
+      if (!node_access('view', $item)) {
+        continue;
+      }
 
       if ($node->cm_content instanceof AlfContentData) {
         $content = $node->cm_content;
@@ -70,5 +89,7 @@ function alfresco_search_form_alter(&$form, &$form_state) {
 
   if ($form['module']['#value'] == 'alfresco') {
     // @todo: Implements advanced alfresco search
+    // - Search only alfresco item
+    // - Search all repository
   }
 }

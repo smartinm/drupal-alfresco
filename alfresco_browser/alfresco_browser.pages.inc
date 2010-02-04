@@ -12,7 +12,8 @@
 function alfresco_browser_page() {
   global $language;
 
-  $extjs_path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+  $extjs_path  = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+  $icons_path  = drupal_get_path('module', 'alfresco') .'/images/filetypes';
   $module_path = drupal_get_path('module', 'alfresco_browser');
 
   alfresco_include('soap');
@@ -23,13 +24,15 @@ function alfresco_browser_page() {
   $settings = array('alfresco' => array(
     'homeRef'            => $home_node ? $home_node->id : '',
     'homeText'           => $home_node ? $home_node->cm_name : '- Error -',
-    'modulePath'         => url($module_path),
+    'iconsPath'          => url($icons_path),
     'serviceTreeUrl'     => url('alfresco/browser/service/spaces'),
     'serviceGridUrl'     => url('alfresco/browser/service/items'),
     'serviceDownloadUrl' => url('alfresco/browser/service/download'),
     'serviceUploadUrl'   => url('alfresco/browser/service/upload'),
     'serviceDeleteUrl'   => url('alfresco/browser/service/delete'),
     'queryLimit'         => variable_get('alfresco_browser_query_limit', 20),
+    'accessAdd'          => user_access('add alfresco content'),
+    'accessDelete'       => user_access('add alfresco content'),
   ));
   drupal_add_js($settings, 'setting');
 
@@ -123,7 +126,6 @@ function alfresco_browser_service_spaces() {
 
       // @todo: Enhanced suppport other folder types
       $type = $session->getNamespaceMap()->getShortName($childNode->getType());
-
       //$ctype = $session->getContentType(str_replace('_', ':', $type));
 
       if (in_array($type, $folder_types)) {
@@ -226,9 +228,9 @@ function alfresco_browser_service_items() {
     $nodes = array();
 
     foreach ($queryResults as $childNode) {
-      $nodeRef = $childNode->__toString();
-      $ext = substr(strrchr($childNode->cm_name, '.'), 1);
-      $nid = alfresco_exists_node($nodeRef);
+      $node_ref = $childNode->__toString();
+      $nid = alfresco_exists_node($node_ref);
+      $icon = alfresco_get_icon_filetype($childNode->cm_name, TRUE);
 
       if ($childNode->cm_content instanceof AlfContentData) {
         $contentData = $childNode->cm_content;
@@ -241,7 +243,7 @@ function alfresco_browser_service_items() {
         'path'        => $childNode->getFolderPath(),
         'size'        => isset($contentData) ? format_size($contentData->size) : '',
         'mimetype'    => isset($contentData) ? $contentData->mimetype : '',
-        'icon'        => file_exists($module_path .'/images/filetypes/'. $ext .'.gif') ? $ext : '_default',
+        'icon'        => $icon,
         'author'      => $childNode->cm_author,
         'creator'     => $childNode->cm_creator,
         'modified'    => alfresco_date_convert($childNode->cm_modified),

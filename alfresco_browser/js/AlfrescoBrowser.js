@@ -360,7 +360,9 @@ AlfrescoBrowser.App = function() {
             dataStore.load({params:{start:0}});
             itemsGrid.setTitle(node.text);
             node.expand();
-            Ext.getCmp('btn-add').enable();
+            if (Drupal.settings.alfresco.accessAdd) {
+              Ext.getCmp('btn-add').enable();
+            }
         }},
         
         tools: [{
@@ -497,7 +499,7 @@ AlfrescoBrowser.App = function() {
       });
       
       function renderName(value, p, record){
-        var url = Drupal.settings.alfresco.modulePath + '/images/filetypes/' + record.data['icon'] + '.gif';
+        var url = Drupal.settings.alfresco.iconsPath + '/' + record.data['icon'] + '.gif';
         return String.format('<span class="row-icon" style="background-image: url({1})" ext:qtip="{2}">{0}</span>', value, url, record.data['title']);
       }
 
@@ -520,7 +522,7 @@ AlfrescoBrowser.App = function() {
         displayMsg: Drupal.t('Displaying items {0} - {1} of {2}'),
         emptyMsg: Drupal.t('No items to display.'),
 
-        // override private event
+        // Ext JS 2.x
         onClick: function(which){
           if (which == "refresh") {
             var o = {}, pn = this.paramNames;
@@ -533,6 +535,17 @@ AlfrescoBrowser.App = function() {
             return;
           }
           Ext.PagingToolbar.prototype.onClick.call(this, which);
+        },
+        
+        // Ext JS 3.x
+        doRefresh : function(){
+          var o = {}, pn = this.getParams();
+          o[pn.start] = this.cursor;
+          o[pn.limit] = this.pageSize;
+          o['cache'] = 'node';
+          if(this.fireEvent('beforechange', this, o) !== false){
+              this.store.load({params:o});
+          }
         }
       });
 
@@ -547,11 +560,16 @@ AlfrescoBrowser.App = function() {
           listeners: {
             rowselect: function(sm, row, rec) {
               Ext.getCmp('btn-download').enable();
-              Ext.getCmp('btn-delete').enable();
               Ext.getCmp('btn-open').enable();
+              
+              if (Drupal.settings.alfresco.accessDelete) {
+                Ext.getCmp('btn-delete').enable();
+              }
+              
               if (window.opener) {
                 Ext.getCmp('btn-send').enable();
               }
+              
               Ext.getCmp('grid-details').enable();
             },
             rowdeselect: function(sm, row, rec) {
@@ -587,7 +605,7 @@ AlfrescoBrowser.App = function() {
           text: Drupal.t('Add'),
           tooltip: Drupal.t('Add content to this space.'),
           iconCls: 'upload',
-          disabled: true,
+          disabled: !Drupal.settings.alfresco.accessAdd,
           handler: function() {
             AlfrescoBrowser.AddItem(folderTree, dataStore);
           }
@@ -627,13 +645,13 @@ AlfrescoBrowser.App = function() {
           handler: function() {
             AlfrescoBrowser.SendItem(itemsGrid);
           }
-        }, /*'-',*/ {
+        }, '-', {
           id: 'grid-details',
           text: Drupal.t('Properties'),
           tooltip: Drupal.t('View node properties.'),
           iconCls: 'details',
           disabled: true,
-          hidden: true,
+          //hidden: true,
           enableToggle: true,
           toggleHandler: function(item, pressed){
             if (pressed) {

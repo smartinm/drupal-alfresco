@@ -65,8 +65,8 @@ function alfresco_admin_settings() {
   $form['authentication'] = array(
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+    //'#collapsible' => TRUE,
+    //'#collapsed' => FALSE,
     '#description' => $auth_help,
   );
 
@@ -88,7 +88,6 @@ function alfresco_admin_settings() {
   $form['statistics'] = array(
     '#type' => 'fieldset',
     '#title' => t('Statistics'),
-    '#description' => t('Content downloading counter settings')
   );
 
   $form['statistics']['alfresco_statistics_count_downloads'] = array(
@@ -99,37 +98,7 @@ function alfresco_admin_settings() {
       '1' => t('Enabled'),
       '0' => t('Disabled')
     ),
-    '#description' => t('Increment a counter each time content is downloaded.'));
-
-  // DOWNLOAD METHOD
-
-  $download_help = t('Select the download method of the files stored in Alfresco repository:');
-  $download_tips = array(
-    t('<strong>Module method</strong>, use this method if you Alfresco repository is not publicly accessible (default).'),
-    t('<strong>Direct guest method</strong>, this method use <em>URL Guest Access</em>, the <em>guest</em> Alfresco user must have access to the item referenced.'),
-    t('<strong>Direct ticket method</strong>, this method use <em>Ticket URL Argument</em> to provide authentication without login.'),
-  );
-  $download_more = t('For more info, visit <a href="@url">URL Addressability page</a> on Alfresco Wiki.', array('@url' => 'http://wiki.alfresco.com/wiki/URL_Addressability#Security'));
-
-  $form['downloads'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Download method'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#description' => $download_help . theme('item_list', $download_tips),
-  );
-
-  $form['downloads']['alfresco_file_downloads'] = array(
-    '#type' => 'radios',
-    '#title' => t('Choose download method'),
-    '#default_value' => variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_MODULE),
-    '#options' => array(
-      ALFRESCO_FILE_DOWNLOADS_MODULE => t('Module - files are transferred by Drupal\'s alfresco module using <em>Ticket URL Argument</em> transparently (recommended).'),
-      ALFRESCO_FILE_DOWNLOADS_GUEST  => t('Direct guest - files are available using Alfresco <em>URL Guest Access</em>.'),
-      ALFRESCO_FILE_DOWNLOADS_TICKET => t('Direct ticket - files are available using Alfresco <em>Ticket URL Argument</em>.'),
-    ),
-    '#description' => $download_more,
-  );
+    '#description' => t('Increment a counter each time Alfresco content is downloaded.'));
 
   $form['#validate'][] = 'alfresco_admin_settings_validate';
   $form['#submit'][] = 'alfresco_admin_settings_submit';
@@ -374,6 +343,36 @@ function alfresco_admin_advanced() {
     '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
     '#description' => $tip . $tipo_more,
     '#default_value' => variable_get('alfresco_local_dictionary_service_wsdl', TRUE),
+  );
+
+  // DOWNLOAD METHOD
+
+  $download_help = t('Select the download method of the files stored in Alfresco repository:');
+  $download_tips = array(
+    t('<strong>Module method</strong>, use this method if you Alfresco repository is not publicly accessible (default).'),
+    t('<strong>Direct guest method</strong>, this method use <em>URL Guest Access</em>, the <em>guest</em> Alfresco user must have access to the item referenced.'),
+    t('<strong>Direct ticket method</strong>, this method use <em>Ticket URL Argument</em> to provide authentication without login.'),
+  );
+  $download_more = t('For more info, visit <a href="@url">URL Addressability page</a> on Alfresco Wiki.', array('@url' => 'http://wiki.alfresco.com/wiki/URL_Addressability#Security'));
+
+  $form['downloads'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Download method'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => $download_help . theme('item_list', $download_tips),
+  );
+
+  $form['downloads']['alfresco_file_downloads'] = array(
+    '#type' => 'radios',
+    '#title' => t('Choose download method'),
+    '#default_value' => variable_get('alfresco_file_downloads', ALFRESCO_FILE_DOWNLOADS_MODULE),
+    '#options' => array(
+      ALFRESCO_FILE_DOWNLOADS_MODULE => t('Module - files are transferred by Drupal\'s alfresco module using <em>Ticket URL Argument</em> transparently (recommended).'),
+      ALFRESCO_FILE_DOWNLOADS_GUEST  => t('Direct guest - files are available using Alfresco <em>URL Guest Access</em>.'),
+      ALFRESCO_FILE_DOWNLOADS_TICKET => t('Direct ticket - files are available using Alfresco <em>Ticket URL Argument</em>.'),
+    ),
+    '#description' => $download_more,
   );
 
   return system_settings_form($form);

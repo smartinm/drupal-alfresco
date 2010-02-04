@@ -42,36 +42,36 @@
   font-size: 13px;
 }
 
-.row-node-exists {
+#items-grid .row-node-exists {
   background-color: #EEFFEE;
 }
 
-.row-icon {
-  background: transparent url(../images/_default.gif) no-repeat;
+#items-grid .row-icon {
+  background: transparent url(../images/item.gif) no-repeat;
   padding: 2px 0 2px 20px;
 }
 
-button.details {
+#items-grid button.details {
   background-image: url(../images/details.gif);
 }
 
-button.download {
+#items-grid button.download {
   background-image: url(../images/download.gif);
 }
 
-button.drupal {
-  background-image: url(../images/drupal.png);
+#items-grid button.drupal {
+  background-image: url(../images/drupal.gif);
 }
 
-button.upload {
+#items-grid button.upload {
   background-image: url(../images/add.gif);
 }
 
-button.view {
+#items-grid button.view {
   background-image: url(../images/view.gif);
 }
 
-button.delete {
+#items-grid button.delete {
   background-image: url(../images/delete.gif);
 }
 

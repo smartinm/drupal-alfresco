@@ -133,6 +133,8 @@ function alfresco_uninstall() {
  */
 function alfresco_schema() {
 
+  // @todo: Añadir índice al field reference
+
   $schema['alfresco_node'] = array(
     'fields' => array(
       'vid' => array(
@@ -456,10 +458,10 @@ function _alfresco_check_connection_repository() {
     }
   }
   catch (SoapFault $exception) {
-    $message = $exception->getMessage();
+    $message = isset($exception->faultcode) ? $exception->faultcode : $exception->getMessage();
     return array(
       'value'       => $t('SOAP request failed'),
-      'description' => $t('Unable to connect to Alfresco repository via SOAP. Details: !message', array('!message' => $message)),
+      'description' => $t('Unable to connect to Alfresco repository via SOAP. Details: %message', array('%message' => $message)),
       'severity'    => REQUIREMENT_ERROR,
     );
   }
