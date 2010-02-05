@@ -32,8 +32,8 @@ function alfresco_search_search($keys) {
     alfresco_include('soap');
 
     $session = alfresco_soap_get_session();
-    $spacesStore = new AlfStore($session, 'SpacesStore');
-    $results = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $keys .'*"');
+    $store = new AlfStore($session, 'SpacesStore');
+    $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $keys .'*"');
 
     foreach ($results as $node) {
       $reference = $node->__toString();

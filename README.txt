@@ -2,6 +2,23 @@
 
 -- SUMMARY --
 
+Alfresco module es una solución Out-of-Box que permite integrar un sitio Drupal
+con Alfresco Open Source Open Source Enterprise Content Management System (ECM).
+Está formado por un conjunto de módulos que ofrecen múltiples funcionalidades
+listas para usar con mínima configuración. El núcleo de la integración está
+basado en el tipo de contenido 'Alfresco Item', siguiendo el paradigma de
+elementos de Alfresco como nodos de Drupal. 
+
+* alfresco.module: Es el módulo principal. Ofrece un nuevo tipo de contenido
+  'Elemento de Alfresco' para Drupal. Los nodos de tipo 'Elemento de Alfresco'
+  permiten embeber contenido de Alfresco dentro de tu sitio. Además, este módulo
+  ofrece la configuración y API necesaria para realizar la integración con el
+  repositorio de Alfresco: descargas de ficheros, obtención de metadatos,
+  autenticación, Views support, etc.
+
+* alfresco_browser.module: Permite navegar y buscar por el repositorio de
+  Alfresco, además de descargar, ver y crear nuevos contenidos en el mismo. 
+
 Alfresco project is a related set of modules which provides Drupal integration
 with Alfresco Open Source Enterprise Content Management System (ECM).
 
@@ -23,11 +40,14 @@ with Alfresco Open Source Enterprise Content Management System (ECM).
 
 -- REQUIREMENTS --
 
-* Alfresco 3.x or 2.x (tested with Alfresco Labs and Alfresco Enterprise)
+* Alfresco 3.x or 2.x (Alfresco Community or Alfresco Enterprise)
 
-* PHP 5 (5.2.0 or greater) with SOAP extension enabled
+* PHP 5.2 or later, with
+  * DOM Extension (part of PHP 5 core)
+  * SOAP Extension (--enable-soap)
 
-* Ext JS (only for Alfresco browser module)
+* Ext JS - JavaScript Library
+  * Only for Alfresco browser module
 
 
 -- INSTALLATION --
@@ -57,7 +77,7 @@ Author and maintainer:
 * Sergio Martín Morillas <smartin@gmv.com> - http://drupal.org/user/191570
 
 Contributors:
-* Manuel Jesús Recena Soto <mjrecena@gmv.com>
+* Manuel Jesús Recena Soto
   Thanks for your helpful comments and encouragement.
 
 This project is sponsored by:
@@ -67,3 +87,6 @@ This project is sponsored by:
   Banking and Finances, Space, Defense, Health, Security, Transportation,
   Telecommunications, and Information Technology for Public Administration and
   large corporations. Visit http://www.gmv.com for more information. 
+
+* Some of the icons used by this module are part of the Alfresco Community
+  Edition.

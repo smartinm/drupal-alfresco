@@ -6,11 +6,10 @@
  * Default views for Alfresco module.
  */
 
-
 /**
  * Implementation of hook_views_default_views().
  */
-function alfresco_views_default_views() {
+function alfresco_views_default_views2() {
 
   $view = new view;
   $view->name = 'alfresco_items';
@@ -289,4 +288,18 @@ function alfresco_views_default_views() {
 
   $views[$view->name] = $view;
   return $views;
+}
+
+/**
+ *
+ */
+function _alfresco_views_items_list() {
+
+}
+
+/**
+ * View most popular download alfresco items.
+ */
+function _alfresco_views_top_downloads() {
+
 }

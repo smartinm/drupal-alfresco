@@ -32,14 +32,14 @@ function alfresco_views_data() {
     ),
   );
 
-  // cm_name (filename)
-  $data['alfresco_node']['cm_name'] = array(
-    'title' => t('Name'),
-    'help' => t('The name of the alfresco item (or the filename if is a file).'),
+  // reference
+  $data['alfresco_node']['reference'] = array(
+    'title' => t('Reference'),
+    'help' => t('The Alfresco node reference.'),
     'field' => array(
-      'handler' => 'alfresco_handler_field_url_download',
+      'handler' => 'views_handler_field',
       'click sortable' => TRUE,
-     ),
+    ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
@@ -52,9 +52,115 @@ function alfresco_views_data() {
   );
 
   // timestamp field
+  /*
   $data['alfresco_node']['timestamp'] = array(
     'title' => t('Upload date'),
     'help' => t('The date the file was saved.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+  */
+
+  // cm_name (filename)
+  $data['alfresco_node']['cm_name'] = array(
+    'title' => t('Name'),
+    'help' => t('The name of the node in the Alfresco repository.'),
+    'field' => array(
+      'handler' => 'alfresco_handler_field_url_download',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  // cm_title
+  $data['alfresco_node']['cm_title'] = array(
+    'title' => t('Title'),
+    'help' => t('The title of the node in the Alfresco repository.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  // cm_description
+  $data['alfresco_node']['cm_description'] = array(
+    'title' => t('Description'),
+    'help' => t('The description of the node in the Alfresco repository.'),
+    'field' => array(
+      'handler' => 'views_handler_field_xss',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+  );
+
+  // cm_author
+  $data['alfresco_node']['cm_author'] = array(
+    'title' => t('Author'),
+    'help' => t('The author of the node in the Alfresco repository.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  // cm_author
+  $data['alfresco_node']['cm_author'] = array(
+    'title' => t('Author'),
+    'help' => t('The author of the node in the repository.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  // changed field
+  $data['alfresco_node']['cm_created'] = array(
+    'title' => t('Created date'),
+    'help' => t('The date the Alfresco node was created in the repository.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,

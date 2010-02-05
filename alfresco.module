@@ -50,7 +50,7 @@ function alfresco_help($path, $arg) {
       return '<p>'. t('Add content to a space and enter information about the content to be uploaded.') .'</p>';
 
     case 'alfresco/items':
-      return '<p>'. t('Displays a list of alfresco items nodes.') .'</p>';
+      return '<p>'. t('Display a list of all Alfresco items nodes.') .'</p>';
 
     case 'admin/help#alfresco':
       return '<p>'. t('Alfresco and Drupal integration.') .'</p>';

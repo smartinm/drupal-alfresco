@@ -32,16 +32,15 @@ function alfresco_install() {
     'wcm_avmlayeredfolder',
   );
   variable_set('alfresco_folder_types', $default_folder_types);
-
-  $t = get_t();
-  $link = array('!link' => l($t('Administer > Site configuration > Alfresco'), 'admin/settings/alfresco'));
-  drupal_set_message($t('Alfresco module settings are available under !link', $link));
 }
 
 /**
  * Implementation of hook_enable().
  */
 function alfresco_enable() {
+  $t = get_t();
+  $args = array('@url' => url('admin/settings/alfresco'));
+  drupal_set_message($t('Please visit the <a href="@url">Alfresco settings page</a> for configure the repository location and user credentials.', $args));
 }
 
 /**
@@ -55,40 +54,13 @@ function alfresco_disable() {
  */
 function alfresco_requirements($phase) {
   $requirements = array();
-  $t = get_t();
 
-  if ($phase == 'runtime') {
-    // Check Alfresco PHP Library
-    $result = _alfresco_check_php_library();
-    if ($result['severity'] != REQUIREMENT_OK) {
-      $requirements['alfresco_php_library'] = array(
-        'title'       => $t('Alfresco PHP library'),
-        'value'       => $result['value'],
-        'severity'    => $result['severity'],
-        'description' => isset($result['description']) ? $result['description'] : NULL,
-      );
-    }
-    else {
-      // Check connection Alfresco Repository only if Alfresco PHP Library is installed
-      $result = _alfresco_check_connection_repository();
-      $requirements['alfresco_repository'] = array(
-        'title'       => $t('Alfresco repository'),
-        'value'       => $result['value'],
-        'severity'    => $result['severity'],
-        'description' => isset($result['description']) ? $result['description'] : NULL,
-      );
-    }
-  }
-  elseif ($phase == 'install') {
-    // Check Alfresco PHP Library
-    $result = _alfresco_check_php_library();
-    if ($result['severity'] == REQUIREMENT_ERROR) {
-      $requirements['alfresco_php_library'] = array(
-        'title'       => $t('Alfresco PHP library'),
-        'severity'    => $result['severity'],
-        'description' => $result['description'],
-      );
-    }
+  // Verify if the Alfresco PHP and library dependencies are available.
+  _alfresco_verify_php_library(&$requirements);
+
+  // Verify connection Alfresco Repository only if Alfresco PHP library is available.
+  if ($phase == 'runtime' && drupal_requirements_severity($requirements) != REQUIREMENT_ERROR) {
+    _alfresco_verify_connection_repository(&$requirements);
   }
 
   return $requirements;
@@ -109,6 +81,7 @@ function alfresco_uninstall() {
     'alfresco_http_request_fails',
     'alfresco_local_dictionary_service_wsdl',
     'alfresco_repository_url',
+    'alfresco_statistics_count_downloads',
     'alfresco_ticket_timeout',
   );
   foreach ($variables as $variable) {
@@ -122,7 +95,7 @@ function alfresco_uninstall() {
   }
 
   // Remove the node type
-  node_type_delete('alfresco_item');
+  //node_type_delete('alfresco_item');
 
   // Remove tables
   drupal_uninstall_schema('alfresco');
@@ -132,8 +105,6 @@ function alfresco_uninstall() {
  * Implementation of hook_schema().
  */
 function alfresco_schema() {
-
-  // @todo: Añadir índice al field reference
 
   $schema['alfresco_node'] = array(
     'fields' => array(
@@ -176,7 +147,6 @@ function alfresco_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
-
       // Title (Titled aspect)
       'cm_title' => array(
         'description' => 'The cm:title property',
@@ -191,7 +161,6 @@ function alfresco_schema() {
         'type'        => 'text',
         'not null'    => FALSE,
       ),
-
       // Author (Author aspect)
       'cm_author' => array(
         'description' => 'The cm:author property',
@@ -200,7 +169,6 @@ function alfresco_schema() {
         'not null'    => FALSE,
         'default'     => '',
       ),
-
       // Created (Auditable aspect)
       'cm_created' => array(
         'description' => 'The cm:created property',
@@ -229,6 +197,10 @@ function alfresco_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
+      'reference' => array('reference')
     ),
     'primary key' => array('vid'),
   );
@@ -272,6 +244,9 @@ function alfresco_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
+    ),
+    'indexes' => array(
+      'nid' => array('nid'),
     ),
     'primary key' => array('vid'),
   );
@@ -319,74 +294,69 @@ function alfresco_schema() {
 /**
  * @todo: Add documentation.
  */
-function _alfresco_check_php_library() {
+function _alfresco_verify_php_library(&$requirements) {
   $t = get_t();
 
-  // Check DOM extension
-  if (!class_exists('DOMDocument')) {
-    $arg = array('@url' => 'http://php.net/manual/en/book.dom.php');
-    $msg = $t('Read <a href="@url">DOM manual</a> to find how to install and enable DOM extension in your PHP setup.', $arg);
-
-    return array(
-      'value'       => $t('The PHP DOM extension is no available'),
-      'description' => $msg,
-      'severity'    => REQUIREMENT_ERROR,
+  // Verify if the DOM PHP 5 extension is available.
+  $has_dom = class_exists('DOMDocument');
+  if (!$has_dom) {
+    $requirements['alfresco_php_dom'] = array(
+      'title' => $t('PHP DOM Extension'),
+      'value' => $t('Not found'),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => $t("The DOM extension is part of PHP 5 core, but doesn't seem to be enabled on your system. You need to enable the DOM extension on your PHP installation."),
     );
   }
 
-  // Check SOAP extension
-  if (!class_exists('SoapClient')) {
-    $arg = array('@url' => 'http://php.net/manual/en/book.soap.php');
-    $msg = $t('Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP extension in your PHP setup.', $arg);
-
-    return array(
-      'value'       => $t('The PHP SOAP extension is no available'),
-      'description' => $msg,
-      'severity'    => REQUIREMENT_ERROR,
+  // Verify if the PHP SOAP extension is available.
+  $has_soap = class_exists('SoapClient');
+  if (!$has_soap) {
+    $requirements['alfresco_php_soap'] = array(
+      'title' => $t('PHP SOAP Extension'),
+      'value' => $t('Not found'),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => $t('Read <a href="@url">SOAP manual</a> to find how to install and enable SOAP extension in your PHP installation.', array('@url' => 'http://php.net/manual/en/book.soap.php')),
     );
   }
 
-  // Add the Alfresco PHP library directory to include path if exists
-  $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
-  if (is_dir($lib_path)) {
-    set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
-    @include_once "Alfresco/Service/Repository.php";
+  if ($has_dom && $has_soap) {
+    // Verify if the Alfresco PHP library directory is available.
+    $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
+    if (is_dir($lib_path)) {
+      $info = $t('Found (%path).', array('%path' => $lib_path));
+      set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
+      @include_once "Alfresco/Service/Repository.php";
+    }
+    else {
+      $info = $t('Found (system\'s include_path).', array('%path' => $lib_path));
+      @include_once "Alfresco/Service/Repository.php";
+    }
 
-    if (class_exists('AlfRepository')) {
-      return array(
-        'value'    => $t('Found (%path).', array('%path' => $lib_path)),
+    $has_lib = class_exists('AlfRepository');
+    if (!$has_lib) {
+      $requirements['alfresco_php_library'] = array(
+        'title' => $t('Alfresco PHP library'),
+        'value' => $t('Not found'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('Read README.txt to find how to install and enable Alfresco PHP Library. You can download and copy Alfresco PHP Library on %path', array('%path' => $lib_path)),
+      );
+    }
+    else {
+      $requirements['alfresco_php_library'] = array(
+        'title' => $t('Alfresco PHP library'),
+        'value' => $info,
         'severity' => REQUIREMENT_OK,
       );
     }
   }
-  else {
-    @include_once "Alfresco/Service/Repository.php";
 
-    if (class_exists('AlfRepository')) {
-      return array(
-        'value'    => $t('Found (system\'s include_path)'),
-        'severity' => REQUIREMENT_OK,
-      );
-    }
-  }
-
-  $arg = array(
-    '@url'  => 'http://wiki.alfresco.com/wiki/Alfresco_PHP_Library_Installation_Instructions',
-    '%path' => $lib_path
-  );
-  $msg = $t('Read <a href="@url">Alfresco PHP Library Installation Instructions</a> to find how to install and enable Alfresco PHP Library.<br />As an alternative, you can download and copy Alfresco PHP Library on %path', $arg);
-
-  return array(
-    'value'       => $t('No available'),
-    'description' => $msg,
-    'severity'    => REQUIREMENT_ERROR,
-  );
+  return $requirements;
 }
 
 /**
  * @todo: Add documentation.
  */
-function _alfresco_check_connection_repository() {
+function _alfresco_verify_connection_repository(&$requirements) {
   $t = get_t();
 
   if (variable_get('alfresco_http_request_fails', TRUE)) {
@@ -394,11 +364,14 @@ function _alfresco_check_connection_repository() {
       '!link' => l($t('Administer > Site configuration > Alfresco'), 'admin/settings/alfresco')
     ));
 
-    return array(
-      'value'       => $t('Last HTTP request failed'),
+    $requirements['alfresco_repository'] = array(
+      'title' => $t('Alfresco repository'),
+      'value' => $t('Last HTTP request failed'),
+      'severity' => REQUIREMENT_ERROR,
       'description' => '<em>'. $tip .'</em>',
-      'severity'    => REQUIREMENT_ERROR,
     );
+
+    return;
   }
 
   $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
@@ -409,11 +382,14 @@ function _alfresco_check_connection_repository() {
     // Mark that this request failed.
     variable_set('alfresco_http_request_fails', TRUE);
 
-    return array(
-      'value'       => $t('HTTP request failed (error !code)', array('!code' => isset($result->code) ? $result->code : $t('None'))),
+    $requirements['alfresco_repository'] = array(
+      'title' => $t('Alfresco repository'),
+      'value' => $t('HTTP request failed (error !code)', array('!code' => isset($result->code) ? $result->code : $t('None'))),
+      'severity' => REQUIREMENT_ERROR,
       'description' => $t('Error message: !error', array('!error' => htmlentities($result->error))),
-      'severity'    => REQUIREMENT_ERROR,
     );
+
+    return;
   }
 
   try {
@@ -445,24 +421,29 @@ function _alfresco_check_connection_repository() {
       else {
         $version .= sprintf(' (%d)', $descriptor->sys_versionBuild);
       }
-      return array(
-        'value'    => l($version, $repository_url),
+
+      $requirements['alfresco_repository'] = array(
+        'title' => $t('Alfresco repository'),
+        'value' => l($version, $repository_url),
         'severity' => REQUIREMENT_OK,
       );
     }
     else {
-      return array(
-        'value'    => $t('Connection attempt successful'),
+      $requirements['alfresco_repository'] = array(
+        'title' => $t('Alfresco repository'),
+        'value' => $t('Connection attempt successful'),
         'severity' => REQUIREMENT_OK,
       );
     }
   }
   catch (SoapFault $exception) {
     $message = isset($exception->faultcode) ? $exception->faultcode : $exception->getMessage();
-    return array(
-      'value'       => $t('SOAP request failed'),
+
+    $requirements['alfresco_repository'] = array(
+      'title' => $t('Alfresco repository'),
+      'value' => $t('SOAP request failed'),
+      'severity' => REQUIREMENT_ERROR,
       'description' => $t('Unable to connect to Alfresco repository via SOAP. Details: %message', array('%message' => $message)),
-      'severity'    => REQUIREMENT_ERROR,
     );
   }
 }
@@ -511,6 +492,11 @@ function alfresco_update_6100() {
 
   db_create_table($ret, 'alfresco_counter', $schema['alfresco_counter']);
 
+  // Indexes
+  db_add_index($ret, 'alfresco_node', 'nid', array('nid'));
+  db_add_index($ret, 'alfresco_node', 'reference', array('reference'));
+  db_add_index($ret, 'alfresco_content', 'nid', array('nid'));
+
   // Save defaults folder types
   $default_folder_types = array(
     'cm_folder',
@@ -529,8 +515,6 @@ function alfresco_update_6100() {
     'wcm_avmlayeredfolder',
   );
   variable_set('alfresco_folder_types', $default_folder_types);
-
-  // @todo: Clear session table
 
   return $ret;
 }

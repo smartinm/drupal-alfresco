@@ -49,7 +49,6 @@ function alfresco_admin_settings() {
     '#title'         => t('Username'),
     '#description'   => '',
     '#type'          => 'textfield',
-    '#size'          => 25,
   );
   $form['repository']['alfresco_credentials_password'] = array(
     '#type'          => 'password_confirm',
@@ -111,8 +110,9 @@ function alfresco_admin_settings() {
  */
 function alfresco_admin_settings_validate($form, &$form_state) {
   // Ensure URL is valid.
-  if (!valid_url($form_state['values']['alfresco_repository_url'], TRUE)) {
-    form_set_error('url', t('The URL repository %url is invalid. Please enter a fully-qualified URL, such as http://share.alfresco.com/alfresco/api.', array('%url' => $form_state['values']['alfresco_repository_url'])));
+  $repository_url = $form_state['values']['alfresco_repository_url'];
+  if (!empty($repository_url) && !valid_url($repository_url, TRUE)) {
+    form_set_error('url', t('The URL repository is invalid. Please enter a fully-qualified URL, such as http://example.com/alfresco/api'));
   }
 }
 
@@ -262,8 +262,8 @@ function alfresco_admin_model() {
   $rows = array();
 
   alfresco_include_lib('NamespaceMap');
-  $namespaceMap = AlfNamespaceMap::getInstance();
-  foreach($namespaceMap->getMappings() as $prefix => $name) {
+  $namespace = AlfNamespaceMap::getInstance();
+  foreach ($namespace->getMappings() as $prefix => $name) {
     $rows[] = array($name, $prefix);
   }
 

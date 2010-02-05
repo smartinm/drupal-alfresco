@@ -108,9 +108,9 @@ function alfresco_browser_service_spaces() {
     alfresco_include('soap');
 
     $reference = 'workspace://SpacesStore/'. $node;
-    $currentNode = alfresco_soap_node_load($reference);
+    $space = alfresco_soap_node_load($reference);
 
-    if (!$currentNode) {
+    if (!$space) {
       // node not found
       drupal_json(array());
       exit();
@@ -120,19 +120,19 @@ function alfresco_browser_service_spaces() {
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
     $session = alfresco_soap_get_session();
 
-    foreach ($currentNode->getChildren() as $child) {
-      /* @var $childNode AlfNode */
-      $childNode = $child->child;
+    foreach ($space->getChildren() as $child) {
+      /* @var $child_node AlfNode */
+      $child_node = $child->child;
 
       // @todo: Enhanced suppport other folder types
-      $type = $session->getNamespaceMap()->getShortName($childNode->getType());
+      $type = $session->getNamespaceMap()->getShortName($child_node->getType());
       //$ctype = $session->getContentType(str_replace('_', ':', $type));
 
       if (in_array($type, $folder_types)) {
         $nodes[] = array(
-          'id'   => $childNode->id,
-          'text' => $childNode->cm_name,
-          'qtip' => $childNode->cm_title,
+          'id'   => $child_node->id,
+          'text' => $child_node->cm_name,
+          'qtip' => $child_node->cm_title,
         );
       }
     }
@@ -189,11 +189,11 @@ function alfresco_browser_service_items() {
     alfresco_include('soap');
     $session = alfresco_soap_get_session();
 
-    $queryResults = array();
+    $results = array();
 
     if (!empty($query)) {
-      $spacesStore = new AlfStore($session, 'SpacesStore');
-      $queryResults = $session->query($spacesStore, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
+      $store = new AlfStore($session, 'SpacesStore');
+      $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
     }
     else {
       $reference = 'workspace://SpacesStore/'. $node;
@@ -206,16 +206,16 @@ function alfresco_browser_service_items() {
 
       $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
 
-      foreach ($folder->children as $childAssoc) {
+      foreach ($folder->children as $child_assoc) {
         // @todo: Enhanced suppport other folder types
-        $type = $session->getNamespaceMap()->getShortName($childAssoc->child->type);
+        $type = $session->getNamespaceMap()->getShortName($child_assoc->child->type);
         if (!in_array($type, $folder_types)) {
-          $queryResults[] = $childAssoc->child;
+          $results[] = $child_assoc->child;
         }
       }
     }
 
-    if (count($queryResults) == 0) {
+    if (count($results) == 0) {
       if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
         cache_set($cache_key, array(), 'cache_alfresco_browser', CACHE_TEMPORARY);
       }
@@ -227,30 +227,30 @@ function alfresco_browser_service_items() {
     $module_path = drupal_get_path('module', 'alfresco_browser');
     $nodes = array();
 
-    foreach ($queryResults as $childNode) {
-      $node_ref = $childNode->__toString();
+    foreach ($results as $child_node) {
+      $node_ref = $child_node->__toString();
       $nid = alfresco_exists_node($node_ref);
-      $icon = alfresco_get_icon_filetype($childNode->cm_name, TRUE);
+      $icon = alfresco_get_icon_filetype($child_node->cm_name, TRUE);
 
-      if ($childNode->cm_content instanceof AlfContentData) {
-        $contentData = $childNode->cm_content;
+      if ($child_node->cm_content instanceof AlfContentData) {
+        $content_data = $child_node->cm_content;
       }
 
       $nodes[] = array(
-        'id'          => $childNode->id,
+        'id'          => $child_node->id,
         'nid'         => $nid ? url('node/'. $nid) : '',
-        'name'        => $childNode->cm_name,
-        'path'        => $childNode->getFolderPath(),
-        'size'        => isset($contentData) ? format_size($contentData->size) : '',
-        'mimetype'    => isset($contentData) ? $contentData->mimetype : '',
+        'name'        => $child_node->cm_name,
+        'path'        => $child_node->getFolderPath(),
+        'size'        => isset($content_data) ? format_size($content_data->size) : '',
+        'mimetype'    => isset($content_data) ? $content_data->mimetype : '',
         'icon'        => $icon,
-        'author'      => $childNode->cm_author,
-        'creator'     => $childNode->cm_creator,
-        'modified'    => alfresco_date_convert($childNode->cm_modified),
-        'created'     => alfresco_date_convert($childNode->cm_created),
-        'description' => $childNode->cm_description,
-        'title'       => $childNode->cm_title,
-        'type'        => $childNode->type,
+        'author'      => $child_node->cm_author,
+        'creator'     => $child_node->cm_creator,
+        'modified'    => alfresco_date_convert($child_node->cm_modified),
+        'created'     => alfresco_date_convert($child_node->cm_created),
+        'description' => $child_node->cm_description,
+        'title'       => $child_node->cm_title,
+        'type'        => $child_node->type,
       );
     }
 

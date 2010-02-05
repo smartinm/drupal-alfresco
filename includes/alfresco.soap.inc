@@ -227,12 +227,12 @@ function alfresco_soap_search($text, $property = '@cm:name') {
     $property = !empty($property) ? str_replace(':', '\:', $property) : 'ALL';
     $query = '+ISNODE:T +TYPE:"cm:content" +'. $property .':"*'. $text .'*"';
 
-    $spacesStore = new AlfSpacesStore($session);
-    $queryResults = $session->query($spacesStore, $query);
+    $store = new AlfSpacesStore($session);
+    $results = $session->query($store, $query);
 
     //$nodes = $session->query($store, 'PATH:"/app:company_home/*"');
 
-    return $queryResults;
+    return $results;
   }
   catch (SoapFault $exception) {
     alfresco_error_handler('alfresco', $exception);
@@ -413,6 +413,7 @@ function _alfresco_soap_authenticate($repository) {
       $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
     }
     else {
+      // @todo: Controlar si no hay credenciales en sesión
       $username = $_SESSION['alfresco_credentials']['username'];
       $password = base64_decode($_SESSION['alfresco_credentials']['password']);
     }
