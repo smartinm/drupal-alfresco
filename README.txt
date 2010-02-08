@@ -2,7 +2,7 @@
 
 -- SUMMARY --
 
-Alfresco module es una solución Out-of-Box que permite integrar un sitio Drupal
+Alfresco module es una solución out of the box para integrar un sitio Drupal
 con Alfresco Open Source Open Source Enterprise Content Management System (ECM).
 Está formado por un conjunto de módulos que ofrecen múltiples funcionalidades
 listas para usar con mínima configuración. El núcleo de la integración está

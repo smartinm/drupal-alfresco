@@ -127,6 +127,7 @@ function alfresco_schema() {
         'not null'    => TRUE,
         'default'     => ''
       ),
+      // @todo Renombrar esta columna porque ya existe este campo en la tabla node
       'timestamp' => array(
         'description' => 'The most recent time the {alfresco_node} has been saved',
         'type'        => 'int',
@@ -172,8 +173,9 @@ function alfresco_schema() {
       // Created (Auditable aspect)
       'cm_created' => array(
         'description' => 'The cm:created property',
-        'type'        => 'datetime',
+        'type'        => 'int',
         'not null'    => TRUE,
+        'default'     => 0,
       ),
       // Creator (Auditable aspect)
       'cm_creator' => array(
@@ -186,8 +188,9 @@ function alfresco_schema() {
       // Modified (Auditable aspect)
       'cm_modified' => array(
         'description' => 'The cm:modified property',
-        'type'        => 'datetime',
+        'type'        => 'int',
         'not null'    => TRUE,
+        'default'     => 0,
       ),
       // Modifier (Auditable aspect)
       'cm_modifier' => array(
@@ -450,8 +453,52 @@ function _alfresco_verify_connection_repository(&$requirements) {
 
 /**
  * Implementation of hook_update_N().
+ *
+ * Convierte los campos cm_created y cm_modified de DATETIME a Unix timespamp y
+ * realiza la conversión de datos mediante Batch API.
  */
-function alfresco_update_6100() {
+function alfresco_update_6100(&$sandbox) {
+  $ret = array('#finished' => 0);
+
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['max'] = db_result(db_query('SELECT COUNT(*) FROM {alfresco_node}'));
+
+    db_change_field($ret, 'alfresco_node', 'cm_created', 'cm_created_temp', array('type' => 'datetime', 'not null' => TRUE));
+    db_change_field($ret, 'alfresco_node', 'cm_modified', 'cm_modified_temp', array('type' => 'datetime', 'not null' => TRUE));
+
+    db_add_field($ret, 'alfresco_node', 'cm_created', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+    db_add_field($ret, 'alfresco_node', 'cm_modified', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  }
+
+  $limit = 20;
+  $result = db_query_range("SELECT vid, cm_created_temp, cm_modified_temp FROM {alfresco_node} ORDER BY vid ASC", $sandbox['progress'], $limit);
+  while ($node = db_fetch_object($result)) {
+    $created = strtotime($node->cm_created_old);
+    $modified = strtotime($node->cm_modified_old);
+
+    $ret[] = update_sql("UPDATE {alfresco_node} SET cm_created = %d, cm_modified = %d WHERE vid = %d", $created, $modified, $node->vid);
+
+    $sandbox['progress']++;
+  }
+
+  $ret['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  if ($ret['#finished'] === 1) {
+    db_drop_field($ret, 'alfresco_node', 'cm_created_temp');
+    db_drop_field($ret, 'alfresco_node', 'cm_modified_temp');
+  }
+
+  return $ret;
+}
+
+/**
+ * Implementation of hook_update_N().
+ *
+ * Añade nueva tabla para registrar estadísticas de descargas.
+ * Añade índices a las tablas alfresco_node y alfresco_content.
+ * Inicializa la variable alfresco_folder_types con los valores por defecto.
+ */
+function alfresco_update_6101() {
   $ret = array();
 
   $schema['alfresco_counter'] = array(

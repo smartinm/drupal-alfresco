@@ -150,13 +150,13 @@ function alfresco_browser_theme() {
  * @see template_preprocess_page()
  */
 function template_preprocess_alfresco_browser_page(&$variables) {
-  global $base_path;
 
   // Add favicon
   if (theme_get_setting('toggle_favicon')) {
     drupal_set_html_head('<link rel="shortcut icon" href="'. check_url(theme_get_setting('favicon')) .'" type="image/x-icon" />');
   }
 
+  // CSS
   $css = drupal_add_css();
   $css['all']['theme'] = array();
   $css['print'] = array();
@@ -173,8 +173,6 @@ function template_preprocess_alfresco_browser_page(&$variables) {
   $variables['scripts']    = drupal_get_js();
   $variables['closure']    = theme('closure');
 
-  $module_path = drupal_get_path('module', 'alfresco_browser');
-
   // Header page
   $variables['header'] = l(t('Alfresco Browser for Drupal'), 'http://drupal.org/project/alfresco', array(
     'attributes' => array(
@@ -182,12 +180,14 @@ function template_preprocess_alfresco_browser_page(&$variables) {
       'target' => '_blank'
   )));
 
+  $module_path = drupal_get_path('module', 'alfresco_browser');
+
   // Loading message
   $info = drupal_parse_info_file($module_path .'/alfresco_browser.info');
   $variables['loading_msg'] = isset($info['version']) ? $info['name'] .' '. $info['version'] : $info['name'];
 
   // Loading image
-  $variables['loading_img'] = url($module_path .'/images/loading.gif');
+  $variables['loading_img'] = theme('image', $module_path .'/images/loading.gif');
 }
 
 /**

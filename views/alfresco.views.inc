@@ -72,7 +72,7 @@ function alfresco_views_data() {
   // cm_name (filename)
   $data['alfresco_node']['cm_name'] = array(
     'title' => t('Name'),
-    'help' => t('The name of the node in the Alfresco repository.'),
+    'help' => t('The name of the item in the Alfresco repository.'),
     'field' => array(
       'handler' => 'alfresco_handler_field_url_download',
       'click sortable' => TRUE,
@@ -91,7 +91,7 @@ function alfresco_views_data() {
   // cm_title
   $data['alfresco_node']['cm_title'] = array(
     'title' => t('Title'),
-    'help' => t('The title of the node in the Alfresco repository.'),
+    'help' => t('The title of the item in the Alfresco repository.'),
     'field' => array(
       'handler' => 'views_handler_field',
       'click sortable' => TRUE,
@@ -110,7 +110,7 @@ function alfresco_views_data() {
   // cm_description
   $data['alfresco_node']['cm_description'] = array(
     'title' => t('Description'),
-    'help' => t('The description of the node in the Alfresco repository.'),
+    'help' => t('The description of the item in the Alfresco repository.'),
     'field' => array(
       'handler' => 'views_handler_field_xss',
     ),
@@ -122,7 +122,7 @@ function alfresco_views_data() {
   // cm_author
   $data['alfresco_node']['cm_author'] = array(
     'title' => t('Author'),
-    'help' => t('The author of the node in the Alfresco repository.'),
+    'help' => t('The author of the item in the Alfresco repository.'),
     'field' => array(
       'handler' => 'views_handler_field',
       'click sortable' => TRUE,
@@ -141,7 +141,7 @@ function alfresco_views_data() {
   // cm_author
   $data['alfresco_node']['cm_author'] = array(
     'title' => t('Author'),
-    'help' => t('The author of the node in the repository.'),
+    'help' => t('The author of the item in the repository.'),
     'field' => array(
       'handler' => 'views_handler_field',
       'click sortable' => TRUE,
@@ -157,10 +157,10 @@ function alfresco_views_data() {
     ),
   );
 
-  // changed field
+  // cm_created field
   $data['alfresco_node']['cm_created'] = array(
     'title' => t('Created date'),
-    'help' => t('The date the Alfresco node was created in the repository.'),
+    'help' => t('The date the item was created in the repository.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
       'click sortable' => TRUE,

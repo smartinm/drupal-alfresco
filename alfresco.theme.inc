@@ -61,7 +61,7 @@ function theme_alfresco_display($node) {
         $properties[] = array(t('Encoding'), $content['encoding']);
       }
       elseif ($property == 'cm_created' || $property == 'cm_modified') {
-        $properties[] = array($name, format_date(strtotime($value), 'large'));
+        $properties[] = array($name, format_date($value, 'large'));
       }
       else {
         $properties[] = array($name, $value);

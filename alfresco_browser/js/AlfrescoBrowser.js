@@ -64,6 +64,9 @@ AlfrescoBrowser.SendItem = function (itemsGrid) {
   window.opener.$("#edit-alfresco-browser-path").val(node.name);
   
   if (window.opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
+    if (title.length == 0) {
+      title = node.name;
+    }
     window.opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
   }
   
@@ -356,10 +359,12 @@ AlfrescoBrowser.App = function() {
         
         listeners: {
           'click': function(node, e) {
-            dataStore.baseParams = {node: node.id};
-            dataStore.load({params:{start:0}});
-            itemsGrid.setTitle(node.text);
-            node.expand();
+    	  	if (dataStore.baseParams.node != node.id) {
+	            dataStore.baseParams = {node: node.id};
+	            dataStore.load({params:{start:0}});
+	            itemsGrid.setTitle(node.text);
+	            //node.expand();
+    	  	}
             if (Drupal.settings.alfresco.accessAdd) {
               Ext.getCmp('btn-add').enable();
             }
@@ -482,7 +487,7 @@ AlfrescoBrowser.App = function() {
         }),
         reader: reader,
         baseParams: {node: Drupal.settings.alfresco.homeRef},
-        autoLoad: false,
+        autoLoad: true,
         //remoteSort: true,
         sortInfo: {field: 'name', direction: 'ASC'},
         listeners: {
@@ -609,16 +614,16 @@ AlfrescoBrowser.App = function() {
           handler: function() {
             AlfrescoBrowser.AddItem(folderTree, dataStore);
           }
-        }, '-', {
+        }, {
           id: 'btn-delete',
           text: Drupal.t('Delete'),
-          tooltip: Drupal.t('Delete selected content.'),
+          tooltip: Drupal.t('Delete selected item.'),
           iconCls: 'delete',
           disabled: true,
           handler: function() {
             AlfrescoBrowser.DeleteItem(itemsGrid);
           }
-        }, '-', {
+        }, {
           id: 'btn-download',
           text: Drupal.t('Download'),
           tooltip: Drupal.t('Download selected item.'),
@@ -627,7 +632,7 @@ AlfrescoBrowser.App = function() {
           handler: function() {
             AlfrescoBrowser.DownloadItem(itemsGrid, true);
           }
-        }, '-', {
+        }, {
           id: 'btn-open',
           text: Drupal.t('View'),
           tooltip: Drupal.t('View selected item in new window.'),
@@ -636,19 +641,19 @@ AlfrescoBrowser.App = function() {
           handler: function() {
             AlfrescoBrowser.ViewItem(itemsGrid);
           }
-        },'-',{
+        }, {
           id: 'btn-send',
-          text: Drupal.t('Send to Drupal'),
+          text: Drupal.t('Drupal'),
           tooltip: Drupal.t('Send selected item to Drupal.'),
           iconCls: 'drupal',
           disabled: true,
           handler: function() {
             AlfrescoBrowser.SendItem(itemsGrid);
           }
-        }, '-', {
+        }, {
           id: 'grid-details',
           text: Drupal.t('Properties'),
-          tooltip: Drupal.t('View node properties.'),
+          tooltip: Drupal.t('View selected item properties.'),
           iconCls: 'details',
           disabled: true,
           //hidden: true,

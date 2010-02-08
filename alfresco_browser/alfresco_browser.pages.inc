@@ -117,22 +117,23 @@ function alfresco_browser_service_spaces() {
     }
 
     $nodes = array();
+
+    $namespace = AlfNamespaceMap::getInstance();
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-    $session = alfresco_soap_get_session();
 
     foreach ($space->getChildren() as $child) {
       /* @var $child_node AlfNode */
       $child_node = $child->child;
 
       // @todo: Enhanced suppport other folder types
-      $type = $session->getNamespaceMap()->getShortName($child_node->getType());
+      $type = $namespace->getShortName($child_node->getType());
       //$ctype = $session->getContentType(str_replace('_', ':', $type));
 
       if (in_array($type, $folder_types)) {
         $nodes[] = array(
           'id'   => $child_node->id,
-          'text' => $child_node->cm_name,
-          'qtip' => $child_node->cm_title,
+          'text' => trim($child_node->cm_name),
+          'qtip' => trim($child_node->cm_title),
         );
       }
     }
@@ -204,11 +205,12 @@ function alfresco_browser_service_items() {
         exit();
       }
 
+      $namespace = AlfNamespaceMap::getInstance();
       $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
 
       foreach ($folder->children as $child_assoc) {
         // @todo: Enhanced suppport other folder types
-        $type = $session->getNamespaceMap()->getShortName($child_assoc->child->type);
+        $type = $namespace->getShortName($child_assoc->child->type);
         if (!in_array($type, $folder_types)) {
           $results[] = $child_assoc->child;
         }
@@ -235,22 +237,24 @@ function alfresco_browser_service_items() {
       if ($child_node->cm_content instanceof AlfContentData) {
         $content_data = $child_node->cm_content;
       }
+      else {
+        $content_data = NULL;
+      }
 
       $nodes[] = array(
         'id'          => $child_node->id,
-        'nid'         => $nid ? url('node/'. $nid) : '',
-        'name'        => $child_node->cm_name,
-        'path'        => $child_node->getFolderPath(),
+        'nid'         => $nid ? url('node/'. $nid, array('absolute' => TRUE)) : '',
+        'name'        => trim($child_node->cm_name),
         'size'        => isset($content_data) ? format_size($content_data->size) : '',
         'mimetype'    => isset($content_data) ? $content_data->mimetype : '',
         'icon'        => $icon,
-        'author'      => $child_node->cm_author,
-        'creator'     => $child_node->cm_creator,
-        'modified'    => alfresco_date_convert($child_node->cm_modified),
-        'created'     => alfresco_date_convert($child_node->cm_created),
-        'description' => $child_node->cm_description,
-        'title'       => $child_node->cm_title,
-        'type'        => $child_node->type,
+        'author'      => !is_null($child_node->cm_author) ? $child_node->cm_author : '',
+        'creator'     => !is_null($child_node->cm_creator) ? $child_node->cm_creator : '',
+        'modified'    => format_date(strtotime($child_node->cm_modified), 'custom', 'Y-m-d H:i:s'),
+        'created'     => format_date(strtotime($child_node->cm_created), 'custom', 'Y-m-d H:i:s'),
+        'description' => trim($child_node->cm_description),
+        'title'       => trim($child_node->cm_title),
+        'type'        => $namespace->getShortName($child_node->type),
       );
     }
 

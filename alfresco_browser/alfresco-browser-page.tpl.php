@@ -1,5 +1,5 @@
 <?php
-// $Id: alfresco-browser-page.tpl.php 1143 2010-02-02 10:39:51Z semm $
+// $Id$
 
 /**
  * @file alfresco-browser-page.tpl.php
@@ -28,7 +28,7 @@
 <div id="loading-mask"></div>
 <div id="loading">
   <div class="loading-indicator">
-    <img src="<?php print $loading_img; ?>" width="32" height="32" /><?php print $loading_msg; ?>
+    <?php print $loading_img; ?><?php print $loading_msg; ?>
     <br /><span id="loading-msg"><?php print t('Initializing...'); ?></span>
   </div>
 </div>

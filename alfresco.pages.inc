@@ -176,16 +176,10 @@ function alfresco_add_form($form_state) {
 
   // If a file has already been uploaded, we know we need the confirmation form.
   if (isset($form_state['values']['file'])) {
-    return _alfresco_add_form_properties($form_state);
+    return alfresco_add_form_properties($form_state);
   }
 
   // But the default is the main form.
-  return _alfresco_add_form($form_state);
-}
-
-function _alfresco_add_form($form_state) {
-
-  $form = array();
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
 
   $form['upload'] = array(
@@ -216,7 +210,7 @@ function _alfresco_add_form($form_state) {
   return $form;
 }
 
-function _alfresco_add_form_properties($form_state) {
+function alfresco_add_form_properties($form_state) {
 
   $space = isset($form_state['values']['space']) ? $form_state['values']['space'] : '';
 
