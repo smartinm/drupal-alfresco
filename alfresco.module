@@ -270,6 +270,28 @@ function _alfresco_administer_access($node) {
   return ($node->type == 'alfresco_item') && user_access('administer alfresco');
 }
 
+function alfresco_repository_access() {
+  global $user;
+
+  if ($user->uid == 1) {
+    return TRUE;
+  }
+
+  // Acceso al repositorio desactivado en el perfil del usuario
+  if (isset($user->alfresco_access) && !$user->alfresco_access) {
+    return FALSE;
+  }
+
+  // Con autenticación single siempre tiene acceso
+  $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
+  if ($auth_method == ALFRESCO_AUTH_SINGLE) {
+    return TRUE;
+  }
+
+  // En otro caso, debe tener una cuenta para poder acceder al repositorio.
+  return isset($_SESSION['alfresco_verified_account']) ? $_SESSION['alfresco_verified_account'] : FALSE;
+}
+
 /**
  * Menu callback; loads an alfresco node object.
  *
@@ -323,6 +345,11 @@ function alfresco_name_to_arg($arg) {
  */
 function alfresco_form(&$node, $form_state) {
 
+  // Informamos al usuario que no tiene acceso al repositorio de Alfresco
+  if (!$access = alfresco_repository_access()) {
+    drupal_set_message(t('Se ha desactivado la opción de navegar por el repositorio de Alfresco porque no tiene permisos, por favor contacte con el administrador del sitio.'), 'warning');
+  }
+
   //drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
 
   // The site admin can decide if this node type has a title and body, and how
@@ -339,7 +366,7 @@ function alfresco_form(&$node, $form_state) {
     '#weight' => -6,
   );
 
-  if (module_exists('alfresco_browser')) {
+  if ($access && module_exists('alfresco_browser')) {
     $form['reference']['#type'] = 'alfresco_browser';
     $form['reference']['#description'] = t('Select an item from Alfresco repository.');
   }
@@ -780,7 +807,7 @@ function alfresco_url_download($node) {
 }
 
 /**
- * Transfer file using http to client. Pipes a file through Drupal to the client.
+ * Transfer file using http to client. Pipes a file through Alfresco to the client.
  *
  * @param $reference
  *  A string containing an Alfresco Node Reference.
@@ -1208,22 +1235,38 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
 
     case 'view':
       // The user's account information is being displayed.
-      //alfresco_user_view(&$account);
+      //alfresco_user_view($account);
       break;
 
     case 'insert':
       // The user account is being added.
-      //alfresco_user_insert(&$edit, &$account);
+      alfresco_user_insert($edit, $account);
       break;
 
     case 'update':
       // The user account is being changed.
-      //alfresco_user_update(&$edit, &$account);
+      //alfresco_user_update($edit, $account);
       break;
 
     case 'delete':
       // The user account is being deleted.
       //alfresco_user_delete($account);
+      break;
+
+    case 'register':
+      // The user account registration form is about to be displayed.
+      return alfresco_user_form($edit, $account, $category);
+
+    case 'form':
+      // The user account edit form is about to be displayed.
+      if (user_access('administer users') && $category == 'account') {
+        return alfresco_user_form($edit, $account, $category);
+      }
+      break;
+
+    case 'validate':
+      // The user account edit form is about to be displayed.
+      alfresco_user_validate($edit, $account, $category);
       break;
   }
 }

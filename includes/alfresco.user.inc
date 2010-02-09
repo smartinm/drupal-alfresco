@@ -10,16 +10,58 @@
  *
  */
 function alfresco_user_login($edit) {
-  // Cuando el usuario se autentica en Drupal guardamos las credenciales
-  // para podernos autenticar contra Alfresco cuando sea necesario.
-  // @todo: Analizar otros métodos, como guardar la sesión de alfresco
-  $_SESSION['alfresco_credentials']['username'] = $edit['name'];
-  $_SESSION['alfresco_credentials']['password'] = base64_encode($edit['pass']);
+  global $user;
 
-  // Eliminamos cualquier ticket anterior para forzar a realizar un nueva
-  // autenticación con las credenciales del usuario.
-  unset($_SESSION['alfresco_ticket']);
-  unset($_SESSION['alfresco_last_access']);
+  // Se desactiva el acceso al repositorio para el usuario actual, el usuario
+  // utilizará las credenciales genéricas para descargar los elementos.
+  if (isset($user->alfresco_access) && !$user->alfresco_access) {
+    return;
+  }
+
+  // Autenticación contra Alfresco para validar la cuenta del usuario
+  $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
+  if ($auth_method == ALFRESCO_AUTH_USER) {
+    // Eliminamos la información de conexión como usuario anónimo, para forzar
+    // a realizar la autenticación con las credenciales del usuario.
+    unset($_SESSION['alfresco_ticket']);
+    unset($_SESSION['alfresco_last_access']);
+
+    // Si el repositorio no está correctamente configurado no intentamos
+    // validar la cuenta del usuario contra Alfresco.
+    if (variable_get('alfresco_http_request_fails', TRUE)) {
+      return;
+    }
+
+    // @todo: Refactorizar test de conexión
+    try {
+      alfresco_include_lib('Repository');
+      $username = $edit['name'];
+      $password = $edit['pass'];
+      $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+      $repository = new AlfRepository($repository_url);
+      $ticket = $repository->authenticate($username, $password);
+    }
+    catch (SoapFault $exception) {
+      $ticket = NULL;
+    }
+
+    if (!isset($ticket)) {
+      // El proceso de autenticación ha fallado, marcamos el usuario como sin acceso.
+      $_SESSION['alfresco_verified_account'] = FALSE;
+    }
+    else {
+      // Marcamos el usuario como con acceso
+      $_SESSION['alfresco_verified_account'] = TRUE;
+
+      // Guardamos las credenciales para re-autenticar cuando el ticket caduque.
+      $_SESSION['alfresco_credentials']['username'] = $username;
+      $_SESSION['alfresco_credentials']['password'] = base64_encode($password);
+
+      // Guardamos los datos del ticket para reutilizarlo
+      $_SESSION['alfresco_ticket'] = $ticket;
+      $_SESSION['alfresco_last_access'] = time();
+    }
+  }
 }
 
 /**
@@ -41,14 +83,18 @@ function alfresco_user_view(&$account) {
 /**
  *
  */
-function alfresco_user_insert(&$edit, &$account) {
+function alfresco_user_insert(&$edit, $account) {
 
+  $user_home = '/app:company_home/app:user_homes/sys:'. $account->name;
+  if (empty($edit['alfresco_home'])) {
+    $edit['alfresco_home'] = $user_home;
+  }
 }
 
 /**
  *
  */
-function alfresco_user_update(&$edit, &$account) {
+function alfresco_user_update($edit, $account) {
 
 }
 
@@ -57,4 +103,56 @@ function alfresco_user_update(&$edit, &$account) {
  */
 function alfresco_user_delete($account) {
 
+}
+
+/**
+ * The user account edit form is about to be displayed.
+ */
+function alfresco_user_form($edit, $account, $category) {
+
+  $form['alfresco'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Alfresco settings'),
+    //'#weight' => 5,
+    //'#collapsible' => TRUE,
+  );
+
+  $form['alfresco']['alfresco_access'] = array(
+    '#type' => 'radios',
+    '#title' => t('Repository access'),
+    '#default_value' => isset($edit['alfresco_access']) ? $edit['alfresco_access'] : 0,
+    '#options' => array(t('Disabled'), t('Enabled')),
+    '#description' => t('Indica si el usuario tiene acceso al repositorio de Alfresco (para búscar, navegar, añadir contenido, etc).'),
+  );
+
+  if (!empty($account)) {
+    $form['alfresco']['alfresco_home'] = array(
+      '#type' => 'textfield',
+      '#title' => t('User home space'),
+      '#default_value' => isset($edit['alfresco_home']) ? $edit['alfresco_home'] : '',
+      '#description' => t('User home path on Alfresco repository.'),
+      '#size' => 80,
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * The user account is about to be modified.
+ */
+function alfresco_user_validate($edit, $account, $category) {
+
+  if ($edit['alfresco_access'] && !empty($edit['alfresco_home'])) {
+    if (!alfresco_valid_path($edit['alfresco_home'])) {
+      form_set_error('alfresco_home', t('The home path you specified is not valid.'));
+    }
+    else {
+      alfresco_include('soap');
+
+      if (!alfresco_soap_node_load($edit['alfresco_home'])) {
+        form_set_error('alfresco_home', t('The home path you specified could not be found.'));
+      }
+    }
+  }
 }

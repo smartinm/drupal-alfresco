@@ -60,13 +60,23 @@ function alfresco_browser_menu() {
     'file' => 'alfresco_browser.admin.inc',
   );
 
+  // Pages
+
+  $items['alfresco/repository'] = array(
+    'title' => 'Repository browser',
+    'description' => 'Visualize, search, browse and retrieve nodes of the Alfresco repository.',
+    'page callback' => 'alfresco_browser_repository_page',
+    'access callback' => '_alfresco_browser_access',
+    'file' => 'alfresco_browser.pages.inc',
+  );
+
   // Ext JS page
 
   $items['alfresco/browser'] = array(
-    'title' => 'Alfresco Browser Ext JS',
+    'title' => 'Alfresco browser',
     'page callback' => 'alfresco_browser_page',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
+    'access callback' => '_alfresco_browser_access',
+    //'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
@@ -75,56 +85,44 @@ function alfresco_browser_menu() {
 
   $items['alfresco/browser/service/spaces'] = array(
     'page callback' => 'alfresco_browser_service_spaces',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
+    'access callback' => '_alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/items'] = array(
     'page callback' => 'alfresco_browser_service_items',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
+    'access callback' => '_alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/download'] = array(
     'page callback' => 'alfresco_browser_service_download',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
+    'access callback' => '_alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/upload'] = array(
     'page callback' => 'alfresco_browser_service_upload',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
+    'access callback' => '_alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/delete'] = array(
     'page callback' => 'alfresco_browser_service_delete',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
+    'access callback' => '_alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
-  // Pages
-
-  $items['alfresco/repository'] = array(
-    'title' => 'Repository browser',
-    'description' => 'Visualize, search, browse and retrieve nodes of the Alfresco repository.',
-    'page callback' => 'alfresco_browser_repository_page',
-    'access callback' => 'user_access',
-    'access arguments' => array('access alfresco browser'),
-    'file' => 'alfresco_browser.pages.inc',
-  );
-
   return $items;
+}
+
+function _alfresco_browser_access() {
+  return user_access('access alfresco browser') && alfresco_repository_access();
 }
 
 /**
@@ -207,7 +205,6 @@ function alfresco_browser_elements() {
  * Our #process callback to expand the control.
  */
 function alfresco_browser_process($element, $edit, $form_state, $complete_form) {
-  $node = $complete_form['#node'];
 
   drupal_add_js(array(
     'alfrescoBrowserUrl' => url('alfresco/browser'),
@@ -223,9 +220,19 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
     '#value' => $element['#value']
   );
 
-  $element['alfresco_browser_path'] = array(
+  if (isset($complete_form['#post']['alfresco_browser_name'])){
+    $cm_name = $complete_form['#post']['alfresco_browser_name'];
+  }
+  elseif (isset($complete_form['#node']->cm_name)) {
+    $cm_name = $complete_form['#node']->cm_name;
+  }
+  else {
+    $cm_name = '';
+  }
+
+  $element['alfresco_browser_name'] = array(
     '#type' => 'textfield',
-    '#value' => isset($node->cm_name) ? $node->cm_name : '',
+    '#value' => $cm_name,
     '#attributes' => array('readonly' => TRUE),
   );
 

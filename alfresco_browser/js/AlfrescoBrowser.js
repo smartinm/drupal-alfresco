@@ -61,7 +61,7 @@ AlfrescoBrowser.SendItem = function (itemsGrid) {
   var reference = 'workspace://SpacesStore/' + node.id;
   
   window.opener.$("#edit-alfresco-browser-reference").val(reference);
-  window.opener.$("#edit-alfresco-browser-path").val(node.name);
+  window.opener.$("#edit-alfresco-browser-name").val(node.name);
   
   if (window.opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
     if (title.length == 0) {

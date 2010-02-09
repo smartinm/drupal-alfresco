@@ -59,12 +59,20 @@ function alfresco_soap_create_session() {
     if (!isset($ticket)) {
       // Authenticate the user details for the repository we want to connect to.
       // Assuming authentication is succesful we will be returned a ticket.
-      $ticket = _alfresco_soap_authenticate($repository);
+      //$ticket = _alfresco_soap_authenticate($repository);
+
+      // Obtenemos las credenciales de conexión al repositorio
+      $credentials = alfresco_repository_credentials();
+
+      $ticket = $repository->authenticate($credentials['user'], $credentials['pass']);
     }
 
     // Using the ticket we can now create a session.
     $session = $repository->createSession($ticket);
 
+    // @todo: el método createSession no valida si el ticket aún es válido
+
+    // Guardamos el ticket para utilizarlo más tarde
     $_SESSION['alfresco_ticket'] = $ticket;
     $_SESSION['alfresco_last_access'] = time();
   }
@@ -81,8 +89,6 @@ function alfresco_soap_create_session() {
  * @param $reference_or_path
  *  Either the node reference of the Alfresco node or the path to the Alfresco
  *  node (trail of QNames of the child relationships to get to the node).
- * @param $session Session
- *  xxx
  * @param $reset
  *  Whether to reset the internal node cache.
  *
@@ -396,6 +402,43 @@ function _alfresco_soap_generate_name($children, $basename) {
   return $alt_name;
 }
 
+function alfresco_repository_credentials() {
+  global $user;
+
+  // Las credenciales de conexión dependen del modo de autenticación configurado en el portal
+  $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
+
+  // @todo: tratar el caso especial del administrador de forma independiente
+
+  $has_account = isset($_SESSION['alfresco_verified_account']) ? $_SESSION['alfresco_verified_account'] : FALSE;
+
+  if ($auth_method == ALFRESCO_AUTH_USER && $user->uid != 0 && $has_account) {
+    $username = $_SESSION['alfresco_credentials']['username'];
+    $password = $_SESSION['alfresco_credentials']['password'];
+  }
+  else {
+    $username = variable_get('alfresco_credentials_username', 'guest');
+    $password = variable_get('alfresco_credentials_password', base64_encode('guest'));
+  }
+
+  /*
+  // Usuarios anónimos y sin cuenta en Alfresco utilizan las credenciales genéricas
+  if ($user->uid == 0 || $user->uid == 1 || $auth_method == ALFRESCO_AUTH_SINGLE) {
+    // En el módo de autenticación de usuario único, todas las conexiones
+    // contra Alfresco se realizan con las credenciales del repositorio.
+    $username = variable_get('alfresco_credentials_username', 'guest');
+    $password = variable_get('alfresco_credentials_password', base64_encode('guest'));
+  }
+  else {
+    // @todo: Controlar si no hay credenciales almacenadas en la sesión
+    $username = $_SESSION['alfresco_credentials']['username'];
+    $password = $_SESSION['alfresco_credentials']['password'];
+  }
+  */
+
+  return array('user' => $username, 'pass' => base64_decode($password));
+}
+
 /**
  * Authenticate against the repository and return a ticket.
  */
@@ -408,7 +451,14 @@ function _alfresco_soap_authenticate($repository) {
     // The user credentials we are going to use
     $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
 
-    if ($user->uid == 0 || $auth_method == ALFRESCO_AUTH_SINGLE) {
+    // @todo: tratar el caso especial del administrador
+    if ($user->uid == 1) {
+    }
+
+    // Usuarios anónimos y sin cuenta en Alfresco utilizan las credenciales genéricas
+    if ($user->uid == 0 || $user->uid == 1 || (isset($user->alfresco) && !$user->alfresco) || $auth_method == ALFRESCO_AUTH_SINGLE) {
+      // En el módo de autenticación de usuario único, todas las conexiones
+      // contra Alfresco se realizan con las credenciales del repositorio.
       $username = variable_get('alfresco_credentials_username', 'guest');
       $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
     }
@@ -421,12 +471,22 @@ function _alfresco_soap_authenticate($repository) {
     $ticket = $repository->authenticate($username, $password);
   }
   catch (SoapFault $exception) {
-    // Si la autenticación falla, utilizamos el usuario genérico.
+    // Si la autenticación falla y estamos usando el modo de autenticación por usuario
+    /*
     if ($user->uid != 0 && $auth_method != ALFRESCO_AUTH_SINGLE) {
+
+      // Marcamos el usuario para indicar que no tiene acceso a Alfresco con su cuenta.
+      if ($user->alfresco) {
+        user_save($user, array('alfresco' => 0));
+      }
+
+      // Usamos el usuario genérico para aunteticar contra Alfresco.
       $username = variable_get('alfresco_credentials_username', 'guest');
       $password = base64_decode(variable_get('alfresco_credentials_password', base64_encode('guest')));
+
       $ticket = $repository->authenticate($username, $password);
     }
+    */
   }
 
   return $ticket;
