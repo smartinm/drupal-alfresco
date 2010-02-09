@@ -18,6 +18,8 @@
  */
 function alfresco_admin_settings() {
 
+  drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
+
   /*
   module_load_install('alfresco');
   $requirements = module_invoke('alfresco', 'requirements', 'runtime');
@@ -50,9 +52,17 @@ function alfresco_admin_settings() {
     '#description'   => '',
     '#type'          => 'textfield',
   );
+  /*
   $form['repository']['alfresco_credentials_password'] = array(
     '#type'          => 'password_confirm',
     '#description'   => t('To change the current password, enter the new password in both fields. Default password is <em>guest</em>'),
+    '#size'          => 25,
+  );
+  */
+  $form['repository']['alfresco_credentials_password'] = array(
+    '#type'          => 'password',
+    '#title'         => t('Password'),
+    '#description'   => t('To change the current password, enter the new password in the field. Default password is <em>guest</em>'),
     '#size'          => 25,
   );
 
@@ -109,6 +119,8 @@ function alfresco_admin_settings() {
  * Validate the alfresco admin settings form.
  */
 function alfresco_admin_settings_validate($form, &$form_state) {
+  drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
+
   // Ensure URL is valid.
   $repository_url = $form_state['values']['alfresco_repository_url'];
   if (!empty($repository_url) && !valid_url($repository_url, TRUE)) {
