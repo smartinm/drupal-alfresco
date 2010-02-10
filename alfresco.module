@@ -150,6 +150,7 @@ function alfresco_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
+  /*
   $items['admin/settings/alfresco/display'] = array(
     'title' => 'Display',
     'page callback' => 'drupal_get_form',
@@ -160,6 +161,7 @@ function alfresco_menu() {
     'parent' => 'admin/settings/alfresco',
     'file' => 'alfresco.admin.inc',
   );
+  */
 
   $items['admin/settings/alfresco/model'] = array(
     'title' => 'Model',
@@ -254,7 +256,7 @@ function alfresco_menu() {
     'title' => 'Alfresco download',
     'page callback' => 'alfresco_download_content',
     'page arguments' => array(2, 3, 4),
-    'access arguments' => array('download alfresco content'),
+    'access callback' => 'alfresco_repository_access',
     'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
   );
@@ -282,13 +284,13 @@ function alfresco_repository_access() {
     return FALSE;
   }
 
-  // Con autenticación single siempre tiene acceso
+  // Con autenticación single todos los usuarios tienen acceso al repositorio
   $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
   if ($auth_method == ALFRESCO_AUTH_SINGLE) {
     return TRUE;
   }
 
-  // En otro caso, debe tener una cuenta para poder acceder al repositorio.
+  // Con autenticación por usuario, debe tener una cuenta para poder acceder al repositorio.
   return isset($_SESSION['alfresco_verified_account']) ? $_SESSION['alfresco_verified_account'] : FALSE;
 }
 
@@ -347,7 +349,7 @@ function alfresco_form(&$node, $form_state) {
 
   // Informamos al usuario que no tiene acceso al repositorio de Alfresco
   if (!$access = alfresco_repository_access()) {
-    drupal_set_message(t('Se ha desactivado la opción de navegar por el repositorio de Alfresco porque no tiene permisos, por favor contacte con el administrador del sitio.'), 'warning');
+    drupal_set_message(t('La opción de navegar por el repositorio de Alfresco está desactivada. Por favor contacte con el administrador del sitio para más información.'));
   }
 
   //drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
@@ -360,7 +362,7 @@ function alfresco_form(&$node, $form_state) {
   $form['reference'] = array(
     '#type' => 'textfield',
     '#title' => $type->name,
-    '#description' => t('Alfresco node reference. Example: workspace://SpacesStore/uuid'),
+    '#description' => t('Specify the fully-qualified Alfresco node reference, i.e. of the form "workspace://SpacesStore/uuid"'),
     '#default_value' => isset($node->reference) ? $node->reference : '',
     '#required' => TRUE,
     '#weight' => -6,
@@ -375,7 +377,7 @@ function alfresco_form(&$node, $form_state) {
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => check_plain($type->title_label),
-      '#description' => t('Leave blank to use the Alfresco node title.'),
+      '#description' => t('Optionally specify a title. If left blank, the Alfresco item\'s title will be used.'),
       '#required' => FALSE,
       '#default_value' => $node->title,
       '#maxlength' => 255,
@@ -1309,6 +1311,11 @@ function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
 
     // @todo: Añadir configuración para habilitar/deshabilitar mensajes de debug
     if (module_exists('devel')) {
+      // @todo: Mostrar mensaje a pantalla completa
+      //drupal_set_title('Alfresco error trace');
+      //$output = '<pre>'. strval($exception) .'</pre>';
+      //print theme('page', $output);
+      //exit();
       dpm(strval($exception));
     }
   }

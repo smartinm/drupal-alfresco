@@ -278,6 +278,8 @@ AlfrescoBrowser.App = function() {
 
   return {
     init: function() {
+      Ext.Ajax.timeout = 60000; // 60s (default 30s)
+
       //Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
       
       Ext.QuickTips.init();

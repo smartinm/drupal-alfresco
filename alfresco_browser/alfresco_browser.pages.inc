@@ -81,75 +81,66 @@ function alfresco_browser_repository_page() {
 
 function alfresco_browser_service_spaces() {
 
-  $node = isset($_GET['node']) ? trim($_GET['node']) : '';
+  $node_id = isset($_GET['node']) ? trim($_GET['node']) : '';
   $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
 
-  if (empty($node)) {
+  if (empty($node_id)) {
     drupal_json(array());
     exit();
   }
 
   if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
-    $cache_key = 'tree='. $node;
-    if ($cache_clear == 'all') {
-      cache_clear_all('tree=', 'cache_alfresco_browser', TRUE);
-    }
-    else {
-      $cache = cache_get($cache_key, 'cache_alfresco_browser');
-      if ($cache && !empty($cache->data)) {
-        $nodes = $cache->data;
-        drupal_json($nodes);
-        exit();
-      }
-    }
-  }
-
-  try {
-    alfresco_include('soap');
-
-    $reference = 'workspace://SpacesStore/'. $node;
-    $space = alfresco_soap_node_load($reference);
-
-    if (!$space) {
-      // node not found
-      drupal_json(array());
+    $cache_key = 'tree='. $node_id;
+    if ($cache = _alfresco_browser_cache_get($cache_key, $cache_clear)) {
+      drupal_json($cache);
       exit();
     }
+  }
 
-    $nodes = array();
+  alfresco_include('soap');
 
-    $namespace = AlfNamespaceMap::getInstance();
-    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+  $reference = 'workspace://SpacesStore/'. $node_id;
+  $space = alfresco_soap_node_load($reference);
+  $nodes = array();
 
-    foreach ($space->getChildren() as $child) {
-      /* @var $child_node AlfNode */
-      $child_node = $child->child;
-
-      // @todo: Enhanced suppport other folder types
-      $type = $namespace->getShortName($child_node->getType());
-      //$ctype = $session->getContentType(str_replace('_', ':', $type));
-
-      if (in_array($type, $folder_types)) {
-        $nodes[] = array(
-          'id'   => $child_node->id,
-          'text' => trim($child_node->cm_name),
-          'qtip' => trim($child_node->cm_title),
-        );
-      }
-    }
-
-    usort($nodes, 'alfresco_browser_node_sort');
-
+  if (!$space) {
     if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
-      cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
+      _alfresco_browser_cache_set($cache_key, $nodes);
     }
 
+    // node not found
     drupal_json($nodes);
+    exit();
   }
-  catch (Exception $ex) {
-  }
-}
 
+  $namespace = AlfNamespaceMap::getInstance();
+  $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+
+  foreach ($space->getChildren() as $child) {
+    /* @var $child_node AlfNode */
+    $child_node = $child->child;
+
+    // @todo: Enhanced suppport other folder types
+    $type = $namespace->getShortName($child_node->getType());
+    //$ctype = $session->getContentType(str_replace('_', ':', $type));
+
+    if (in_array($type, $folder_types)) {
+      $nodes[] = array(
+        'id'   => $child_node->id,
+        'text' => trim($child_node->cm_name),
+        'qtip' => trim($child_node->cm_title),
+      );
+    }
+  }
+
+  usort($nodes, 'alfresco_browser_node_sort');
+
+  if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
+    _alfresco_browser_cache_set($cache_key, $nodes);
+  }
+
+  drupal_json($nodes);
+}
 
 function alfresco_browser_service_items() {
 
@@ -166,107 +157,92 @@ function alfresco_browser_service_items() {
 
   if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
     $cache_key = empty($query) ? 'node='. $node : 'query='. $query;
-    switch ($cache_clear) {
-    case 'node':
-      cache_clear_all($cache_key, 'cache_alfresco_browser');
-      break;
-
-    case 'all':
-      cache_clear_all('node=', 'cache_alfresco_browser', TRUE);
-      cache_clear_all('query=', 'cache_alfresco_browser', TRUE);
-      break;
-
-    default:
-      $cache = cache_get($cache_key, 'cache_alfresco_browser');
-      if ($cache && !empty($cache->data)) {
-        $rows = $limit > 0 ? array_slice($cache->data, $start, $limit) : $cache->data;
-        drupal_json(array('total' => count($cache->data), 'rows' => $rows));
-        exit();
-      }
+    if ($cache = _alfresco_browser_cache_get($cache_key, $cache_clear)) {
+      $rows = $limit > 0 ? array_slice($cache, $start, $limit) : $cache;
+      drupal_json(array('total' => count($cache), 'rows' => $rows));
+      exit();
     }
   }
 
-  try {
-    alfresco_include('soap');
-    $session = alfresco_soap_get_session();
+  alfresco_include('soap');
+  $session = alfresco_soap_get_session();
 
-    $results = array();
+  $nodes = array();
+  $results = array();
 
-    if (!empty($query)) {
-      $store = new AlfStore($session, 'SpacesStore');
-      $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
-    }
-    else {
-      $reference = 'workspace://SpacesStore/'. $node;
-      $folder = alfresco_soap_node_load($reference);
+  if (!empty($query)) {
+    $store = new AlfStore($session, 'SpacesStore');
+    $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
+  }
+  else {
+    $reference = 'workspace://SpacesStore/'. $node;
+    $folder = alfresco_soap_node_load($reference);
 
-      if (!$folder) {
-        drupal_json(array('total' => 0, 'rows' => array()));
-        exit();
-      }
-
-      $namespace = AlfNamespaceMap::getInstance();
-      $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-
-      foreach ($folder->children as $child_assoc) {
-        // @todo: Enhanced suppport other folder types
-        $type = $namespace->getShortName($child_assoc->child->type);
-        if (!in_array($type, $folder_types)) {
-          $results[] = $child_assoc->child;
-        }
-      }
-    }
-
-    if (count($results) == 0) {
+    if (!$folder) {
       if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
-        cache_set($cache_key, array(), 'cache_alfresco_browser', CACHE_TEMPORARY);
+        _alfresco_browser_cache_set($cache_key, $nodes);
       }
-
-      drupal_json(array('total' => 0, 'rows' => array()));
+      drupal_json(array('total' => 0, 'rows' => $nodes));
       exit();
     }
 
-    $module_path = drupal_get_path('module', 'alfresco_browser');
-    $nodes = array();
+    $namespace = AlfNamespaceMap::getInstance();
+    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
 
-    foreach ($results as $child_node) {
-      $node_ref = $child_node->__toString();
-      $nid = alfresco_exists_node($node_ref);
-      $icon = alfresco_get_icon_filetype($child_node->cm_name, TRUE);
-
-      if ($child_node->cm_content instanceof AlfContentData) {
-        $content_data = $child_node->cm_content;
+    foreach ($folder->children as $child_assoc) {
+      // @todo: Enhanced suppport other folder types
+      $type = $namespace->getShortName($child_assoc->child->type);
+      if (!in_array($type, $folder_types)) {
+        $results[] = $child_assoc->child;
       }
-      else {
-        $content_data = NULL;
-      }
-
-      $nodes[] = array(
-        'id'          => $child_node->id,
-        'nid'         => $nid ? url('node/'. $nid, array('absolute' => TRUE)) : '',
-        'name'        => trim($child_node->cm_name),
-        'size'        => isset($content_data) ? format_size($content_data->size) : '',
-        'mimetype'    => isset($content_data) ? $content_data->mimetype : '',
-        'icon'        => $icon,
-        'author'      => !is_null($child_node->cm_author) ? $child_node->cm_author : '',
-        'creator'     => !is_null($child_node->cm_creator) ? $child_node->cm_creator : '',
-        'modified'    => format_date(strtotime($child_node->cm_modified), 'custom', 'Y-m-d H:i:s'),
-        'created'     => format_date(strtotime($child_node->cm_created), 'custom', 'Y-m-d H:i:s'),
-        'description' => trim($child_node->cm_description),
-        'title'       => trim($child_node->cm_title),
-        'type'        => $namespace->getShortName($child_node->type),
-      );
     }
+  }
 
+  if (count($results) == 0) {
     if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
-      cache_set($cache_key, $nodes, 'cache_alfresco_browser', CACHE_TEMPORARY);
+      _alfresco_browser_cache_set($cache_key, $nodes);
+    }
+    drupal_json(array('total' => 0, 'rows' => $nodes));
+    exit();
+  }
+
+  $module_path = drupal_get_path('module', 'alfresco_browser');
+
+  foreach ($results as $child_node) {
+    $node_ref = $child_node->__toString();
+    $nid = alfresco_exists_node($node_ref);
+    $icon = alfresco_get_icon_filetype($child_node->cm_name, TRUE);
+
+    if ($child_node->cm_content instanceof AlfContentData) {
+      $content_data = $child_node->cm_content;
+    }
+    else {
+      $content_data = NULL;
     }
 
-    $rows = $limit > 0 ? array_slice($nodes, $start, $limit) : $nodes;
-    drupal_json(array('total' => count($nodes), 'rows' => $rows));
+    $nodes[] = array(
+      'id'          => $child_node->id,
+      'nid'         => $nid ? url('node/'. $nid, array('absolute' => TRUE)) : '',
+      'name'        => trim($child_node->cm_name),
+      'size'        => isset($content_data) ? format_size($content_data->size) : '',
+      'mimetype'    => isset($content_data) ? $content_data->mimetype : '',
+      'icon'        => $icon,
+      'author'      => !is_null($child_node->cm_author) ? $child_node->cm_author : '',
+      'creator'     => !is_null($child_node->cm_creator) ? $child_node->cm_creator : '',
+      'modified'    => format_date(strtotime($child_node->cm_modified), 'custom', 'Y-m-d H:i:s'),
+      'created'     => format_date(strtotime($child_node->cm_created), 'custom', 'Y-m-d H:i:s'),
+      'description' => trim($child_node->cm_description),
+      'title'       => trim($child_node->cm_title),
+      'type'        => $namespace->getShortName($child_node->type),
+    );
   }
-  catch (Exception $ex) {
+
+  if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
+    _alfresco_browser_cache_set($cache_key, $nodes);
   }
+
+  $rows = $limit > 0 ? array_slice($nodes, $start, $limit) : $nodes;
+  drupal_json(array('total' => count($nodes), 'rows' => $rows));
 }
 
 function alfresco_browser_service_download() {
@@ -358,4 +334,42 @@ function alfresco_browser_service_delete() {
  */
 function alfresco_browser_node_sort($a, $b) {
   return strnatcmp($a['text'], $b['text']);
+}
+
+/**
+ *
+ */
+function _alfresco_browser_cache_get($key, $clear = '') {
+  global $user;
+
+  switch ($clear) {
+    case 'node':
+      $cid = "user=$user->uid;$key";
+      cache_clear_all($cid, 'cache_alfresco_browser');
+      break;
+
+    case 'all':
+      $cid = "user=$user->uid";
+      cache_clear_all($cid, 'cache_alfresco_browser', TRUE);
+      break;
+
+    default:
+      $cid = "user=$user->uid;$key";
+      $cache = cache_get($cid, 'cache_alfresco_browser');
+      if ($cache && !empty($cache->data)) {
+        return $cache->data;
+      }
+  }
+
+  return FALSE;
+}
+
+/**
+ *
+ */
+function _alfresco_browser_cache_set($key, $data) {
+  global $user;
+
+  $cid = "user=$user->uid;$key";
+  cache_set($cid, $data, 'cache_alfresco_browser', CACHE_TEMPORARY);
 }

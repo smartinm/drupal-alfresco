@@ -149,6 +149,8 @@ function alfresco_admin_settings_submit($form, &$form_state) {
   variable_set('alfresco_http_request_fails', FALSE);
 
   drupal_set_message(t('Check the <a href="@status">status report</a> for test repository connection.', array('@status' => url('admin/reports/status'))));
+
+  // @todo: Limpiar sesión cuando se cambiar el repositorio
 }
 
 // ------------------------------------------------------------------

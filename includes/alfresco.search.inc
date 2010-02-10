@@ -22,52 +22,67 @@ function alfresco_search_search($keys) {
   $find = array();
 
   // @todo search_parse_query()
-
   if (drupal_strlen($keys) < variable_get('minimum_word_size', 3)) {
     form_set_error('keys', t('You must include at least one positive keyword with @count characters or more.', array('@count' => variable_get('minimum_word_size', 3))));
     return $find;
   }
+
+  $repository_access = alfresco_repository_access();
 
   try {
     alfresco_include('soap');
 
     $session = alfresco_soap_get_session();
     $store = new AlfStore($session, 'SpacesStore');
-    $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $keys .'*"');
 
-    foreach ($results as $node) {
-      $reference = $node->__toString();
-      $nid = alfresco_exists_node($reference);
+    $query = _alfresco_search_build_query($keys);
+
+    //dpm('query: '. $query);
+    $results = $session->query($store, $query);
+
+    foreach ($results as $alf_node) {
+
+      $reference = $alf_node->__toString();
 
       // @todo: Configurar si mostrar contenido con/sin acceso
-      if (!$nid) {
+      $nid = alfresco_exists_node($reference);
+      if (!$nid && !$repository_access) {
         continue;
       }
 
-      $item = node_load($nid);
-      if (!node_access('view', $item)) {
-        continue;
+      // @todo: Añadir hook para filtrar los resultados de la búsqueda
+      if ($node = node_load($nid)) {
+        if (!node_access('view', $node)) {
+          continue;
+        }
       }
 
-      if ($node->cm_content instanceof AlfContentData) {
-        $content = $node->cm_content;
+      if ($alf_node->cm_content instanceof AlfContentData) {
+        $content = $alf_node->cm_content;
       }
 
-      $name = $node->cm_name;
-      $title = $node->cm_title;
-      $description = $node->cm_description;
-      $extension = substr(strrchr($node->cm_name, '.'), 1);
-      $type = $node->type;
-      //$path = $node->getFolderPath() . '/'. $name;
+      $name = $alf_node->cm_name;
+      $title = $alf_node->cm_title;
+      $description = $alf_node->cm_description;
+      $extension = substr(strrchr($alf_node->cm_name, '.'), 1);
+      $type = $alf_node->type;
+      //$path = $alf_node->getFolderPath() . '/'. $name;
 
-      $store = $node->getStore();
-      $link = "alfresco/download/$store->scheme/$store->address/$node->id/$node->cm_name";
+      $store = $alf_node->getStore();
+
+      if ($repository_access && !$node) {
+        $link = "alfresco/download/$store->scheme/$store->address/$alf_node->id/$alf_node->cm_name";
+      }
+      else {
+        $link = alfresco_url_download($node);
+      }
 
       $find[] = array(
-        'link'    => url($link),
+        'link'    => url($link, array('absolute' => TRUE)),
         'title'   => !empty($title) ? $title : $name,
         //'snippet' => $description,
-        'user'    => $node->cm_creator,
+        'user'    => $alf_node->cm_creator,
+        'date'    => strtotime($alf_node->cm_modified),
         'extra'   => array(
           'size'     => isset($content) ? format_size($content->size) : '',
           'mimetype' => isset($content) ? $content->mimetype : '',
@@ -92,4 +107,16 @@ function alfresco_search_form_alter(&$form, &$form_state) {
     // - Search only alfresco item
     // - Search all repository
   }
+}
+
+function _alfresco_search_build_query($keys) {
+  $words = explode(' ', $keys);
+
+  $query = '+ISNODE:T +TYPE:"cm:content"';
+
+  foreach ($words as $word) {
+    $query .= ' +ALL:"*'. check_plain($word) .'*"';
+  }
+
+  return $query;
 }

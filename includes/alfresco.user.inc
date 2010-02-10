@@ -32,20 +32,12 @@ function alfresco_user_login($edit) {
       return;
     }
 
-    // @todo: Refactorizar test de conexión
-    try {
-      alfresco_include_lib('Repository');
-      $username = $edit['name'];
-      $password = $edit['pass'];
-      $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
-      $repository = new AlfRepository($repository_url);
-      $ticket = $repository->authenticate($username, $password);
-    }
-    catch (SoapFault $exception) {
-      $ticket = NULL;
-    }
+    $username = $edit['name'];
+    $password = $edit['pass'];
 
-    if (!isset($ticket)) {
+    alfresco_include('soap');
+
+    if (!alfresco_soap_verify_user($username, $password)) {
       // El proceso de autenticación ha fallado, marcamos el usuario como sin acceso.
       $_SESSION['alfresco_verified_account'] = FALSE;
     }
@@ -56,10 +48,6 @@ function alfresco_user_login($edit) {
       // Guardamos las credenciales para re-autenticar cuando el ticket caduque.
       $_SESSION['alfresco_credentials']['username'] = $username;
       $_SESSION['alfresco_credentials']['password'] = base64_encode($password);
-
-      // Guardamos los datos del ticket para reutilizarlo
-      $_SESSION['alfresco_ticket'] = $ticket;
-      $_SESSION['alfresco_last_access'] = time();
     }
   }
 }
@@ -85,10 +73,8 @@ function alfresco_user_view(&$account) {
  */
 function alfresco_user_insert(&$edit, $account) {
 
-  $user_home = '/app:company_home/app:user_homes/sys:'. $account->name;
-  if (empty($edit['alfresco_home'])) {
-    $edit['alfresco_home'] = $user_home;
-  }
+  // Default Alfresco user space.
+  $edit['alfresco_home'] = '/app:company_home/app:user_homes/sys:'. $account->name;
 }
 
 /**
@@ -125,15 +111,13 @@ function alfresco_user_form($edit, $account, $category) {
     '#description' => t('Indica si el usuario tiene acceso al repositorio de Alfresco (para búscar, navegar, añadir contenido, etc).'),
   );
 
-  if (!empty($account)) {
-    $form['alfresco']['alfresco_home'] = array(
-      '#type' => 'textfield',
-      '#title' => t('User home space'),
-      '#default_value' => isset($edit['alfresco_home']) ? $edit['alfresco_home'] : '',
-      '#description' => t('User home path on Alfresco repository.'),
-      '#size' => 80,
-    );
-  }
+  $form['alfresco']['alfresco_home'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User home space'),
+    '#default_value' => isset($edit['alfresco_home']) ? $edit['alfresco_home'] : '',
+    '#description' => t('User home path on Alfresco repository.'),
+    '#size' => 80,
+  );
 
   return $form;
 }

@@ -491,3 +491,29 @@ function _alfresco_soap_authenticate($repository) {
 
   return $ticket;
 }
+
+function alfresco_soap_verify_user($username, $password, $end_session = TRUE) {
+  alfresco_include_lib('WebServiceFactory', 'Alfresco/Service/WebService');
+
+  try {
+    $repository_url = variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api');
+    $auth_service = AlfWebServiceFactory::getAuthenticationService($repository_url);
+
+    $result = $auth_service->startSession(array(
+      'username' => $username,
+      'password' => $password,
+    ));
+
+    $username = $result->startSessionReturn->username;
+    $ticket = $result->startSessionReturn->ticket;
+    $sessionid = $result->startSessionReturn->sessionid;
+
+    if ($ticket && $end_session) {
+      $auth_service->endSession(array('ticket' => $ticket));
+    }
+
+    return $username;
+  }
+  catch (SoapFault $exception) {
+  }
+}

@@ -202,7 +202,7 @@ class AlfSession extends AlfBaseObject {
       "query" => array(
         "language" => $language,
         "statement" => $query
-    ) ,
+      ),
       "includeMetaData" => false
     ));
     // TODO for now do nothing with the score and the returned data
