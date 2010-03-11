@@ -477,8 +477,8 @@ function alfresco_update_6100(&$sandbox) {
     $created = strtotime($node->cm_created_temp);
     $modified = strtotime($node->cm_modified_temp);
 
-    $result = db_query("UPDATE {alfresco_node} SET cm_created = %d, cm_modified = %d WHERE vid = %d", $created, $modified, $node->vid);
-    if ($result === FALSE) {
+    $sql_update = "UPDATE {alfresco_node} SET cm_created = %d, cm_modified = %d WHERE vid = %d";
+    if (db_query($sql_update, $created, $modified, $node->vid) === FALSE) {
       // @todo: Error
     }
 
