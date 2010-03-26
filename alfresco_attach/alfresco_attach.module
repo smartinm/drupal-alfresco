@@ -383,22 +383,20 @@ function _alfresco_attach_form($node) {
  */
 function theme_alfresco_attach_attachments($files) {
 
-  $header = array(t('Attachment'), t('Size'));
-
   $rows = array();
   foreach ($files as $file) {
     $file = (object)$file;
     $alf_node = $file->item;
 
-    if ($file->list && empty($file->remove)) {
+    if ($file->list && empty($file->remove) && _alfresco_download_access($alf_node)) {
       $href = alfresco_url_download($alf_node);
       $text = !empty($file->description) ? $file->description : $alf_node->title;
-      //$node = l($alf_node->title, 'node/'. $alf_node->nid);
-      //$rows[] = array(l($text, $href), $node, format_size($alf_node->cm_content['size']));
       $rows[] = array(l($text, $href), format_size($alf_node->cm_content['size']));
     }
   }
+
   if (count($rows)) {
+    $header = array(t('Attachment'), t('Size'));
     return theme('table', $header, $rows, array('id' => 'alfresco-attachments'));
   }
 }
