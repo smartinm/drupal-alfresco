@@ -148,9 +148,11 @@ function alfresco_admin_settings_submit($form, &$form_state) {
   // @see _alfresco_check_connection_repository()
   variable_set('alfresco_http_request_fails', FALSE);
 
-  drupal_set_message(t('Check the <a href="@status">status report</a> for test repository connection.', array('@status' => url('admin/reports/status'))));
+  // Limpiamos el ticket actual para forzar la autenticación en la siguiente petición
+  alfresco_include('soap');
+  alfresco_soap_clear_session();
 
-  // @todo: Limpiar sesión cuando se cambiar el repositorio
+  drupal_set_message(t('Check the <a href="@status">status report</a> to see whether the connection was successful.', array('@status' => url('admin/reports/status'))));
 }
 
 // ------------------------------------------------------------------

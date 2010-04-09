@@ -112,7 +112,7 @@ function alfresco_soap_node_load($reference_or_path, $reset = NULL) {
     $ref = $inforef['reference'];
     // Is the node statically cached?
     if (isset($nodes[$ref])) {
-      return is_object($nodes[$ref]) ? drupal_clone($nodes[$ref]) : $nodes[$ref];
+      return drupal_clone($nodes[$ref]);
     }
   }
 
@@ -134,9 +134,11 @@ function alfresco_soap_node_load($reference_or_path, $reset = NULL) {
     if (count($nodes)) {
       $node = $nodes[0];
 
-      if ($inforef) {
-        $ref = $inforef['reference'];
-        $nodes[$ref] = is_object($node) ? drupal_clone($node) : $node;
+      // Force populate node details from repository
+      $node->getProperties();
+
+      if ($ref = $node->__toString()) {
+        $nodes[$ref] = drupal_clone($node);
       }
 
       return $node;
@@ -145,6 +147,8 @@ function alfresco_soap_node_load($reference_or_path, $reset = NULL) {
   catch (SoapFault $exception) {
     alfresco_error_handler('alfresco', $exception);
   }
+
+  return FALSE;
 }
 
 /**
@@ -516,4 +520,13 @@ function alfresco_soap_verify_user($username, $password, $end_session = TRUE) {
   }
   catch (SoapFault $exception) {
   }
+}
+
+function alfresco_soap_clear_session() {
+  // Limpiamos el ticket actual para forzar la autenticación en la siguiente petición
+  unset($_SESSION['alfresco_ticket']);
+  unset($_SESSION['alfresco_last_access']);
+
+  // Alfresco PHP API
+  unset($_SESSION['sessionIds']);
 }

@@ -295,6 +295,8 @@ AlfrescoBrowser.App = function() {
             remove: true
         });
       }, 250);
+      
+      // @todo Mostrar ventana informando en caso de error.
     },
     initLayout: function(){
       // --------------------------------------------

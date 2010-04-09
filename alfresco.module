@@ -59,11 +59,9 @@ function alfresco_help($path, $arg) {
 
 /**
  * Implementation of hook_node_info().
- *
- * Provides a new 'alfresco_item' node content type.
  */
 function alfresco_node_info() {
-
+  // Provides a new 'alfresco_item' node content type.
   return array(
     'alfresco_item' => array(
       'name'        => t('Alfresco item'),
@@ -93,6 +91,7 @@ function alfresco_perm() {
     'delete any alfresco content',
     'edit own alfresco content',
     'edit any alfresco content',
+    // alfresco permissions
     'download alfresco content',
     'view alfresco download counter',
   );
@@ -213,28 +212,23 @@ function alfresco_menu() {
   $items['alfresco'] = array(
     'title' => 'Alfresco',
     'page callback' => 'alfresco_overview_page',
-    'access arguments' => array('access content'),
-    //'weight' => 5,
+    'access callback' => 'alfresco_repository_access',
     'file' => 'alfresco.pages.inc',
   );
-
   $items['alfresco/add'] = array(
     'title' => 'Add content',
     'description' => 'Add content to a space and enter information about the content to be uploaded.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alfresco_add_form'),
-    'access arguments' => array('add alfresco content'),
-    //'weight' => 5,
+    'access callback' => 'alfresco_add_form_access',
     'file' => 'alfresco.pages.inc',
   );
-
   if (module_exists('views')) {
     $items['alfresco/items'] = array(
       'title' => 'View items',
       'description' => 'Displays a list of alfresco items nodes.',
       'page callback' => 'alfresco_items_page',
       'access arguments' => array('access content'),
-      //'weight' => 5,
       'file' => 'alfresco.pages.inc',
     );
   }
@@ -244,14 +238,13 @@ function alfresco_menu() {
   $items['alfresco/autocomplete'] = array(
     'title' => 'Alfresco node autocomplete',
     'page callback' => 'alfresco_autocomplete',
-    'access arguments' => array('access content'),
+    'access callback' => 'alfresco_repository_access',
     'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
   );
 
   // Alfresco download content
 
-  // @see http://wiki.alfresco.com/wiki/URL_Addressability#DownloadContentServlet
   $items['alfresco/download/%/%/%'] = array(
     'title' => 'Alfresco download',
     'page callback' => 'alfresco_download_content',
@@ -270,6 +263,10 @@ function _alfresco_download_access($node) {
 
 function _alfresco_administer_access($node) {
   return ($node->type == 'alfresco_item') && user_access('administer alfresco');
+}
+
+function alfresco_add_form_access() {
+  return alfresco_repository_access() && user_access('add alfresco content');
 }
 
 function alfresco_repository_access() {
@@ -348,7 +345,8 @@ function alfresco_name_to_arg($arg) {
 function alfresco_form(&$node, $form_state) {
 
   // Informamos al usuario que no tiene acceso al repositorio de Alfresco
-  if (!$access = alfresco_repository_access()) {
+  // @todo Utilizar alfresco_browser_access()
+  if (!$access = (alfresco_repository_access() && user_access('access alfresco browser'))) {
     drupal_set_message(t('La opción de navegar por el repositorio de Alfresco está desactivada. Por favor contacte con el administrador del sitio para más información.'));
   }
 
@@ -368,7 +366,7 @@ function alfresco_form(&$node, $form_state) {
     '#weight' => -6,
   );
 
-  if ($access && module_exists('alfresco_browser')) {
+  if (module_exists('alfresco_browser') && $access) {
     $form['reference']['#type'] = 'alfresco_browser';
     $form['reference']['#description'] = t('Select an item from Alfresco repository.');
   }
@@ -1293,31 +1291,26 @@ function alfresco_search($op = 'search', $keys = NULL) {
 }
 
 /**
- * Utility for handling Alfresco errors.
- *
- * @param $type
- * @param $exception Exception
- * @param $message
+ * Utility for handling Alfresco SOAP faults.
  */
 function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
 
   if ($exception instanceof SoapFault) {
-    watchdog($type, 'Unable to connect to Alfresco repository via SOAP.', array(), WATCHDOG_ERROR);
-    drupal_set_message(t('Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance.'), 'error');
+    // Obtenemos el mensaje de error de Alfresco
+    if (isset($exception->detail) && is_object($exception->detail)) {
+      unset($exception->detail->stackTrace);
+      $error = print_r($exception->detail, TRUE);
+    }
+    else {
+      $error = print_r($exception, TRUE);
+    }
+
+    watchdog($type, 'Unable to connect to Alfresco repository via SOAP. Detail: <pre>!detail</pre>', array('!detail' => $error), WATCHDOG_ERROR);
+    drupal_set_message(t('Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance.'), 'error', FALSE);
 
     // Limpiamos el ticket actual para forzar la autenticación en la siguiente petición
-    unset($_SESSION['alfresco_ticket']);
-    unset($_SESSION['alfresco_last_access']);
-
-    // @todo: Añadir configuración para habilitar/deshabilitar mensajes de debug
-    if (module_exists('devel')) {
-      // @todo: Mostrar mensaje a pantalla completa
-      //drupal_set_title('Alfresco error trace');
-      //$output = '<pre>'. strval($exception) .'</pre>';
-      //print theme('page', $output);
-      //exit();
-      dpm(strval($exception));
-    }
+    //unset($_SESSION['alfresco_ticket']);
+    //unset($_SESSION['alfresco_last_access']);
   }
   else {
     $message = !isset($message) ? $exception->getMessage() : $message;

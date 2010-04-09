@@ -66,7 +66,7 @@ function alfresco_browser_menu() {
     'title' => 'Repository browser',
     'description' => 'Visualize, search, browse and retrieve nodes of the Alfresco repository.',
     'page callback' => 'alfresco_browser_repository_page',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
   );
 
@@ -75,7 +75,7 @@ function alfresco_browser_menu() {
   $items['alfresco/browser'] = array(
     'title' => 'Alfresco browser',
     'page callback' => 'alfresco_browser_page',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     //'access arguments' => array('access alfresco browser'),
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
@@ -85,35 +85,35 @@ function alfresco_browser_menu() {
 
   $items['alfresco/browser/service/spaces'] = array(
     'page callback' => 'alfresco_browser_service_spaces',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/items'] = array(
     'page callback' => 'alfresco_browser_service_items',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/download'] = array(
     'page callback' => 'alfresco_browser_service_download',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/upload'] = array(
     'page callback' => 'alfresco_browser_service_upload',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
   $items['alfresco/browser/service/delete'] = array(
     'page callback' => 'alfresco_browser_service_delete',
-    'access callback' => '_alfresco_browser_access',
+    'access callback' => 'alfresco_browser_access',
     'file' => 'alfresco_browser.pages.inc',
     'type' => MENU_CALLBACK,
   );
@@ -121,7 +121,7 @@ function alfresco_browser_menu() {
   return $items;
 }
 
-function _alfresco_browser_access() {
+function alfresco_browser_access() {
   return user_access('access alfresco browser') && alfresco_repository_access();
 }
 

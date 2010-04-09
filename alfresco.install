@@ -362,18 +362,17 @@ function _alfresco_verify_php_library(&$requirements) {
 function _alfresco_verify_connection_repository(&$requirements) {
   $t = get_t();
 
-  if (variable_get('alfresco_http_request_fails', TRUE)) {
-    $tip = $t('Please review Alfresco module settings under !link.', array(
-      '!link' => l($t('Administer > Site configuration > Alfresco'), 'admin/settings/alfresco')
+  if (variable_get('alfresco_http_request_fails', FALSE)) {
+    $tip = $t('The last connection test failed. Please check <a href="@settings">Alfresco module settings</a>. You can <a href="@cron">run cron manually</a> to force other connection test.', array(
+      '@settings' => url('admin/settings/alfresco'),
+      '@cron' => url('admin/reports/status/run-cron'),
     ));
-
     $requirements['alfresco_repository'] = array(
       'title' => $t('Alfresco repository'),
       'value' => $t('Last HTTP request failed'),
       'severity' => REQUIREMENT_ERROR,
-      'description' => '<em>'. $tip .'</em>',
+      'description' => $tip,
     );
-
     return;
   }
 
@@ -440,13 +439,21 @@ function _alfresco_verify_connection_repository(&$requirements) {
     }
   }
   catch (SoapFault $exception) {
-    $message = isset($exception->faultcode) ? $exception->faultcode : $exception->getMessage();
+    if (isset($exception->detail) && is_object($exception->detail)) {
+      $detail = (array) $exception->detail;
+      $classname = array_shift(array_keys($detail));
+      $classvalue = array_shift(array_values($detail));
+      $message = array_shift(explode("\n", $classvalue->message));
+    }
+    else {
+      $message = $t('Unable to connect to Alfresco repository via SOAP. Faultcode: %faultcode', array('%faultcode' => $exception->faultcode));
+    }
 
     $requirements['alfresco_repository'] = array(
       'title' => $t('Alfresco repository'),
-      'value' => $t('SOAP request failed'),
+      'value' => $t('SOAP request failed') . (!empty($classname) ? " ($classname)" : ''),
       'severity' => REQUIREMENT_ERROR,
-      'description' => $t('Unable to connect to Alfresco repository via SOAP. Details: %message', array('%message' => $message)),
+      'description' => $message,
     );
   }
 }
@@ -477,9 +484,9 @@ function alfresco_update_6100(&$sandbox) {
     $created = strtotime($node->cm_created_temp);
     $modified = strtotime($node->cm_modified_temp);
 
-    $sql_update = "UPDATE {alfresco_node} SET cm_created = %d, cm_modified = %d WHERE vid = %d";
-    if (db_query($sql_update, $created, $modified, $node->vid) === FALSE) {
-      // @todo: Error
+    if ($created && $modified) {
+      $sql_update = "UPDATE {alfresco_node} SET cm_created = %d, cm_modified = %d WHERE vid = %d";
+      db_query($sql_update, $created, $modified, $node->vid);
     }
 
     $sandbox['progress']++;

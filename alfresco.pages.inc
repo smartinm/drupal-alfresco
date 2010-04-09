@@ -73,6 +73,9 @@ function alfresco_page_download($node) {
   exit();
 }
 
+/**
+ * @see http://wiki.alfresco.com/wiki/URL_Addressability#DownloadContentServlet
+ */
 function alfresco_download_content($workspace, $store, $uuid) {
   $reference = "$workspace://$store/$uuid";
   alfresco_file_transfer($reference);

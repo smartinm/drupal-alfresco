@@ -12,6 +12,9 @@
 function alfresco_browser_page() {
   global $language;
 
+  // Disable admin_menu, admin module output and similar modules
+  module_invoke_all('suppress');
+
   $extjs_path  = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
   $icons_path  = drupal_get_path('module', 'alfresco') .'/images/filetypes';
   $module_path = drupal_get_path('module', 'alfresco_browser');
@@ -19,6 +22,7 @@ function alfresco_browser_page() {
   alfresco_include('soap');
   $home_path = variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME);
   $home_node = alfresco_soap_node_load($home_path);
+  // @todo Controlar cuando el nodo no existe o se ha producido un error.
 
   // Alfresco Browser Settings
   $settings = array('alfresco' => array(
