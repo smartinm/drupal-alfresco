@@ -38,6 +38,7 @@ function alfresco_browser_admin_settings() {
     '#description'   => t('The number of records to display per page (defaults to 20)'),
     '#required'      => TRUE,
     '#default_value' => variable_get('alfresco_browser_query_limit', 20),
+    '#size'          => 8,
   );
 
   /*

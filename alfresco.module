@@ -22,8 +22,8 @@ define('ALFRESCO_FILE_EXISTS_REPLACE', 1);  // Replace the existing file.
 define('ALFRESCO_FILE_EXISTS_ERROR',   2);  // Do nothing and return error.
 
 // Alfresco authentication methods.
-define('ALFRESCO_AUTH_SINGLE', 1);
-define('ALFRESCO_AUTH_USER',   2);
+define('ALFRESCO_AUTH_GLOBAL', 1);
+define('ALFRESCO_AUTH_SSO',    2);
 
 // Alfresco Node UUID regex
 // @see http://wiki.alfresco.com/wiki/Web_Service_Data_Types_XML_Schema
@@ -79,30 +79,27 @@ function alfresco_node_info() {
  * Implementation of hook_perm().
  */
 function alfresco_perm() {
-
   return array(
     'administer alfresco',
-    // repository permissions
-    'add alfresco content',
-    'search alfresco content',
-    // content type permissions
+    'download alfresco content',
+    'view alfresco download counter',
+
+    // Repository permissions
+    //'access alfresco repository',   // Acceso al repositorio de Alfresco
+    'upload alfresco repository',   // Subida al repositorio de Alfresco
+    'search alfresco repository',   // Búsqueda en el repositorio de Alfresco
+
+    // Content type permissions
     'create alfresco content',
     'delete own alfresco content',
     'delete any alfresco content',
     'edit own alfresco content',
     'edit any alfresco content',
-    // alfresco permissions
-    'download alfresco content',
-    'view alfresco download counter',
   );
 }
 
-
 /**
  * Implementation of hook_access().
- *
- * Determine the operations users may perform on nodes. This uses a very common
- * access pattern.
  */
 function alfresco_access($op, $node, $account) {
 
@@ -143,8 +140,8 @@ function alfresco_menu() {
     'file' => 'alfresco.admin.inc',
   );
 
-  $items['admin/settings/alfresco/repository'] = array(
-    'title' => 'Repository',
+  $items['admin/settings/alfresco/general'] = array(
+    'title' => 'General',
     'weight' => 1,
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
@@ -162,6 +159,7 @@ function alfresco_menu() {
   );
   */
 
+  /*
   $items['admin/settings/alfresco/model'] = array(
     'title' => 'Model',
     'page callback' => 'drupal_get_form',
@@ -172,6 +170,7 @@ function alfresco_menu() {
     'parent' => 'admin/settings/alfresco',
     'file' => 'alfresco.admin.inc',
   );
+  */
 
   $items['admin/settings/alfresco/advanced'] = array(
     'title' => 'Advanced',
@@ -190,18 +189,20 @@ function alfresco_menu() {
     'title' => 'Details',
     'page callback' => 'alfresco_page_details',
     'page arguments' => array(1),
-    'access callback' => '_alfresco_administer_access',
+    'access callback' => '_alfresco_details_tab_access',
     'access arguments' => array(1),
     'weight' => 2,
     'type' => MENU_LOCAL_TASK,
     'file' => 'alfresco.pages.inc',
   );
 
+  // Node callbacks
+
   $items['node/%alfresco_node/download/%alfresco_name'] = array(
     'title' => 'Download',
     'page callback' => 'alfresco_page_download',
     'page arguments' => array(1),
-    'access callback' => '_alfresco_download_access',
+    'access callback' => 'alfresco_download_access',
     'access arguments' => array(1),
     'type' => MENU_CALLBACK,
     'file' => 'alfresco.pages.inc',
@@ -212,15 +213,15 @@ function alfresco_menu() {
   $items['alfresco'] = array(
     'title' => 'Alfresco',
     'page callback' => 'alfresco_overview_page',
-    'access callback' => 'alfresco_repository_access',
+    'access arguments' => array('access content'),
     'file' => 'alfresco.pages.inc',
   );
-  $items['alfresco/add'] = array(
-    'title' => 'Add content',
+  $items['alfresco/upload'] = array(
+    'title' => 'Upload content',
     'description' => 'Add content to a space and enter information about the content to be uploaded.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('alfresco_add_form'),
-    'access callback' => 'alfresco_add_form_access',
+    'page arguments' => array('alfresco_upload_form'),
+    'access callback' => 'alfresco_upload_access',
     'file' => 'alfresco.pages.inc',
   );
   if (module_exists('views')) {
@@ -243,7 +244,7 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
-  // Alfresco download content
+  // Alfresco directo download from repository
 
   $items['alfresco/download/%/%/%'] = array(
     'title' => 'Alfresco download',
@@ -257,38 +258,76 @@ function alfresco_menu() {
   return $items;
 }
 
-function _alfresco_download_access($node) {
-  return ($node->type == 'alfresco_item' && !empty($node->cm_content) && node_access('view', $node) && user_access('download alfresco content'));
+function _alfresco_details_tab_access($node) {
+  return ($node->type == 'alfresco_item') && node_access('view', $node) && user_access('administer alfresco');
 }
 
-function _alfresco_administer_access($node) {
-  return ($node->type == 'alfresco_item') && user_access('administer alfresco');
+function alfresco_download_access($node) {
+  return ($node->type == 'alfresco_item') && node_access('view', $node) && user_access('download alfresco content') && !empty($node->cm_content);
 }
 
-function alfresco_add_form_access() {
-  return alfresco_repository_access() && user_access('add alfresco content');
+function alfresco_upload_access() {
+  return alfresco_repository_access() && user_access('upload alfresco repository');
 }
 
-function alfresco_repository_access() {
+function alfresco_account_access($account) {
   global $user;
 
   if ($user->uid == 1) {
     return TRUE;
   }
 
-  // Acceso al repositorio desactivado en el perfil del usuario
-  if (isset($user->alfresco_access) && !$user->alfresco_access) {
+  // Si el usuario está bloqueado no puede acceder a la información de su cuenta
+  if (isset($account->alfresco['status']) && $account->alfresco['status'] == 0) {
     return FALSE;
   }
 
-  // Con autenticación single todos los usuarios tienen acceso al repositorio
-  $auth_method = variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE);
-  if ($auth_method == ALFRESCO_AUTH_SINGLE) {
+  return ($user->uid == $account->uid /*&& user_access('access alfresco repository')*/);
+}
+
+/**
+ * Devuelve cierto si el acceso directo al repositorio de Alfresco está
+ * permitido para el usuario.
+ */
+function alfresco_repository_access($account = NULL) {
+  global $user;
+
+  if (!isset($account)) {
+    $account = $user;
+  }
+
+  if ($account->uid == 1) {
     return TRUE;
   }
 
-  // Con autenticación por usuario, debe tener una cuenta para poder acceder al repositorio.
-  return isset($_SESSION['alfresco_verified_account']) ? $_SESSION['alfresco_verified_account'] : FALSE;
+  if ($account->uid == 0) {
+    return FALSE;
+  }
+
+  // Acceso al repositorio desactivado en el perfil del usuario.
+  if (isset($account->alfresco['status']) && $account->alfresco['status'] == 0) {
+    return FALSE;
+  }
+
+  // Comprobamos el permiso de usuario
+  /*
+  $access = user_access('access alfresco repository', $account);
+  if (!$access) {
+    return FALSE;
+  }
+  */
+
+  // Con autenticación global no es necesario comprobar la cuenta del usuario.
+  if (alfresco_auth_is_global()) {
+    return TRUE;
+  }
+
+  // Comprueba si la cuenta de Alfresco del usuario es válida.
+  if (isset($_SESSION['alfresco_account']['verified']) && $_SESSION['alfresco_account']['verified']) {
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**
@@ -345,9 +384,8 @@ function alfresco_name_to_arg($arg) {
 function alfresco_form(&$node, $form_state) {
 
   // Informamos al usuario que no tiene acceso al repositorio de Alfresco
-  // @todo Utilizar alfresco_browser_access()
-  if (!$access = (alfresco_repository_access() && user_access('access alfresco browser'))) {
-    drupal_set_message(t('La opción de navegar por el repositorio de Alfresco está desactivada. Por favor contacte con el administrador del sitio para más información.'));
+  if (!($repository_access = alfresco_repository_access())) {
+    drupal_set_message(t('No tiene acceso al repositorio de Alfresco. Por favor contacte con el administrador del sitio para más información.'), 'warning');
   }
 
   //drupal_add_js(drupal_get_path('module', 'alfresco') .'/alfresco.js');
@@ -366,7 +404,8 @@ function alfresco_form(&$node, $form_state) {
     '#weight' => -6,
   );
 
-  if (module_exists('alfresco_browser') && $access) {
+  // @todo: mover al módulo alfresco_browser con form_alter
+  if ($repository_access && module_exists('alfresco_browser')) {
     $form['reference']['#type'] = 'alfresco_browser';
     $form['reference']['#description'] = t('Select an item from Alfresco repository.');
   }
@@ -386,8 +425,6 @@ function alfresco_form(&$node, $form_state) {
   }
 
   if ($type->has_body) {
-    // Get the body and filter elements. It will also ensure the teaser
-    // splitter gets set up properly.
     $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
 
@@ -996,6 +1033,37 @@ function alfresco_file_put($filepath, $url, $headers = array()) {
 // Utils helper functions
 // ------------------------------------------------------------------
 
+/**
+ * @todo Hacer un hook para este método.
+ */
+function alfresco_auth_credentials() {
+  global $user;
+
+  // @todo: tratar el caso especial del administrador de forma independiente ?
+
+  $verified = isset($_SESSION['alfresco_account']['verified']) ? $_SESSION['alfresco_account']['verified'] : FALSE;
+
+  // Las credenciales de conexión dependen del modo de autenticación configurado en el portal
+  if (alfresco_auth_is_sso() && $user->uid != 0 && $verified) {
+    $username = $_SESSION['alfresco_account']['username'];
+    $password = $_SESSION['alfresco_account']['password'];
+  }
+  else {
+    $username = variable_get('alfresco_credentials_username', 'guest');
+    $password = variable_get('alfresco_credentials_password', base64_encode('guest'));
+  }
+
+  return array('user' => $username, 'pass' => base64_decode($password));
+}
+
+function alfresco_auth_is_global() {
+  return variable_get('alfresco_authentication_method', ALFRESCO_AUTH_GLOBAL) == ALFRESCO_AUTH_GLOBAL;
+}
+
+function alfresco_auth_is_sso() {
+  return variable_get('alfresco_authentication_method', ALFRESCO_AUTH_GLOBAL) == ALFRESCO_AUTH_SSO;
+}
+
 function alfresco_valid_uuid($uuid) {
   $pattern = '|^'. ALFRESCO_REGEX_NODE_UUID .'$|';
   return preg_match($pattern, $uuid);
@@ -1223,6 +1291,18 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
   alfresco_include('user');
 
   switch ($op) {
+    case 'categories':
+      return array(
+        array(
+          'name' => 'alfresco',
+          'title' => 'Alfresco',
+          'weight' => 3,
+          'access callback' => 'alfresco_account_access',
+          'access arguments' => array(1),
+        ),
+      );
+      break;
+
     case 'login':
       // The user just logged in.
       alfresco_user_login($edit);
@@ -1259,10 +1339,7 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
 
     case 'form':
       // The user account edit form is about to be displayed.
-      if (user_access('administer users') && $category == 'account') {
-        return alfresco_user_form($edit, $account, $category);
-      }
-      break;
+      return alfresco_user_form($edit, $account, $category);
 
     case 'validate':
       // The user account edit form is about to be displayed.
@@ -1275,7 +1352,7 @@ function alfresco_user($op, &$edit, &$account, $category = NULL) {
  * Implementation of hook_search().
  */
 function alfresco_search($op = 'search', $keys = NULL) {
-  if (!user_access('search alfresco content')) {
+  if (!user_access('search alfresco repository')) {
     return;
   }
 
@@ -1293,30 +1370,33 @@ function alfresco_search($op = 'search', $keys = NULL) {
 /**
  * Utility for handling Alfresco SOAP faults.
  */
-function alfresco_error_handler($type, $exception = NULL, $message = NULL) {
+function alfresco_error_handler($type, $exception = NULL, $skip_message = FALSE) {
 
   if ($exception instanceof SoapFault) {
     // Obtenemos el mensaje de error de Alfresco
     if (isset($exception->detail) && is_object($exception->detail)) {
-      unset($exception->detail->stackTrace);
-      $error = print_r($exception->detail, TRUE);
+      $detail = (array) $exception->detail;
+      unset($detail['stackTrace']);
+      unset($detail['trace']);
+      $detail_msg = print_r($detail, TRUE);
+      $error_class = array_shift(array_values($detail));
+      $error_msg = array_pop(explode(':', array_shift(explode("\n", $error_class->message))));
     }
     else {
-      $error = print_r($exception, TRUE);
+      $detail_msg = print_r($exception, TRUE);
+      $error_msg = $exception->getMessage();
     }
-
-    watchdog($type, 'Unable to connect to Alfresco repository via SOAP. Detail: <pre>!detail</pre>', array('!detail' => $error), WATCHDOG_ERROR);
-    drupal_set_message(t('Unable to connect to Alfresco repository via SOAP. Please contact the server administrator for assistance.'), 'error', FALSE);
-
-    // Limpiamos el ticket actual para forzar la autenticación en la siguiente petición
-    //unset($_SESSION['alfresco_ticket']);
-    //unset($_SESSION['alfresco_last_access']);
   }
   else {
-    $message = !isset($message) ? $exception->getMessage() : $message;
-    watchdog($type, $message, array(), WATCHDOG_ERROR);
-    drupal_set_message($message, 'error');
+    $error_msg = $detail_msg = $exception->getMessage();
   }
+
+  watchdog($type, 'An unexpected error occurred while connecting to the Alfresco repository via SOAP. Detail: <pre>!detail</pre>', array('!detail' => $detail_msg), WATCHDOG_ERROR);
+  if (!$skip_message) {
+    drupal_set_message(t('An unexpected error occurred while connecting to the Alfresco repository. Please contact the server administrator for assistance.'), 'error', FALSE);
+  }
+
+  return $error_msg;
 }
 
 

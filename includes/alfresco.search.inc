@@ -27,7 +27,9 @@ function alfresco_search_search($keys) {
     return $find;
   }
 
-  $repository_access = alfresco_repository_access();
+  // @todo: Configurar si mostrar contenido con/sin acceso
+  //$repository_access = alfresco_repository_access();
+  $repository_access = FALSE;
 
   try {
     alfresco_include('soap');
@@ -41,10 +43,8 @@ function alfresco_search_search($keys) {
     $results = $session->query($store, $query);
 
     foreach ($results as $alf_node) {
-
       $reference = $alf_node->__toString();
 
-      // @todo: Configurar si mostrar contenido con/sin acceso
       $nid = alfresco_exists_node($reference);
       if (!$nid && !$repository_access) {
         continue;
@@ -57,10 +57,6 @@ function alfresco_search_search($keys) {
         }
       }
 
-      if ($alf_node->cm_content instanceof AlfContentData) {
-        $content = $alf_node->cm_content;
-      }
-
       $name = $alf_node->cm_name;
       $title = $alf_node->cm_title;
       $description = $alf_node->cm_description;
@@ -68,13 +64,16 @@ function alfresco_search_search($keys) {
       $type = $alf_node->type;
       //$path = $alf_node->getFolderPath() . '/'. $name;
 
-      $store = $alf_node->getStore();
-
       if ($repository_access && !$node) {
-        $link = "alfresco/download/$store->scheme/$store->address/$alf_node->id/$alf_node->cm_name";
+        $store_node = $alf_node->getStore();
+        $link = "alfresco/download/$store_node->scheme/$store_node->address/$alf_node->id/$alf_node->cm_name";
       }
       else {
         $link = alfresco_url_download($node);
+      }
+
+      if ($alf_node->cm_content instanceof AlfContentData) {
+        $content = $alf_node->cm_content;
       }
 
       $find[] = array(

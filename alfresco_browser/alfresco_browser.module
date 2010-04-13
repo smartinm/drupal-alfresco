@@ -122,7 +122,7 @@ function alfresco_browser_menu() {
 }
 
 function alfresco_browser_access() {
-  return user_access('access alfresco browser') && alfresco_repository_access();
+  return alfresco_repository_access() && user_access('access alfresco browser');
 }
 
 /**

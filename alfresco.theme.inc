@@ -1,5 +1,5 @@
 <?php
-// $Id: alfresco.theme.inc 1145 2010-02-03 11:47:11Z semm $
+// $Id$
 
 /**
  * @file
@@ -33,7 +33,7 @@ function theme_alfresco_display($node) {
     'cm_name'        => t('Name'),
     'cm_title'       => t('Title'),
     'cm_description' => t('Description'),
-    'cm_content'     => t('Fichero'),
+    'cm_content'     => t('File'),
     'cm_author'      => t('Author'),
     'cm_creator'     => t('Creator'),
     'cm_created'     => t('Created date'),

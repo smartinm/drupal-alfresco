@@ -33,33 +33,26 @@ function alfresco_admin_settings() {
 
   // REPOSITORY INFO
 
-  $form['repository'] = array(
+  $form['general'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Repository'),
+    '#title' => t('Global settings'),
+    '#description' => t('Alfresco global settings below will be used as site-wide defaults.'),
   );
 
-  $form['repository']['alfresco_repository_url'] = array(
+  $form['general']['alfresco_repository_url'] = array(
     '#default_value' => variable_get('alfresco_repository_url', 'http://localhost:8080/alfresco/api'),
     '#description'   => t('The web service end point URL for the Alfresco repository. Example: http://localhost:8080/alfresco/api'),
     '#title'         => t('URL repository'),
     '#type'          => 'textfield',
     '#required'      => TRUE,
   );
-
-  $form['repository']['alfresco_credentials_username'] = array(
+  $form['general']['alfresco_credentials_username'] = array(
     '#default_value' => variable_get('alfresco_credentials_username', 'guest'),
     '#title'         => t('Username'),
     '#description'   => '',
     '#type'          => 'textfield',
   );
-  /*
-  $form['repository']['alfresco_credentials_password'] = array(
-    '#type'          => 'password_confirm',
-    '#description'   => t('To change the current password, enter the new password in both fields. Default password is <em>guest</em>'),
-    '#size'          => 25,
-  );
-  */
-  $form['repository']['alfresco_credentials_password'] = array(
+  $form['general']['alfresco_credentials_password'] = array(
     '#type'          => 'password',
     '#title'         => t('Password'),
     '#description'   => t('To change the current password, enter the new password in the field. Default password is <em>guest</em>'),
@@ -68,27 +61,22 @@ function alfresco_admin_settings() {
 
   // AUTHENTICATION METHOD
 
-  $auth_help = t('Select the authentication method to connect Alfresco repository.');
-  $auth_more = t('Anonymous users always uses account repository.');
-
   $form['authentication'] = array(
     '#type' => 'fieldset',
     '#title' => t('Authentication'),
-    //'#collapsible' => TRUE,
-    //'#collapsed' => FALSE,
-    '#description' => $auth_help,
+    //'#description' => t('NOTE: These settings have no effect on user with uid 1. The admin account always uses global account.'),
   );
 
   $form['authentication']['alfresco_authentication_method'] = array(
     '#type' => 'radios',
-    '#title' => t('Choose authentication mode'),
-    '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_SINGLE),
+    '#title' => t('Authentication mode'),
+    '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_GLOBAL),
     '#required' => TRUE,
     '#options' => array(
-      ALFRESCO_AUTH_SINGLE => t('Single. Use always the above username and password to connect to repository.'),
-      ALFRESCO_AUTH_USER   => t('Per user. Use users accounts and passwords to connect to repository.'),
+      ALFRESCO_AUTH_GLOBAL => t('Global: <em>Always use the above username and password</em>'),
+      ALFRESCO_AUTH_SSO => t('Single sign-on: <em>Each user to use their own Drupal account</em>'),
     ),
-    '#description' => $auth_more,
+    '#description' => t('Choose method used to authenticate against Alfresco repository. On Single sign-on, users without Alfresco account (anonymous users included) always use the above global account.'),
   );
 
   // STATISTICS
@@ -101,7 +89,7 @@ function alfresco_admin_settings() {
 
   $form['statistics']['alfresco_statistics_count_downloads'] = array(
     '#type' => 'radios',
-    '#title' => t('Count content downloads'),
+    '#title' => t('Count downloads'),
     '#default_value' => variable_get('alfresco_statistics_count_downloads', 0),
     '#options' => array(
       '1' => t('Enabled'),
@@ -316,7 +304,7 @@ function alfresco_admin_model() {
   $form['model']['content_types'] = array(
     '#type' => 'fieldset',
     '#title' => t('Content Types'),
-    '#description' => t(''),
+    //'#description' => t(''),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#value' => theme('table', $headers, $rows),
@@ -334,7 +322,7 @@ function alfresco_admin_model() {
  */
 function alfresco_admin_advanced() {
 
-  $periods = drupal_map_assoc(array(300, 900, 1800, 3600, 7200, 10800, 21600, 32400, 43200, 64800, 86400), 'format_interval');
+  $periods = drupal_map_assoc(array(300, 600, 900, 1200, 1500, 1800, 3600, 7200, 10800, 21600, 32400), 'format_interval');
 
   $form['advanced'] = array(
     '#type' => 'fieldset',

@@ -26,6 +26,7 @@ Nuevas funcionalidades y mejoras:
 - Alfresco statistics
 
 - Añadida integración con Admin Theme
+- Añadida integración con Vertical Tabs
 
 Cambios para desarrolladores:
 - Actualizada la biblioteca de Alfresco PHP con Alfredo Common (enlace)

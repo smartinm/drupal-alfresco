@@ -16,8 +16,8 @@
   <?php print $styles; ?>
   <?php print $scripts; ?>
   <style type="text/css">
-  #loading-mask {position:absolute;left:0;top:0;width:100%;height:100%;z-index:20000;background-color:white}
-  #loading {position:absolute;left:45%;top:40%;padding:2px;z-index:20001;height:auto}
+  #loading-mask {position:absolute;left:0;top:0;width:100%;height:100%;z-index:30000;background-color:white}
+  #loading {position:absolute;left:45%;top:40%;padding:2px;z-index:30001;height:auto}
   #loading a {color:#258}
   #loading .loading-indicator {background:white;color:#444;font:bold 13px tahoma,arial,helvetica;padding:10px;margin:0;height:auto}
   #loading .loading-indicator img {float:left;margin-right:8px;vertical-align:top}

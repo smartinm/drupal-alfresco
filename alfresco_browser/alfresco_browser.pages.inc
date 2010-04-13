@@ -1,5 +1,5 @@
 <?php
-// $Id: alfresco_browser.pages.inc 1143 2010-02-02 10:39:51Z semm $
+// $Id$
 
 /**
  * @file
@@ -35,8 +35,8 @@ function alfresco_browser_page() {
     'serviceUploadUrl'   => url('alfresco/browser/service/upload'),
     'serviceDeleteUrl'   => url('alfresco/browser/service/delete'),
     'queryLimit'         => variable_get('alfresco_browser_query_limit', 20),
-    'accessAdd'          => user_access('add alfresco content'),
-    'accessDelete'       => user_access('add alfresco content'),
+    'accessAdd'          => user_access('upload alfresco repository'),
+    'accessDelete'       => user_access('upload alfresco repository'),
   ));
   drupal_add_js($settings, 'setting');
 
@@ -88,7 +88,7 @@ function alfresco_browser_service_spaces() {
   $node_id = isset($_GET['node']) ? trim($_GET['node']) : '';
   $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
 
-  if (empty($node_id)) {
+  if (!alfresco_valid_uuid($node_id)) {
     drupal_json(array());
     exit();
   }
@@ -154,7 +154,7 @@ function alfresco_browser_service_items() {
   $limit = isset($_GET['limit']) ? intval($_GET['limit']) : variable_get('alfresco_browser_query_limit', 20);
   $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
 
-  if (empty($query) && empty($node)) {
+  if (empty($query) && !alfresco_valid_uuid($node)) {
     drupal_json(array('total' => 0, 'rows' => array()));
     exit();
   }

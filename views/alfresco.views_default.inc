@@ -9,8 +9,16 @@
 /**
  * Implementation of hook_views_default_views().
  */
-function alfresco_views_default_views2() {
+function alfresco_views_default_views() {
+  return array(
+    'alfresco_items' => _alfresco_views_items_list(),
+  );
+}
 
+/**
+ *
+ */
+function _alfresco_views_items_list() {
   $view = new view;
   $view->name = 'alfresco_items';
   $view->description = 'Alfresco items';
@@ -143,66 +151,6 @@ function alfresco_views_default_views2() {
       'field' => 'created',
       'relationship' => 'none',
     ),
-    'view_node' => array(
-      'label' => 'Operations',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'strip_tags' => 0,
-        'html' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'text' => '',
-      'exclude' => 0,
-      'id' => 'view_node',
-      'table' => 'node',
-      'field' => 'view_node',
-      'relationship' => 'none',
-    ),
-    'edit_node' => array(
-      'label' => 'Edit link',
-      'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
-        'make_link' => 0,
-        'path' => '',
-        'link_class' => '',
-        'alt' => '',
-        'prefix' => '',
-        'suffix' => '',
-        'target' => '',
-        'help' => '',
-        'trim' => 0,
-        'max_length' => '',
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'strip_tags' => 0,
-        'html' => 0,
-      ),
-      'empty' => '',
-      'hide_empty' => 0,
-      'empty_zero' => 0,
-      'text' => '',
-      'exclude' => 0,
-      'id' => 'edit_node',
-      'table' => 'node',
-      'field' => 'edit_node',
-      'relationship' => 'none',
-    ),
   ));
   $handler->override_option('filters', array(
     'type' => array(
@@ -219,6 +167,20 @@ function alfresco_views_default_views2() {
       'id' => 'type',
       'table' => 'node',
       'field' => 'type',
+      'relationship' => 'none',
+    ),
+    'status_extra' => array(
+      'operator' => '=',
+      'value' => '',
+      'group' => '0',
+      'exposed' => FALSE,
+      'expose' => array(
+        'operator' => FALSE,
+        'label' => '',
+      ),
+      'id' => 'status_extra',
+      'table' => 'node',
+      'field' => 'status_extra',
       'relationship' => 'none',
     ),
   ));
@@ -241,8 +203,6 @@ function alfresco_views_default_views2() {
       'size' => 'size',
       'mimetype' => 'mimetype',
       'created' => 'created',
-      'view_node' => 'view_node',
-      'edit_node' => 'view_node',
     ),
     'info' => array(
       'cm_name' => array(
@@ -261,45 +221,14 @@ function alfresco_views_default_views2() {
         'sortable' => 1,
         'separator' => '',
       ),
-      'view_node' => array(
-        'separator' => '&nbsp;',
-      ),
-      'edit_node' => array(
-        'separator' => '',
-      ),
     ),
     'default' => 'created',
   ));
-  $handler = $view->new_display('page', 'Page', 'page');
-  $handler->override_option('path', 'alfresco/items');
-  $handler->override_option('menu', array(
-    'type' => 'none',
-    'title' => '',
-    'description' => '',
-    'weight' => 0,
-    'name' => 'navigation',
-  ));
-  $handler->override_option('tab_options', array(
-    'type' => 'none',
-    'title' => '',
-    'description' => '',
-    'weight' => 0,
-  ));
-
-  $views[$view->name] = $view;
-  return $views;
-}
-
-/**
- *
- */
-function _alfresco_views_items_list() {
-
+  return $view;
 }
 
 /**
  * View most popular download alfresco items.
  */
-function _alfresco_views_top_downloads() {
-
+function _alfresco_views_items_top() {
 }

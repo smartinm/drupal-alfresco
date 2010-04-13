@@ -134,7 +134,7 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
   if (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] .'_node_form' == $form_id) {
     $node = $form['#node'];
 
-    if ($node->type != 'alfresco_item' && variable_get('alfresco_attach_'. $node->type, TRUE)) {
+    if ($node->type != 'alfresco_item' && variable_get('alfresco_attach_'. $node->type, TRUE) && user_access('create alfresco content')) {
       // Attachments fieldset
       $form['alfresco_attachments'] = array(
         '#type'        => 'fieldset',
@@ -147,6 +147,11 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
         '#prefix'      => '<div class="alfresco-attachments">',
         '#suffix'      => '</div>',
         '#weight'      => 20,
+        '#attached'    => array(
+          'js' => array(
+            'vertical-tabs' => drupal_get_path('module', 'alfresco_attach') .'/alfresco_attach.js',
+          ),
+        ),
       );
 
       // Wrapper for fieldset contents (used by ahah.js).
@@ -173,36 +178,32 @@ function alfresco_attach_form_alter(&$form, $form_state, $form_id) {
       }
       */
 
-      // Mostramos la opción de crear nuevo adjunto
-      if (user_access('create alfresco content')) {
+      /*
+      $form['alfresco_attachments']['wrapper']['new'][] = array(
+        '#type'       => 'item',
+        '#value'      => t('-or-'),
+        '#attributes' => array('class' => 'either-choice')
+      );
+      */
 
-        /*
-        $form['alfresco_attachments']['wrapper']['new'][] = array(
-          '#type'       => 'item',
-          '#value'      => t('-or-'),
-          '#attributes' => array('class' => 'either-choice')
+      if (!$access = alfresco_repository_access()) {
+        // Informamos al usuario que no tiene acceso al repositorio de Alfresco
+        $form['alfresco_attachments']['wrapper']['info'] = array(
+          '#type' => 'markup',
+          '#value' => '<div class="messages status">'. t('La opción de navegar por el repositorio de Alfresco está desactivada. Por favor contacte con el administrador del sitio para más información.') .'</div>',
         );
-        */
+      }
 
-        if (!$access = alfresco_repository_access()) {
-          // Informamos al usuario que no tiene acceso al repositorio de Alfresco
-          $form['alfresco_attachments']['wrapper']['info'] = array(
-            '#type' => 'markup',
-            '#value' => '<div class="messages status">'. t('La opción de navegar por el repositorio de Alfresco está desactivada. Por favor contacte con el administrador del sitio para más información.') .'</div>',
-          );
-        }
+      $form['alfresco_attachments']['wrapper']['new']['reference'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Attach new Alfresco item'),
+        '#description' => t('Specify the fully-qualified Alfresco node reference, i.e. of the form "workspace://SpacesStore/uuid"'),
+        '#default_value' => !empty($node->reference) ? $node->reference : NULL,
+      );
 
-        $form['alfresco_attachments']['wrapper']['new']['reference'] = array(
-          '#type' => 'textfield',
-          '#title' => t('Attach new Alfresco item'),
-          '#description' => t('Specify the fully-qualified Alfresco node reference, i.e. of the form "workspace://SpacesStore/uuid"'),
-          '#default_value' => !empty($node->reference) ? $node->reference : NULL,
-        );
-
-        if ($access && module_exists('alfresco_browser')) {
-          $form['alfresco_attachments']['wrapper']['new']['reference']['#type'] = 'alfresco_browser';
-          $form['alfresco_attachments']['wrapper']['new']['reference']['#description'] = t('Select an item from Alfresco repository.');
-        }
+      if ($access && module_exists('alfresco_browser')) {
+        $form['alfresco_attachments']['wrapper']['new']['reference']['#type'] = 'alfresco_browser';
+        $form['alfresco_attachments']['wrapper']['new']['reference']['#description'] = t('Select an item from Alfresco repository.');
       }
 
       // Custom validate and submit handler so we can handle alfresco item creation on-the-fly
@@ -388,7 +389,7 @@ function theme_alfresco_attach_attachments($files) {
     $file = (object)$file;
     $alf_node = $file->item;
 
-    if ($file->list && empty($file->remove) && _alfresco_download_access($alf_node)) {
+    if ($file->list && empty($file->remove) && alfresco_download_access($alf_node)) {
       $href = alfresco_url_download($alf_node);
       $text = !empty($file->description) ? $file->description : $alf_node->title;
       $rows[] = array(l($text, $href), format_size($alf_node->cm_content['size']));
