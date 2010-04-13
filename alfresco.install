@@ -325,15 +325,8 @@ function _alfresco_verify_php_library(&$requirements) {
   if ($has_dom && $has_soap) {
     // Verify if the Alfresco PHP library directory is available.
     $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
-    if (is_dir($lib_path)) {
-      $info = $t('Found (%path).', array('%path' => $lib_path));
-      set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
-      @include_once "Alfresco/Service/Repository.php";
-    }
-    else {
-      $info = $t('Found (system\'s include_path).', array('%path' => $lib_path));
-      @include_once "Alfresco/Service/Repository.php";
-    }
+    set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
+    @include_once "Alfresco/Service/Repository.php";
 
     $has_lib = class_exists('AlfRepository');
     if (!$has_lib) {
@@ -347,7 +340,7 @@ function _alfresco_verify_php_library(&$requirements) {
     else {
       $requirements['alfresco_php_library'] = array(
         'title' => $t('Alfresco PHP library'),
-        'value' => $info,
+        'value' => $t('Found (%path).', array('%path' => $lib_path)),
         'severity' => REQUIREMENT_OK,
       );
     }
