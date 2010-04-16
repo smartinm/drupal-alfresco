@@ -214,12 +214,6 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
 
   drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/alfresco_browser.js');
 
-  $element['alfresco_browser_reference'] = array(
-    '#type' => 'hidden',
-    '#name' => $element['#name'],
-    '#value' => $element['#value']
-  );
-
   if (isset($complete_form['#post']['alfresco_browser_name'])){
     $cm_name = $complete_form['#post']['alfresco_browser_name'];
   }
@@ -230,7 +224,15 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
     $cm_name = '';
   }
 
+  $element['alfresco_browser_reference'] = array(
+    '#id' => 'edit-alfresco-browser-reference',
+    '#type' => 'hidden',
+    '#name' => empty($element['#field_name']) ? $element['#name'] : NULL,
+    '#value' => $element['#value'],
+  );
+
   $element['alfresco_browser_name'] = array(
+    '#id' => 'edit-alfresco-browser-name',
     '#type' => 'textfield',
     '#value' => $cm_name,
     '#attributes' => array('readonly' => TRUE),

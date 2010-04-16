@@ -1,6 +1,6 @@
 ; $Id$
-name = "Alfresco import"
-description = "Allows importing multiple alfresco nodes from a space of Alfresco."
-package = "Alfresco"
-dependencies[] = "alfresco"
-core = "6.x"
+name = Alfresco import
+description = Allows batches of Alfresco items to be imported from a space on the Alfresco repository. 
+package = Alfresco
+dependencies[] = alfresco
+core = 6.x

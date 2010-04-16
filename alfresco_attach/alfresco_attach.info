@@ -1,6 +1,6 @@
 ; $Id$
-name = "Alfresco attach"
-description = "Allows users to create and attach alfresco items to content."
-package = "Alfresco"
-dependencies[] = "alfresco"
-core = "6.x"
+name = Alfresco attach
+description = Allows easy attaching of Alfresco nodes to other content types. 
+package = Alfresco
+dependencies[] = alfresco
+core = 6.x

@@ -346,7 +346,7 @@ function alfresco_admin_advanced() {
     '#type' => 'checkbox',
     '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
     '#description' => $tip . $tipo_more,
-    '#default_value' => variable_get('alfresco_local_dictionary_service_wsdl', TRUE),
+    '#default_value' => variable_get('alfresco_workaround_dictionary_service_wsdl', TRUE),
   );
 
   // DOWNLOAD METHOD

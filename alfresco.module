@@ -189,7 +189,7 @@ function alfresco_menu() {
     'title' => 'Details',
     'page callback' => 'alfresco_page_details',
     'page arguments' => array(1),
-    'access callback' => '_alfresco_details_tab_access',
+    'access callback' => 'alfresco_details_tab_access',
     'access arguments' => array(1),
     'weight' => 2,
     'type' => MENU_LOCAL_TASK,
@@ -258,7 +258,7 @@ function alfresco_menu() {
   return $items;
 }
 
-function _alfresco_details_tab_access($node) {
+function alfresco_details_tab_access($node) {
   return ($node->type == 'alfresco_item') && node_access('view', $node) && user_access('administer alfresco');
 }
 
@@ -1420,9 +1420,7 @@ function alfresco_include_lib($file, $path = 'Alfresco/Service') {
   if (empty($used)) {
     // Add the Alfresco PHP library directory to include path
     $lib_path = drupal_get_path('module', 'alfresco') .'/lib';
-    if (is_dir($lib_path)) {
-      set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
-    }
+    set_include_path(get_include_path() . PATH_SEPARATOR . $lib_path);
   }
 
   $filepath = $path .'/'. $file;

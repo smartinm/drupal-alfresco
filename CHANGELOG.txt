@@ -3,43 +3,36 @@
 Alfresco 6.x-1.1-dev, 2010-01-xx
 ============================
 
-Nuevas funcionalidades y mejoras:
+Nuevas funcionalidades:
 
-- Implementada la subida de documentos al repositorio de Alfresco desde Drupal
-
-- Nuevo menú Alfresco, desde donde se puede acceder:
-  * Formulario de adición de contenido al repositorio de Alfresco
+- Subida de documentos al repositorio de Alfresco desde Drupal
+- Sistema de autenticación mediante credenciales de usuarios de Drupal
+- Búsqueda en el repositorio desde Drupal
+- Estadísticas de descargas de elementos de Alfresco
+- Actualizada la biblioteca de Alfresco PHP API.
+- Menú Alfresco:
+  * Formulario de subida de contenidos al repositorio Alfresco
   * Navegador por el repositorio de Alfresco
-  * Listado de elementos de Alfresco de Drupal
+  * Listado de elementos de Alfresco creados en Drupal
+- Módulo Alfresco Browser:
+  * Eliminada la biblioteca Ext JS que se distribuía con el módulo, ahora es
+    una depedencia externa que debe ser instalada independientemente
+  * Espacio de inicio configurable
+  * Añadidos botones para subir y borrar desde el navegador
+  * Añadida máscara de carga
+- Integraciones con otros módulos:  
+  * Mejorada la integración con Views
+  * Integración con Admin Menu
+  * Integración con Admin Theme
+  * Integración con Vertical Tabs
 
-- Mejoras del módulo Alfresco Browser:
-  * Añadido máscara de carga
-  * Personalización del Espacio de inicio
-  * Mejorada la detección de tipos de contenidos Folders
-  * Implementada la subida de documentos
-  
-- Mejorada la integración con Views
-  * Añadida una vista por defecto
+Mejoras y correcciones:
 
-- Implementación inicial de búsqueda en el repositorio
-
-- Alfresco statistics
-
-- Añadida integración con Admin Theme
-- Añadida integración con Vertical Tabs
-
-Cambios para desarrolladores:
-- Actualizada la biblioteca de Alfresco PHP con Alfredo Common (enlace)
-- Eliminada la biblioteca Ext JS que se distribuía con el módulo, ahora es una depedencia.
-
-Otros cambios:
+- Mejorada la detección de tipos de contenidos de Folders de Alfresco
+- Añadida solución para el fallo del NameSpace del dictionary-service.wsdl
+- Arreglado un conjunto
 - Actualizada la traducción
-- Añadida una solución para el fallo del NameSpace del dictionary-service.wsdl
-- Fixed a variety of other bugs.
-
-Pendiente:
-- Implementación de filtros para añadir contenido de Alfresco
-- Mejoras de la sincronización/creación de usuarios Drupal-Alfresco
+- Arreglados pequeños fallos
 
 
 Alfresco 6.x-1.0, 2009-03-23

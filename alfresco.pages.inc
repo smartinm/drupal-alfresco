@@ -179,6 +179,8 @@ function alfresco_autocomplete($string = '') {
 function alfresco_upload_form($form_state) {
   global $user;
 
+  drupal_set_title(t('Add content in Alfresco repository'));
+
   // Si un fichero ha sido subido, vamos al formulario de propiedades.
   if (isset($form_state['storage']['file'])) {
     return alfresco_upload_properties_form($form_state);
@@ -232,7 +234,7 @@ function alfresco_upload_properties_form($form_state) {
     '#required' => TRUE,
     //'#autocomplete_path' => 'alfresco/autocomplete',
     //'#description' => t('Space.'),
-    '#default_value' => isset($form_state['values']['space']) ? $form_state['values']['space'] : '',
+    '#default_value' => $form_state['values']['space'],
   );
 
   $form['upload']['file'] = array(
@@ -282,6 +284,7 @@ function alfresco_upload_properties_form($form_state) {
     '#title' => t('Encoding'),
     '#default_value' => 'UTF-8',
     '#maxlength' => 255,
+    '#size' => 40,
   );
 
   $form['properties']['mimetype'] = array(
@@ -289,6 +292,14 @@ function alfresco_upload_properties_form($form_state) {
     '#title' => t('Content Type'),
     '#default_value' => $file['filemime'],
     '#maxlength' => 255,
+    '#size' => 40,
+  );
+
+  $type_names = node_get_types('names');
+  $form['properties']['node'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Create the %item node on Drupal.', array('%item' => $type_names['alfresco_item'])),
+    '#default_value' => FALSE,
   );
 
   $form['content'] = array(
@@ -296,7 +307,7 @@ function alfresco_upload_properties_form($form_state) {
     '#title' => t('Content properties'),
     '#description' => t('Information about the content to be uploaded.'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    //'#collapsed' => TRUE,
   );
 
   $form['content']['title'] = array(
@@ -322,7 +333,7 @@ function alfresco_upload_properties_form($form_state) {
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('OK'),
+    '#value' => t('Add content'),
   );
 
   $form['buttons']['cancel'] = array(
@@ -388,6 +399,7 @@ function alfresco_upload_form_add($form, &$form_state) {
   $type = $form_state['values']['type'];
   $mimetype = $form_state['values']['mimetype'];
   $encoding = $form_state['values']['encoding'];
+  $create_node = $form_state['values']['node'];
 
   $properties = array(
     'cm_title' => $form_state['values']['title'],
@@ -400,13 +412,21 @@ function alfresco_upload_form_add($form, &$form_state) {
   if (!isset($result->error)) {
     $name = $result->node->cm_name;
     $space = $result->space;
+    if ($create_node) {
+      $reference = $result->node->__toString();
+      if ($node = alfresco_create_node($reference, $name)) {
+        $name = l($name, 'node/'. $node->nid);
+      }
+    }
     drupal_set_message(t("'!name' was created under '!space' successfully.", array('!name' => $name, '!space' => $space->cm_name)));
-    unset($form_state['storage']);
 
     if (module_exists('alfresco_browser')) {
+      // @todo Refactorizar
       global $user;
       cache_clear_all("user={$user->uid};node={$space->id}", 'cache_alfresco_browser');
     }
+
+    unset($form_state['storage']);
   }
   else {
     form_set_error('name', $result->error);

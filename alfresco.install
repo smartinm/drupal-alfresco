@@ -79,10 +79,11 @@ function alfresco_uninstall() {
     'alfresco_file_downloads',
     'alfresco_folder_types',
     'alfresco_http_request_fails',
-    'alfresco_local_dictionary_service_wsdl',
     'alfresco_repository_url',
     'alfresco_statistics_count_downloads',
+    'alfresco_statistics_day_timestamp',
     'alfresco_ticket_timeout',
+    'alfresco_workaround_dictionary_service_wsdl',
   );
   foreach ($variables as $variable) {
     variable_del($variable);
