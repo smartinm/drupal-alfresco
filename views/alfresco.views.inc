@@ -93,7 +93,7 @@ function alfresco_views_data() {
     'title' => t('Title'),
     'help' => t('The title of the item in the Alfresco repository.'),
     'field' => array(
-      'handler' => 'views_handler_field',
+      'handler' => 'alfresco_handler_field_url_download',
       'click sortable' => TRUE,
     ),
     'sort' => array(

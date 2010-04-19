@@ -707,16 +707,7 @@ function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
  */
 function alfresco_link($type, $node = NULL, $teaser = FALSE) {
   $links = array();
-
   if ($type == 'node' && $node->type == 'alfresco_item' && $node->cm_content) {
-    if (user_access('download alfresco content')) {
-      $links['alfresco_download'] = array(
-        'title' => t('Download content'),
-        'href' => alfresco_url_download($node),
-        'attributes' => array('title' => t('Download, or open in browser window, the content of this item.')),
-      );
-    }
-
     if (user_access('view alfresco download counter')) {
       $totalcount = db_result(db_query('SELECT totalcount FROM {alfresco_counter} WHERE nid = %d', $node->nid));
       if ($totalcount) {
@@ -725,8 +716,14 @@ function alfresco_link($type, $node = NULL, $teaser = FALSE) {
         );
       }
     }
+    if (user_access('download alfresco content')) {
+      $links['alfresco_download'] = array(
+        'title' => t('Download content'),
+        'href' => alfresco_url_download($node),
+        'attributes' => array('title' => t('Download, or open in browser window, the content of this item.')),
+      );
+    }
   }
-
   return $links;
 }
 

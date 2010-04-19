@@ -35,7 +35,7 @@ class alfresco_handler_field_url_download extends views_handler_field {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $form['use_title'] = array(
-      '#title' => t('Use title node as filename'),
+      '#title' => t('Use node title as filename'),
       '#type' => 'checkbox',
       '#default_value' => !empty($this->options['use_title']),
     );
