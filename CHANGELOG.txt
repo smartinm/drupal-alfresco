@@ -7,32 +7,37 @@ Nuevas funcionalidades:
 
 - Subida de documentos al repositorio de Alfresco desde Drupal
 - Sistema de autenticación mediante credenciales de usuarios de Drupal
-- Búsqueda en el repositorio desde Drupal
+- Búsqueda en el repositorio de Alfresco desde Drupal
 - Estadísticas de descargas de elementos de Alfresco
-- Actualizada la biblioteca de Alfresco PHP API.
+- Actualizada la biblioteca de Alfresco PHP API (Alfredo-PHPAPI-R2)
 - Menú Alfresco:
   * Formulario de subida de contenidos al repositorio Alfresco
-  * Navegador por el repositorio de Alfresco
   * Listado de elementos de Alfresco creados en Drupal
+  * Navegador por el repositorio de Alfresco (Alfresco Browser)
+  * Importación de contenidos desde un espacio (Alfresco Importer)
 - Módulo Alfresco Browser:
   * Eliminada la biblioteca Ext JS que se distribuía con el módulo, ahora es
     una depedencia externa que debe ser instalada independientemente
-  * Espacio de inicio configurable
+  * Operaciones de subida y borrado de ficheros
+  * Path al espacio de inicio configurable
+  * Número de elementos por página configurable
+  * Caché (activación/desactivación) configurable
   * Añadidos botones para subir y borrar desde el navegador
   * Añadida máscara de carga
-- Integraciones con otros módulos:  
-  * Mejorada la integración con Views
+  * Añadida internacionalización
+- Integraciones con módulos de terceros:  
   * Integración con Admin Menu
   * Integración con Admin Theme
   * Integración con Vertical Tabs
 
 Mejoras y correcciones:
 
-- Mejorada la detección de tipos de contenidos de Folders de Alfresco
-- Añadida solución para el fallo del NameSpace del dictionary-service.wsdl
-- Arreglado un conjunto
-- Actualizada la traducción
-- Arreglados pequeños fallos
+- Solución para el fallo del NameSpace del dictionary-service.wsdl
+- Mejorado el registro de errores de las conexiones SOAP
+- Mejorada la detección de tipos de contenidos de espacios de Alfresco
+- Mejorada la integración con Views
+- Actualizada las tradaducciones
+- Arreglados muchos pequeños fallos
 
 
 Alfresco 6.x-1.0, 2009-03-23

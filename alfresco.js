@@ -1,49 +1,24 @@
 // $Id$
 
-Drupal.behaviors.alfresco = function (context) {
-}
-
 Drupal.behaviors.alfrescoSettings = function (context) {
-  var initialValue = '/DrupalWTF/';
-  var submitButton = $('#edit-submit');
-  var passwordInput = $('#edit-alfresco-credentials-password');
-  if (!passwordInput.val()) {
-    passwordInput.val(initialValue);
+  var random = String((new Date()).getTime()).replace(/\D/gi,'');
+  var passwordElem = $('#edit-alfresco-credentials-password');
+  if (!passwordElem.val()) {
+    passwordElem.val(random);
   }
-  passwordInput.focus(function() {
-    if($.trim(passwordInput.val()) == initialValue){
-      passwordInput.val('');
+  passwordElem.focus(function() {
+    if($.trim(passwordElem.val()) == random) {
+      passwordElem.val('');
     }
   });
-  passwordInput.blur(function() {
-    if($.trim(passwordInput.val()) == '') {
-      passwordInput.val(initialValue);
+  passwordElem.blur(function() {
+    if($.trim(passwordElem.val()) == '') {
+      passwordElem.val(random);
     }
   });
-  submitButton.click(function() {
-    if ($.trim(passwordInput.val()) == initialValue) {
-      passwordInput.val('');
+  $('#edit-submit').click(function() {
+    if ($.trim(passwordElem.val()) == random) {
+      passwordElem.val('');
     }
   });
-}
-
-Drupal.behaviors.alfrescoAccountSettings = function (context) {
-
-  $('#edit-alfresco-account').click(function(){
-    if ($('#edit-alfresco-account').attr('checked')) {
-      $('#edit-alfresco-username').attr('disabled','disabled');
-      $('#edit-alfresco-password-pass1').attr('disabled','disabled');
-      $('#edit-alfresco-password-pass2').attr('disabled','disabled');
-    } else {
-      $('#edit-alfresco-username').removeAttr('disabled');
-      $('#edit-alfresco-password-pass1').removeAttr('disabled');
-      $('#edit-alfresco-password-pass2').removeAttr('disabled');
-    }
-  });
-  
-  if ($('#edit-alfresco-account').attr('checked')) {
-    $('#edit-alfresco-username').attr('disabled','disabled');
-    $('#edit-alfresco-password-pass1').attr('disabled','disabled');
-    $('#edit-alfresco-password-pass2').attr('disabled','disabled');
-  }; 
 }

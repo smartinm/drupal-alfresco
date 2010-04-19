@@ -82,19 +82,17 @@ function alfresco_perm() {
   return array(
     'administer alfresco',
     'download alfresco content',
-    'view alfresco download counter',
-
-    // Repository permissions
-    //'access alfresco repository',   // Acceso al repositorio de Alfresco
-    'upload alfresco repository',   // Subida al repositorio de Alfresco
-    'search alfresco repository',   // Búsqueda en el repositorio de Alfresco
-
-    // Content type permissions
+    // -- Repository permissions --
+    //'access alfresco repository',
+    'upload alfresco repository',
+    'search alfresco repository',
+    // -- Content type permissions --
     'create alfresco content',
     'delete own alfresco content',
     'delete any alfresco content',
     'edit own alfresco content',
     'edit any alfresco content',
+    'view alfresco download counter',
   );
 }
 
@@ -277,35 +275,26 @@ function alfresco_account_access($account) {
     return TRUE;
   }
 
-  // Si el usuario está bloqueado no puede acceder a la información de su cuenta
-  if (isset($account->alfresco['status']) && $account->alfresco['status'] == 0) {
-    return FALSE;
-  }
-
-  return ($user->uid == $account->uid /*&& user_access('access alfresco repository')*/);
+  return ($user->uid == $account->uid && alfresco_repository_access());
 }
 
 /**
  * Devuelve cierto si el acceso directo al repositorio de Alfresco está
  * permitido para el usuario.
  */
-function alfresco_repository_access($account = NULL) {
+function alfresco_repository_access() {
   global $user;
 
-  if (!isset($account)) {
-    $account = $user;
-  }
-
-  if ($account->uid == 1) {
+  if ($user->uid == 1) {
     return TRUE;
   }
 
-  if ($account->uid == 0) {
+  if ($user->uid == 0) {
     return FALSE;
   }
 
   // Acceso al repositorio desactivado en el perfil del usuario.
-  if (isset($account->alfresco['status']) && $account->alfresco['status'] == 0) {
+  if (isset($user->alfresco['status']) && $user->alfresco['status'] == 0) {
     return FALSE;
   }
 
@@ -763,22 +752,17 @@ function alfresco_admin_theme($op = 'info', $option = NULL) {
     case 'info':
       $options = array();
       $options['alfresco'] = array(
-        'title' => t('Alfresco add content'),
-        'description' => t('Use the administration theme when viewing the Alfresco add content page.'),
-      );
-      $options['alfresco_details'] = array(
-        'title' => t('Alfresco details'),
-        'description' => t('Use the administration theme when viewing the Alfresco details node tab.'),
+        'title' => t('Alfresco pages'),
+        'description' => t('Use the administration theme when viewing pages of the Alfresco module (upload, import...).'),
       );
       return $options;
 
     case 'check':
       switch ($option) {
         case 'alfresco':
-          return arg(0) == 'alfresco' /*&& arg(1) == 'add' */;
-        case 'alfresco_details':
-          return arg(0) == 'node' && arg(2) == 'details';
+          return arg(0) == 'alfresco';
       }
+      break;
   }
 }
 

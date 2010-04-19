@@ -34,8 +34,9 @@ function alfresco_import_form($form_state) {
     '#title'  => t('Alfresco Space'),
     '#weight' => -30,
   );
+  // @todo Recuperar el funcionamiento con alfresco_browser
   $form['space']['reference'] = array(
-    '#type'          => module_exists('alfresco_browser') ? 'alfresco_browser' : 'textfield',
+    '#type'          => /*module_exists('alfresco_browser') ? 'alfresco_browser' : */'textfield',
     '#title'         => t('Space Reference'),
     '#required'      => TRUE,
     '#description'   => t('Alfresco Space Reference. Example: workspace://SpacesStore/uuid'),
@@ -61,6 +62,7 @@ function alfresco_import_form($form_state) {
     }
 
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+    $session = $alf_node->getSession();
     $type = $session->getNamespaceMap()->getShortName($alf_node->type);
 
     if (!in_array($type, $folder_types)) {
