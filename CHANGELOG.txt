@@ -1,43 +1,50 @@
 // $Id$
 
-Alfresco 6.x-1.1-dev, 2010-01-xx
+Alfresco 6.x-1.1, 2010-04-26
 ============================
 
-Nuevas funcionalidades:
+You MUST run update.php for apply pending updates after uploading this release.
 
-- Subida de documentos al repositorio de Alfresco desde Drupal
-- Sistema de autenticación mediante credenciales de usuarios de Drupal
-- Búsqueda en el repositorio de Alfresco desde Drupal
-- Estadísticas de descargas de elementos de Alfresco
-- Actualizada la biblioteca de Alfresco PHP API (Alfredo-PHPAPI-R2)
-- Menú Alfresco:
-  * Formulario de subida de contenidos al repositorio Alfresco
-  * Listado de elementos de Alfresco creados en Drupal
-  * Navegador por el repositorio de Alfresco (Alfresco Browser)
-  * Importación de contenidos desde un espacio (Alfresco Importer)
-- Módulo Alfresco Browser:
-  * Eliminada la biblioteca Ext JS que se distribuía con el módulo, ahora es
-    una depedencia externa que debe ser instalada independientemente
-  * Operaciones de subida y borrado de ficheros
-  * Path al espacio de inicio configurable
-  * Número de elementos por página configurable
-  * Caché (activación/desactivación) configurable
-  * Añadidos botones para subir y borrar desde el navegador
-  * Añadida máscara de carga
-  * Añadida internacionalización
-- Integraciones con módulos de terceros:  
-  * Integración con Admin Menu
-  * Integración con Admin Theme
-  * Integración con Vertical Tabs
+Features:
 
-Mejoras y correcciones:
+- Added capability to upload documents to the Alfresco repository from Drupal.
+- Added support for multiple authentication methods:
+  * Global: use only one account to authenticate against Alfresco (default).
+  * Single sign-on: use the Drupal account of each user to authenticate against
+    Alfresco repository. It is necessary that each user has an account Alfresco.
+- Added the ability to search the Alfresco repository from Drupal search.module
+- Added some statistics (total downloads, most recent time downloaded).
+- Added alfresco menu item on navigation menu:
+  * alfresco/upload: form to add content (upload) to a space.
+  * alfresco/import: form to import nodes from a space to Drupal.
+  * alfresco/repository: the repository browser.
+  * alfresco/items: list of alfresco item nodes created on the site.
+- Added integration with other modules: Vertical Tabs, Admin Menu, Admin Theme
+  and optional Libraries module support. 
 
-- Solución para el fallo del NameSpace del dictionary-service.wsdl
-- Mejorado el registro de errores de las conexiones SOAP
-- Mejorada la detección de tipos de contenidos de espacios de Alfresco
-- Mejorada la integración con Views
-- Actualizada las tradaducciones
-- Arreglados muchos pequeños fallos
+Changes Alfresco Browser module:
+
+Now Alfresco browser module requires the Ext JS Library. Please download the
+Ext JS library, extract the archive and copy its contents to the following
+location: sites/all/libraries/ext. If you are using Libraries module, you can
+place Ext JS in the Libraries module's search path.
+
+- Added capability to upload and delete files from the browser.
+- Added configurable home space and page size (admin/settings/alfresco/browser).
+- Added internationalization.
+- Removed Ext JS library from module.
+
+Other changes:
+
+- Updated Alfresco PHP API (based on Alfredo-PHPAPI-R2)
+  http://www.sugarforge.org/frs/?group_id=860
+- Workaround for incorrect targetNamespace dictionary-service.wsdl
+  https://issues.alfresco.com/jira/browse/ALFCOM-1913
+- Support for more folder types (cm:folder, st:sites, etc.)
+- Better integration with Views
+- Enhanced error logging (watchdog messages)
+- Update translations and .pot to current code
+- Fixed some other minor issues, added comments, etc.
 
 
 Alfresco 6.x-1.0, 2009-03-23

@@ -337,15 +337,14 @@ function alfresco_admin_advanced() {
     '#description' => t('The period for which tickets are valid (the default is 30 mins).'),
   );
 
-  $tip = t('El WSDL del DictionaryService que incluye Alfresco tiene un error en la definicion del namespace que provoca un error al importarlo, se ha includo una versión corregida el WSDL con el módulo. Marque esta casilla para utilizar el fichero dictionary-service.wsdl.');
-  $tipo_more = t('For more info, visit <a href="@url">ALFCOM-1913 issue</a> on Alfresco JIRA.', array(
+  $tip = t('The namespace for imported types in dictionary-service.wsdl is wrong. For more info, visit <a href="@url">ALFCOM-1913 issue</a>.', array(
     '@url' => 'https://issues.alfresco.com/jira/browse/ALFCOM-1913')
   );
 
   $form['advanced']['alfresco_workaround_dictionary_service_wsdl'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
-    '#description' => $tip . $tipo_more,
+    '#description' => $tip,
     '#default_value' => variable_get('alfresco_workaround_dictionary_service_wsdl', TRUE),
   );
 
