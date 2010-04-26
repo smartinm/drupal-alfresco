@@ -16,9 +16,9 @@ Features:
 - Added some statistics (total downloads, most recent time downloaded).
 - Added alfresco menu item on navigation menu:
   * alfresco/upload: form to add content (upload) to a space.
-  * alfresco/import: form to import nodes from a space to Drupal.
-  * alfresco/repository: the repository browser.
-  * alfresco/items: list of alfresco item nodes created on the site.
+  * alfresco/import: form to import nodes from a space to Drupal (Alfresco Import)
+  * alfresco/repository: the repository browser (Alfresco Browser)
+  * alfresco/items: list of alfresco item nodes created on the site (with Views)
 - Added integration with other modules: Vertical Tabs, Admin Menu, Admin Theme
   and optional Libraries module support. 
 
@@ -32,7 +32,7 @@ place Ext JS in the Libraries module's search path.
 - Added capability to upload and delete files from the browser.
 - Added configurable home space and page size (admin/settings/alfresco/browser).
 - Added internationalization.
-- Removed Ext JS library from module.
+- Removed Ext JS library files from module.
 
 Other changes:
 
