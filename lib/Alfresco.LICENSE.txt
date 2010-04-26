@@ -1,8 +1,0 @@
-Copyright
-=========
-
-* The PHP files under Alfresco/ are Copyright (C) Alfresco, Inc.
-  See PHP source files for details.
-
-* The module definiton files and accompanying docs are (C)2009 abcona eK
-  and licensed to the public under the terms of the GPLv3 (see GPLv3.txt)
