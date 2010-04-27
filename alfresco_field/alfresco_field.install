@@ -1,0 +1,39 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install and configure Alfresco field module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function alfresco_field_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'alfresco_field');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alfresco_field_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'alfresco_field');
+}
+
+/**
+ * Implmentation of hook_enable()
+ */
+function alfresco_field_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'alfresco_field');
+}
+
+/**
+ * Implmentation of hook_disable()
+ */
+function alfresco_field_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'alfresco_field');
+}

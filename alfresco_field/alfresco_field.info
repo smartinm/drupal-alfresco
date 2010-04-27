@@ -1,0 +1,8 @@
+; $Id$
+name = Alfresco field
+description = Defines a CCK field type for referencing an Alfresco node from another node. 
+package = Alfresco
+dependencies[] = alfresco
+dependencies[] = alfresco_browser
+dependencies[] = content
+core = 6.x
