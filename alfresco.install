@@ -12,6 +12,9 @@
 function alfresco_install() {
   drupal_install_schema('alfresco');
 
+  // Set reasonable default node options (not promoted to front page).
+  variable_set('node_options_alfresco_item', array('status'));
+
   // Alfresco built-in content model
   // @see http://wiki.alfresco.com/wiki/Data_Dictionary_Guide#Built-in_Content_Model_Namespaces
   // @todo: Habilitar la modificación de los tipos de contenidos desde la configuración
@@ -453,8 +456,6 @@ function _alfresco_verify_connection_repository(&$requirements) {
 }
 
 /**
- * Implementation of hook_update_N().
- *
  * Convierte los campos cm_created y cm_modified de DATETIME a Unix timespamp y
  * realiza la conversión de datos mediante Batch API.
  */
@@ -496,8 +497,6 @@ function alfresco_update_6100(&$sandbox) {
 }
 
 /**
- * Implementation of hook_update_N().
- *
  * Añade nueva tabla para registrar estadísticas de descargas.
  * Añade índices a las tablas alfresco_node y alfresco_content.
  * Inicializa la variable alfresco_folder_types con los valores por defecto.
@@ -567,5 +566,14 @@ function alfresco_update_6101() {
   );
   variable_set('alfresco_folder_types', $default_folder_types);
 
+  return $ret;
+}
+
+/**
+ * Set reasonable default node options (not promoted to front page).
+ */
+function alfresco_update_6102() {
+  $ret = array();
+  variable_set('node_options_alfresco_item', variable_get('node_options_alfresco_item', array('status')));
   return $ret;
 }

@@ -488,7 +488,7 @@ function alfresco_validate($node, &$form) {
 
   if (!empty($node->reference)) {
     if ($nid = alfresco_exists_node($node->reference, $node->nid)) {
-      form_set_error('reference', t('This Alfresco node already exists in your Drupal site. [<a href="!url">View</a>]',
+      form_set_error('reference', t('This <a href="!url">alfresco node</a> already exists in your Drupal site.',
         array('!url' => url('node/'. $nid))));
     }
   }
@@ -1202,6 +1202,10 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
     return FALSE;
   }
 
+  if (empty($title)) {
+    $title = !empty($alf_node->cm_title) ? $alf_node->cm_title : $alf_node->cm_name;
+  }
+
   // Build the alfresco_item node
   $node = new stdClass();
   $node->type  = 'alfresco_item';
@@ -1252,10 +1256,6 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
     foreach ($properties as $key => $value) {
       $node->$key = $value;
     }
-  }
-
-  if (empty($title) && isset($node->cm_title)) {
-    $node->title = truncate_utf8($node->cm_title, 255);
   }
 
   // Save the node.

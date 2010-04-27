@@ -409,19 +409,14 @@ function alfresco_field_widget_settings($op, $widget) {
  */
 function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0) {
 
-  alfresco_browser_add_js('edit-field-documento-'. $delta);
-
   $element['#theme'] = 'alfresco_field_widget';
 
   $defaults = array(
-    'nid' => NULL,
     'reference' => NULL,
     'name' => NULL,
   );
   if (isset($items[$delta]['nid'])) {
-    $nid = $items[$delta]['nid'];
-    if ($alf_node = node_load($nid)) {
-      $defaults['nid'] = $alf_node->nid;
+    if ($alf_node = node_load($items[$delta]['nid'])) {
       $defaults['reference'] = $alf_node->reference;
       $defaults['name'] = $alf_node->cm_name;
     }
@@ -429,23 +424,24 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
 
   $element['nid'] = array(
     '#type' => 'hidden',
-    '#default_value' => isset($items[$delta]['nid']) ? $items[$delta]['nid'] : NULL,
+    '#value' => isset($items[$delta]['nid']) ? $items[$delta]['nid'] : NULL,
   );
 
   $element['reference'] = array(
     '#type' => 'hidden',
     '#default_value' => isset($items[$delta]['reference']) ? $items[$delta]['reference'] : $defaults['reference'],
+    '#attributes' => array('class' => 'alfresco-browser-reference'),
   );
 
   $element['name'] = array(
     '#type' => 'textfield',
     '#default_value' => isset($items[$delta]['name']) ? $items[$delta]['name'] : $defaults['name'],
-    '#attributes' => array('readonly' => TRUE),
+    '#attributes' => array('class' => 'alfresco-browser-name', 'readonly' => TRUE),
   );
 
   $element['button'] = array(
     '#type' => 'markup',
-    '#value' => '<input type="button" class="alfresco-browser-button" value="'. t('Browse...') .'" />',
+    '#value' => '<input type="button" value="'. t('Browse...') .'" />',
   );
 
   // Used so that hook_field('validate') knows where to flag an error.
@@ -462,5 +458,6 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
 }
 
 function theme_alfresco_field_widget($element) {
-  return theme('form_element', $element, '<div class="container-inline">'. drupal_render($element) .'</div>');
+  alfresco_browser_add_js();
+  return theme('form_element', $element, '<div class="container-inline alfresco-browser-container">'. drupal_render($element) .'</div>');
 }

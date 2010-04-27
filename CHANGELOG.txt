@@ -1,5 +1,18 @@
 // $Id$
 
+Alfresco 6.x-1.2-dev, 2010-xx-xx
+============================
+
+Features:
+
+- Añadido nuevo módulo Alfresco Field que proporciona un campo CCK para adjuntar
+  elementos de Alfresco a un tipo de contenido.
+  
+Minors changes:
+
+- Change default alfresco_item node options (not promoted to front page).
+
+
 Alfresco 6.x-1.1, 2010-04-26
 ============================
 

@@ -206,14 +206,6 @@ function alfresco_browser_elements() {
  */
 function alfresco_browser_process($element, $edit, $form_state, $complete_form) {
 
-  drupal_add_js(array(
-    'alfrescoBrowserUrl' => url('alfresco/browser'),
-    'alfrescoBrowserName' => 'AlfrescoBrowserPopup',
-    'alfrescoBrowserFeatures' => 'width=800,height=500,resizable',
-  ), 'setting');
-
-  drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/alfresco_browser.js');
-
   if (isset($complete_form['#post']['alfresco_browser_name'])){
     $cm_name = $complete_form['#post']['alfresco_browser_name'];
   }
@@ -225,23 +217,23 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
   }
 
   $element['alfresco_browser_reference'] = array(
-    '#id' => 'edit-alfresco-browser-reference',
     '#type' => 'hidden',
-    '#name' => empty($element['#field_name']) ? $element['#name'] : NULL,
-    '#value' => $element['#value'],
+    '#name' => $element['#name'],
+    '#default_value' => $element['#value'],
+    '#attributes' => array('class' => 'alfresco-browser-reference'),
   );
 
   $element['alfresco_browser_name'] = array(
-    '#id' => 'edit-alfresco-browser-name',
     '#type' => 'textfield',
-    '#value' => $cm_name,
-    '#attributes' => array('readonly' => TRUE),
+    '#default_value' => $cm_name,
+    '#attributes' => array('class' => 'alfresco-browser-name', 'readonly' => TRUE),
   );
 
   $element['alfresco_browser_button'] = array(
     '#type' => 'markup',
-    '#value' => '<input type="button" value="'. t('Browse...') .'" id="edit-alfresco-browser-button" />',
+    '#value' => '<input type="button" value="'. t('Browse...') .'" />',
   );
+
   return $element;
 }
 
@@ -249,5 +241,22 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
  *
  */
 function theme_alfresco_browser($element) {
-  return theme('form_element', $element, '<div class="container-inline">'. $element['#children'] .'</div>');
+  alfresco_browser_add_js();
+  return theme('form_element', $element, '<div class="container-inline alfresco-browser-container">'. $element['#children'] .'</div>');
+}
+
+function alfresco_browser_add_js($features ='width=800,height=500,resizable') {
+  static $added = FALSE;
+
+  if (!$added) {
+    drupal_add_js(array(
+      'alfrescoBrowserUrl' => url('alfresco/browser', array('absolute' => TRUE)),
+      'alfrescoBrowserName' => 'AlfrescoBrowserPopup',
+      'alfrescoBrowserFeatures' => $features,
+    ), 'setting');
+
+    drupal_add_js(drupal_get_path('module', 'alfresco_browser') .'/alfresco_browser.js');
+
+    $added = TRUE;
+  }
 }

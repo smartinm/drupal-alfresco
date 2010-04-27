@@ -8,6 +8,36 @@
  */
 Ext.ns('AlfrescoBrowser');
 
+AlfrescoBrowser.SendItem = function (itemsGrid) {
+  var items = itemsGrid.getSelectionModel().getSelections();
+  if (items.length == 0 || !window.opener) {
+    return;
+  }
+  
+  var node = items[0].data;
+  var title = Ext.util.Format.trim(node.title);
+  var reference = 'workspace://SpacesStore/' + node.id;
+
+  var params = Ext.urlDecode(location.search.substring(1));
+  if (params['r']) {
+    window.opener.$("#" + params['r']).val(reference);
+  }
+  if (params['n']) {
+    window.opener.$("#" + params['n']).val(node.name);
+  }
+
+  // Node edit form 
+  var nodeTitle = window.opener.$("#alfresco-edit-title-wrapper #edit-title");
+  if (nodeTitle.length > 0) {
+    if (nodeTitle.val().length == 0 && title.length > 0) {
+      nodeTitle.val(title);
+    }
+  }
+  
+  window.opener.focus();
+  self.close();
+}
+
 AlfrescoBrowser.ViewItem = function (itemsGrid) {
   var items = itemsGrid.getSelectionModel().getSelections();
   if (items.length == 0) {
@@ -48,30 +78,6 @@ AlfrescoBrowser.ViewItemOnLoad = function () {
   if (iframeWin) {
     iframeWin.body.unmask();
   }
-}
-
-AlfrescoBrowser.SendItem = function (itemsGrid) {
-  var items = itemsGrid.getSelectionModel().getSelections();
-  if (items.length == 0 || !window.opener) {
-    return;
-  }
-  
-  var node = items[0].data;
-  var title = Ext.util.Format.trim(node.title);
-  var reference = 'workspace://SpacesStore/' + node.id;
-  
-  window.opener.$("#edit-alfresco-browser-reference").val(reference);
-  window.opener.$("#edit-alfresco-browser-name").val(node.name);
-  
-  if (window.opener.$("#alfresco-edit-title-wrapper #edit-title").length > 0) {
-    if (title.length == 0) {
-      title = node.name;
-    }
-    window.opener.$("#alfresco-edit-title-wrapper #edit-title").val(title);
-  }
-  
-  window.opener.focus();
-  self.close();
 }
 
 AlfrescoBrowser.DownloadItem = function (itemsGrid, forceDownload) {
