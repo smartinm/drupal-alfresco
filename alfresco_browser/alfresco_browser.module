@@ -231,7 +231,7 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
 
   $element['alfresco_browser_button'] = array(
     '#type' => 'markup',
-    '#value' => '<input type="button" value="'. t('Browse...') .'" />',
+    '#value' => '<input type="button" class="alfresco-browser-button" value="'. t('Browse...') .'" />',
   );
 
   return $element;

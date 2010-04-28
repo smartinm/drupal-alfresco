@@ -6,6 +6,22 @@
  *
  */
 
+function _alfresco_browser_node_path($node) {
+  $path = '/'. $node->id;
+  $current_folder = $node;
+  while ($parent_folder = $current_folder->getPrimaryParent()) {
+    $parent_type = $parent_folder->getType();
+    if ($parent_type == '{http://www.alfresco.org/model/system/1.0}store_root') {
+      break;
+    }
+    $folder_id = $parent_folder->id;
+    $path = '/'. $folder_id . $path;
+    $current_folder = $parent_folder;
+  }
+
+  return $path;
+}
+
 /**
  *
  */
@@ -19,15 +35,29 @@ function alfresco_browser_page() {
   $icons_path  = drupal_get_path('module', 'alfresco') .'/images/filetypes';
   $module_path = drupal_get_path('module', 'alfresco_browser');
 
+  // @todo Controlar cuando el nodo no existe o se ha producido un error.
+
   alfresco_include('soap');
   $home_path = variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME);
   $home_node = alfresco_soap_node_load($home_path);
-  // @todo Controlar cuando el nodo no existe o se ha producido un error.
+  $home_ref  = $home_node ? $home_node->id : '';
+  $home_name = $home_node ? $home_node->cm_name : t('- Error -');
+
+  if (variable_get('alfresco_browser_remember_folder', 1)) {
+    if (isset($_SESSION['alfresco_browser_last_folder'])) {
+      $last_folder = $_SESSION['alfresco_browser_last_folder'];
+      if ($last_node = alfresco_soap_node_load('workspace://SpacesStore/'. $last_folder)) {
+        $folder_path = _alfresco_browser_node_path($last_node);
+        $folder_name = $last_node->cm_name;
+        $folder_ref  = $last_node->id;
+      }
+    }
+  }
 
   // Alfresco Browser Settings
   $settings = array('alfresco' => array(
-    'homeRef'            => $home_node ? $home_node->id : '',
-    'homeText'           => $home_node ? $home_node->cm_name : '- Error -',
+    'homeRef'            => $home_ref,
+    'homeText'           => $home_name,
     'iconsPath'          => url($icons_path),
     'serviceTreeUrl'     => url('alfresco/browser/service/spaces'),
     'serviceGridUrl'     => url('alfresco/browser/service/items'),
@@ -37,6 +67,9 @@ function alfresco_browser_page() {
     'queryLimit'         => variable_get('alfresco_browser_query_limit', 20),
     'accessAdd'          => user_access('upload alfresco repository'),
     'accessDelete'       => user_access('upload alfresco repository'),
+    'folderPath'         => !empty($folder_path) ? $folder_path : '',
+    'folderRef'          => !empty($folder_path) ? $folder_ref  : $home_ref,
+    'folderName'         => !empty($folder_path) ? $folder_name : $home_name,
   ));
   drupal_add_js($settings, 'setting');
 
@@ -157,6 +190,10 @@ function alfresco_browser_service_items() {
   if (empty($query) && !alfresco_valid_uuid($node)) {
     drupal_json(array('total' => 0, 'rows' => array()));
     exit();
+  }
+
+  if (empty($query) && variable_get('alfresco_browser_remember_folder', 1)) {
+    $_SESSION['alfresco_browser_last_folder'] = $node;
   }
 
   if (variable_get('alfresco_browser_cache_enabled', TRUE)) {

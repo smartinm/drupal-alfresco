@@ -41,6 +41,14 @@ function alfresco_browser_admin_settings() {
     '#size'          => 8,
   );
 
+  $form['browser']['alfresco_browser_remember_folder'] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t('Remember last folder'),
+    '#description'   => t('Check for remember last folder accessed for user (defaults to true)'),
+    '#required'      => TRUE,
+    '#default_value' => variable_get('alfresco_browser_remember_folder', 1),
+  );
+
   /*
   $form['browser']['upload'] = array(
     '#type'          => 'fieldset',

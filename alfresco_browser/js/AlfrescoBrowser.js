@@ -20,7 +20,7 @@ AlfrescoBrowser.SendItem = function (itemsGrid) {
 
   var params = Ext.urlDecode(location.search.substring(1));
   if (params['r']) {
-    window.opener.$("#" + params['r']).val(reference);
+    window.opener.$("#" + params['r']).val(reference).trigger('change');
   }
   if (params['n']) {
     window.opener.$("#" + params['n']).val(node.name);
@@ -281,6 +281,7 @@ AlfrescoBrowser.App = function() {
   var propsGrid;
   var dataStore;
   var currentPath;
+  var firstRun = true;
 
   return {
     init: function() {
@@ -357,10 +358,14 @@ AlfrescoBrowser.App = function() {
           expanded: true,
           listeners: {
             'load': function() {
-              if (Ext.isEmpty(currentPath)) {
-                this.fireEvent('click', this);
+              if (firstRun) {
+                if (Drupal.settings.alfresco.folderPath != '') {
+                  folderTree.expandPath(Drupal.settings.alfresco.folderPath);
+                  folderTree.selectPath(Drupal.settings.alfresco.folderPath);
+                }
+                firstRun = false;
               }
-              else {
+              else if (currentPath != '') {
                 folderTree.expandPath(currentPath);
                 folderTree.selectPath(currentPath);
               }
@@ -496,7 +501,7 @@ AlfrescoBrowser.App = function() {
           method: 'GET'
         }),
         reader: reader,
-        baseParams: {node: Drupal.settings.alfresco.homeRef},
+        baseParams: {node: Drupal.settings.alfresco.folderRef},
         autoLoad: true,
         //remoteSort: true,
         sortInfo: {field: 'name', direction: 'ASC'},
@@ -592,7 +597,7 @@ AlfrescoBrowser.App = function() {
           }
         }),
         
-        title: Drupal.settings.alfresco.homeText,
+        title: Drupal.settings.alfresco.folderName,
         region: 'center',
         loadMask: true,
         

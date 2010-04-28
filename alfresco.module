@@ -818,7 +818,6 @@ function alfresco_theme() {
  * Return the URL for download the alfresco file.
  */
 function alfresco_url_download($node) {
-
   if ($node && $node->type == 'alfresco_item' && !empty($node->cm_content)) {
     return 'node/'. $node->nid .'/download/'. $node->cm_name;
   }
