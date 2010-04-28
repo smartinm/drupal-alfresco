@@ -7,6 +7,7 @@ Drupal.behaviors.attachBrowser = function(context) {
     var name = $('input.alfresco-browser-name', this);
     var button = $('input.alfresco-browser-button', this);
     var remove = $('input.alfresco-browser-remove', this);
+    
     button.click(function() {
       var popup = window.open(
         Drupal.settings.alfrescoBrowserUrl + '?r=' + reference.attr('id') + '&n=' + name.attr('id'),
@@ -20,19 +21,26 @@ Drupal.behaviors.attachBrowser = function(context) {
     remove.click(function() {
       reference.val('');
       name.val('');
+      button.enable(true);
       remove.hide();
     });
     reference.change(function() {
       if (reference.val() == '') {
+        button.enable(true);
         remove.hide();
       } else {
+        button.enable(false);
         remove.show();
       }
     });
+    
     if (reference.val() == '') {
       // hide() no funciona en los fieldsets collapsibles
       remove.attr('style', 'display:none;');
+    } else {
+      button.enable(false);
     }
+    
     $(this).addClass('alfresco-browser-processed');
   });
 }
