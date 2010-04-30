@@ -131,13 +131,11 @@ function alfresco_schema() {
         'not null'    => TRUE,
         'default'     => ''
       ),
-      // @todo Renombrar esta columna porque ya existe este campo en la tabla node
-      'timestamp' => array(
-        'description' => 'The most recent time the {alfresco_node} has been saved',
-        'type'        => 'int',
-        'unsigned'    => TRUE,
+      'path' => array(
+        'type'        => 'varchar',
+        'length'      => 255,
         'not null'    => TRUE,
-        'default'     => 0
+        'default'     => ''
       ),
 
       /*********************************
@@ -564,9 +562,16 @@ function alfresco_update_6101() {
 
 /**
  * Set reasonable default node options (not promoted to front page).
+ *
  */
 function alfresco_update_6102() {
   $ret = array();
+
   variable_set('node_options_alfresco_item', variable_get('node_options_alfresco_item', array('status')));
+
+  db_add_field($ret, 'alfresco_node', 'path', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+
+  db_drop_field($ret, 'alfresco_node', 'timestamp');
+
   return $ret;
 }

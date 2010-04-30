@@ -206,14 +206,13 @@ function alfresco_browser_elements() {
  */
 function alfresco_browser_process($element, $edit, $form_state, $complete_form) {
 
-  if (isset($complete_form['#post']['alfresco_browser_name'])){
-    $cm_name = $complete_form['#post']['alfresco_browser_name'];
-  }
-  elseif (isset($complete_form['#node']->cm_name)) {
-    $cm_name = $complete_form['#node']->cm_name;
+  if (isset($complete_form['#node'])) {
+    $node = $complete_form['#node'];
+    $path = !empty($node->path) ? $node->path .'/' : '';
+    $name = $path . $node->cm_name;
   }
   else {
-    $cm_name = '';
+    $name = '';
   }
 
   $element['alfresco_browser_reference'] = array(
@@ -225,7 +224,7 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
 
   $element['alfresco_browser_name'] = array(
     '#type' => 'textfield',
-    '#default_value' => $cm_name,
+    '#default_value' => $name,
     '#attributes' => array('class' => 'alfresco-browser-name', 'readonly' => TRUE),
   );
 

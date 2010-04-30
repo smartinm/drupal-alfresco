@@ -18,6 +18,7 @@ Alfresco Browser:
 
 Minors changes:
 
+- Añadido path
 - Change default alfresco_item node options (not promoted to front page).
 
 

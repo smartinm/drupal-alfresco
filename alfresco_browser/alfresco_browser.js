@@ -42,7 +42,7 @@ Drupal.behaviors.attachBrowser = function(context) {
         btnBrowse.attr('disabled', 'disabled');
       }
     });
-
+    
     if (!inputRef.val()) {
       btnRemove.attr('style', 'display:none;');
     } else {
