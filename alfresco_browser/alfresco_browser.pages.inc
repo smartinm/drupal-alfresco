@@ -112,8 +112,7 @@ function alfresco_browser_page() {
 function alfresco_browser_repository_page() {
   drupal_add_css(drupal_get_path('module', 'alfresco_browser') .'/alfresco_browser.css');
   drupal_set_title('');
-  $url = url('alfresco/browser');
-  return '<iframe id="embedded-browser" frameborder="0"  src="'. $url .'"></iframe>';
+  return '<iframe id="embedded-browser" frameborder="0"  src="'. url('alfresco/browser') .'"></iframe>';
 }
 
 function alfresco_browser_service_spaces() {
@@ -252,7 +251,6 @@ function alfresco_browser_service_items() {
   foreach ($results as $child_node) {
     $node_ref = $child_node->__toString();
     $nid = alfresco_exists_node($node_ref);
-    $icon = alfresco_get_icon_filetype($child_node->cm_name, TRUE);
 
     if ($child_node->cm_content instanceof AlfContentData) {
       $content_data = $child_node->cm_content;
@@ -267,7 +265,7 @@ function alfresco_browser_service_items() {
       'name'        => trim($child_node->cm_name),
       'size'        => isset($content_data) ? format_size($content_data->size) : '',
       'mimetype'    => isset($content_data) ? $content_data->mimetype : '',
-      'icon'        => $icon,
+      'icon'        => alfresco_icon_path($child_node->cm_name, FALSE),
       'author'      => !is_null($child_node->cm_author) ? $child_node->cm_author : '',
       'creator'     => !is_null($child_node->cm_creator) ? $child_node->cm_creator : '',
       'modified'    => format_date(strtotime($child_node->cm_modified), 'custom', 'Y-m-d H:i:s'),

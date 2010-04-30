@@ -245,7 +245,7 @@ function theme_alfresco_browser($element) {
   return theme('form_element', $element, '<div class="container-inline alfresco-browser-container">'. $element['#children'] .'</div>');
 }
 
-function alfresco_browser_add_js($features ='width=800,height=500,resizable') {
+function alfresco_browser_add_js($features = 'width=800,height=500,resizable') {
   static $added = FALSE;
 
   if (!$added) {

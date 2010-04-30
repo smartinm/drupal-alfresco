@@ -338,14 +338,7 @@ function _alfresco_verify_php_library(&$requirements) {
         'title' => $t('Alfresco PHP library'),
         'value' => $t('Not found'),
         'severity' => REQUIREMENT_ERROR,
-        'description' => $t('Read README.txt to find how to install and enable Alfresco PHP Library. You can download and copy Alfresco PHP Library on %path', array('%path' => $lib_path)),
-      );
-    }
-    else {
-      $requirements['alfresco_php_library'] = array(
-        'title' => $t('Alfresco PHP library'),
-        'value' => $t('Found (%path).', array('%path' => $lib_path)),
-        'severity' => REQUIREMENT_OK,
+        'description' => $t("The Alfresco PHP library is included with the module, but doesn't seem to be available. Please reinstall the module."),
       );
     }
   }

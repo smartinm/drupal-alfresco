@@ -392,7 +392,10 @@ function theme_alfresco_attach_attachments($files) {
     if ($file->list && empty($file->remove) && alfresco_download_access($alf_node)) {
       $href = alfresco_url_download($alf_node);
       $text = !empty($file->description) ? $file->description : $alf_node->title;
-      $rows[] = array(l($text, $href), format_size($alf_node->cm_content['size']));
+      $icon = theme('alfresco_icon', $alf_node);
+      $link = $icon . l($text, $href);
+      $rows[] = array($link, format_size($alf_node->cm_content['size']));
+      //$rows[] = array(l($text, $href), format_size($alf_node->cm_content['size']));
     }
   }
 

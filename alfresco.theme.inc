@@ -107,3 +107,21 @@ function theme_alfresco_properties_table($form) {
 
   return $output;
 }
+
+/**
+ * Return an image with an appropriate icon for the given file.
+ *
+ * @param $file
+ *   A file object for which to make an icon.
+ */
+function theme_alfresco_icon($node) {
+  if ($node->type == 'alfresco_item') {
+    $output = '';
+    if ($icon_path = alfresco_icon_path($node->cm_name)) {
+      $mimetype = isset($node->cm_content['mimetype']) ? $node->cm_content['mimetype'] : 'default';
+      $output = '<img alt="'. $mimetype .'" title="'. $mimetype .'" src="'. url($icon_path) .'" />';
+    }
+    drupal_add_css(drupal_get_path('module', 'alfresco') .'/alfresco.css');
+    return '<div class="alfresco-icon">'. $output .'</div>';
+  }
+}

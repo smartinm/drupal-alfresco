@@ -807,6 +807,10 @@ function alfresco_theme() {
       'arguments' => array('node' => NULL),
       'file' => 'alfresco.theme.inc',
     ),
+    'alfresco_icon' => array(
+      'arguments' => array('node' => NULL),
+      'file' => 'alfresco.theme.inc',
+    ),
   );
 }
 
@@ -1202,7 +1206,8 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
   }
 
   if (empty($title)) {
-    $title = !empty($alf_node->cm_title) ? $alf_node->cm_title : $alf_node->cm_name;
+    $alf_node_title = $alf_node->cm_title;
+    $title = !empty($alf_node_title) ? $alf_node_title : $alf_node->cm_name;
   }
 
   // Build the alfresco_item node
@@ -1411,11 +1416,14 @@ function alfresco_include_lib($file, $path = 'Alfresco/Service') {
   $used[$filepath] = TRUE;
 }
 
-function alfresco_get_icon_filetype($filename, $only_name = FALSE) {
+function alfresco_icon_path($filename, $full_path = TRUE) {
   $extension = substr(strrchr($filename, '.'), 1);
-
-  $module_path = drupal_get_path('module', 'alfresco');
-  $image = file_exists("./$module_path/images/filetypes/$extension.gif") ? $extension : '_default';
-
-  return $only_name ? $image : "$module_path/images/filetypes/$image.gif";
+  $icon_dir = drupal_get_path('module', 'alfresco') . '/images/filetypes';
+  if (file_exists("./$icon_dir/$extension.gif")) {
+    $icon_name = $extension;
+  }
+  else {
+    $icon_name = '_default';
+  }
+  return $full_path ? "$icon_dir/$icon_name.gif" : $icon_name;
 }

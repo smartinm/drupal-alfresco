@@ -9,6 +9,7 @@ Features:
 
 - Añadido nuevo módulo Alfresco Field que proporciona un campo CCK para adjuntar
   elementos de Alfresco a un tipo de contenido.
+- Añadidos iconos de tipos de ficheros.
 
 Alfresco Browser:
 

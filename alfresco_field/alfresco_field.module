@@ -198,7 +198,7 @@ function alfresco_field_field($op, &$node, $field, &$items, $teaser, $page) {
  * from forms.
  */
 function alfresco_field_content_is_empty($item, $field) {
-  if (/*empty($item['nid']) && */empty($item['reference'])) {
+  if (empty($item['reference'])) {
     return TRUE;
   }
   return FALSE;
@@ -276,11 +276,8 @@ function alfresco_field_field_formatter_info() {
 function theme_alfresco_field_formatter_default($element) {
   $field = content_fields($element['#field_name']);
   if ($node = node_load($element['#item']['nid'])) {
-    drupal_add_css(drupal_get_path('module', 'alfresco_field') .'/alfresco_field.css');
     $href = alfresco_url_download($node);
-    //return l($alf_node->title, $href) . ' (' .format_size($node->cm_content['size']) .')';
-    $icon_file = alfresco_get_icon_filetype($node->cm_name);
-    $icon = theme('image', $icon_file, $node->cm_name, $node->cm_name, array('class' => 'alfresco-field-icon'));
+    $icon = theme('alfresco_icon', $node);
     return '<div class="alfresco-field-file clear-block">'. $icon . l($node->title, $href) . ' (' .format_size($node->cm_content['size']) .')' .'</div>';
   }
 }
@@ -450,6 +447,16 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
     '#attributes' => array('class' => 'alfresco-browser-name', 'readonly' => TRUE),
   );
 
+  if (!empty($alf_node)) {
+    $title = truncate_utf8($alf_node->title, 50, FALSE, TRUE);
+    $filesize = format_size($alf_node->cm_content['size']);
+    $mimetype = $alf_node->cm_content['mimetype'];
+    $element['link'] = array(
+      '#type' => 'markup',
+      '#value' => '<div class="alfresco-browser-info">'. l($title, 'node/'. $alf_node->nid) .' ('. $filesize .', '. $mimetype .')</div>',
+    );
+  }
+
   $element['button'] = array(
     '#type' => 'markup',
     '#value' => '<input type="button" class="alfresco-browser-button" value="'. t('Browse...') .'" />',
@@ -470,5 +477,6 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
 
 function theme_alfresco_field_widget($element) {
   alfresco_browser_add_js();
+  drupal_add_css(drupal_get_path('module', 'alfresco_field') .'/alfresco_field.css');
   return theme('form_element', $element, '<div class="container-inline alfresco-browser-container">'. drupal_render($element) .'</div>');
 }

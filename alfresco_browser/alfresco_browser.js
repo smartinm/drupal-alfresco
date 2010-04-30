@@ -2,49 +2,55 @@
 
 Drupal.behaviors.attachBrowser = function(context) {
   $('div.alfresco-browser-container:not(.alfresco-browser-processed)', context).each(function() {
-    $(this).append(Drupal.theme('alfrescoBrowserRemoveButton', this));
-    var reference = $('input.alfresco-browser-reference', this);
-    var name = $('input.alfresco-browser-name', this);
-    var button = $('input.alfresco-browser-button', this);
-    var remove = $('input.alfresco-browser-remove', this);
+    $(this).append(Drupal.theme('alfrescoBrowserRemoveButton', this)).addClass('alfresco-browser-processed');
     
-    button.click(function() {
+    var inputRef = $(this).find('input.alfresco-browser-reference');
+    var inputName = $(this).find('input.alfresco-browser-name');
+    var btnBrowse = $(this).find('input.alfresco-browser-button');
+    var btnRemove = $(this).find('input.alfresco-browser-remove');
+    var divInfo = $(this).find('div.alfresco-browser-info');
+    var attached = false;
+    
+    btnBrowse.click(function() {
       var popup = window.open(
-        Drupal.settings.alfrescoBrowserUrl + '?r=' + reference.attr('id') + '&n=' + name.attr('id'),
+        Drupal.settings.alfrescoBrowserUrl + '?r=' + inputRef.attr('id') + '&n=' + inputName.attr('id'),
         Drupal.settings.alfrescoBrowserName,
         Drupal.settings.alfrescoBrowserFeatures
       );
       if (popup) {
         popup.focus();
       }
+      attached = true;
     });
-    remove.click(function() {
-      reference.val('');
-      name.val('');
-      button.enable(true);
-      remove.hide();
-    });
-    reference.change(function() {
-      if (reference.val() == '') {
-        button.enable(true);
-        remove.hide();
-      } else {
-        button.enable(false);
-        remove.show();
+    
+    btnRemove.click(function() {
+      if (attached || confirm(Drupal.t("Are you sure you want to remove '!name' from this content?", {'!name' : inputName.val()}))) {
+        inputRef.val('');
+        inputName.val('');
+        btnRemove.hide();
+        btnBrowse.removeAttr('disabled');
+        divInfo.html('<em>' + Drupal.t('Changes will not be saved until the form is submitted.') + '</em>');
       }
     });
     
-    if (reference.val() == '') {
-      // hide() no funciona en los fieldsets collapsibles
-      remove.attr('style', 'display:none;');
+    inputRef.change(function() {
+      if (!inputRef.val()) {
+        btnRemove.hide();
+        btnBrowse.removeAttr('disabled');
+      } else {
+        btnRemove.show();
+        btnBrowse.attr('disabled', 'disabled');
+      }
+    });
+
+    if (!inputRef.val()) {
+      btnRemove.attr('style', 'display:none;');
     } else {
-      button.enable(false);
+      btnBrowse.attr('disabled', 'disabled');
     }
-    
-    $(this).addClass('alfresco-browser-processed');
   });
 }
 
-Drupal.theme.prototype.alfrescoBrowserRemoveButton = function(el) {
+Drupal.theme.prototype.alfrescoBrowserRemoveButton = function () {
   return '&nbsp' + '<input type="button" class="alfresco-browser-remove" value="' + Drupal.t('Remove') + '" />';
-}
+};

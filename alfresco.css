@@ -9,3 +9,9 @@ ul.links li.alfresco_download {
   padding-left: 1.5em;
   padding-top: 0.2em;
 }
+
+div.alfresco-icon {
+  float: left;
+  margin-right: 0.4em;
+}
+
