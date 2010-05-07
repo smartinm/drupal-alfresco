@@ -428,7 +428,7 @@ function alfresco_form(&$node, $form_state) {
  */
 function alfresco_form_search_form_alter(&$form, &$form_state) {
   alfresco_include('search');
-  alfresco_search_form_alter(&$form, &$form_state);
+  alfresco_search_form_alter($form, $form_state);
 }
 
 // ------------------------------------------------------------------
