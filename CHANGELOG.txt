@@ -10,6 +10,7 @@ Features:
 - Añadido nuevo módulo Alfresco Field que proporciona un campo CCK para adjuntar
   elementos de Alfresco a un tipo de contenido.
 - Añadidos iconos de tipos de ficheros.
+- Añadido path
 
 Alfresco Browser:
 
@@ -18,7 +19,8 @@ Alfresco Browser:
 
 Minors changes:
 
-- Añadido path
+- fixed call-time pass-by-reference
+- hook_flush_caches
 - Change default alfresco_item node options (not promoted to front page).
 
 

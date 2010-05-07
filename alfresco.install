@@ -59,11 +59,11 @@ function alfresco_requirements($phase) {
   $requirements = array();
 
   // Verify if the Alfresco PHP and library dependencies are available.
-  _alfresco_verify_php_library(&$requirements);
+  _alfresco_verify_php_library($requirements);
 
   // Verify connection Alfresco Repository only if Alfresco PHP library is available.
   if ($phase == 'runtime' && drupal_requirements_severity($requirements) != REQUIREMENT_ERROR) {
-    _alfresco_verify_connection_repository(&$requirements);
+    _alfresco_verify_connection_repository($requirements);
   }
 
   return $requirements;

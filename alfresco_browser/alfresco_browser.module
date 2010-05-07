@@ -126,7 +126,7 @@ function alfresco_browser_access() {
 }
 
 /**
- * Implementation of hook_theme
+ * Implementation of hook_theme().
  */
 function alfresco_browser_theme() {
 
@@ -139,6 +139,13 @@ function alfresco_browser_theme() {
       'template' => 'alfresco-browser-page',
     ),
   );
+}
+
+/**
+ * Implementation of hook_flush_caches().
+ */
+function alfresco_browser_flush_caches() {
+  return array('cache_alfresco_browser');
 }
 
 /**
