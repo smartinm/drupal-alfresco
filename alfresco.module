@@ -518,7 +518,7 @@ function alfresco_form_submit($form, &$form_state) {
       }
     }
 
-    $form_state['values']['path'] = $alf_node->getFolderPath();
+    $form_state['values']['alfresco_path'] = $alf_node->getFolderPath();
 
     unset($form_state['alf_node']);
   }
@@ -1255,7 +1255,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
 
   // Alfresco node stuff
   $node->reference = $reference;
-  $node->path = $alf_node->getFolderPath();
+  $node->alfresco_path = $alf_node->getFolderPath();
 
   // Execute mappings from $alf_node to $node.
   $properties = _alfresco_map($alf_node);

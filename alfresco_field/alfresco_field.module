@@ -425,7 +425,7 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
   );
   if (isset($items[$delta]['nid'])) {
     if ($alf_node = node_load($items[$delta]['nid'])) {
-      $path = !empty($alf_node->path) ? $alf_node->path .'/' : '';
+      $path = !empty($alf_node->alfresco_path) ? $alf_node->alfresco_path .'/' : '';
       $defaults['reference'] = $alf_node->reference;
       $defaults['name'] = $path . $alf_node->cm_name;
     }

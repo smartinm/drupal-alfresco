@@ -48,7 +48,7 @@ function alfresco_browser_requirements($phase) {
       $requirements['alfresco_browser_extjs'] = array(
         'title' => $t('Alfresco browser Ext JS library'),
         'severity' => REQUIREMENT_ERROR,
-        'description' => $t('Alfresco browser module requires the <a href="@extjs-url">Ext JS Library</a>. Please download the Ext JS library, extract the archive and copy its contents to the following location: %extjs-path. Make sure the main Ext JS file is located at %extjs-all-path.', array(
+        'description' => $t('Alfresco browser module requires the <a href="@extjs-url">Ext JS Library</a>. Please download the Ext JS library, extract the archive and copy its contents to the following location: %extjs-path. Make sure the main Ext JS file is located at %extjs-all-path and then try to enable the module again.', array(
           '@extjs-url' => 'http://www.extjs.com/products/extjs/download.php',
           '%extjs-path' => $path,
           '%extjs-all-path' => $path . '/ext-all.js',

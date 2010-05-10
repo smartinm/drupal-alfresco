@@ -170,7 +170,6 @@ function alfresco_autocomplete($string = '') {
 // ------------------------------------------------------------------
 
 /**
- * @todo: Arreglar flujo del formulario.
  *
  * @see https://issues.alfresco.com/jira/browse/ETWOONE-400
  * @see http://wiki.alfresco.com/wiki/PHP_Tutorial_Five

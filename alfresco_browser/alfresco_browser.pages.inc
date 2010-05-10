@@ -6,22 +6,6 @@
  *
  */
 
-function _alfresco_browser_node_path($node) {
-  $path = '/'. $node->id;
-  $current_folder = $node;
-  while ($parent_folder = $current_folder->getPrimaryParent()) {
-    $parent_type = $parent_folder->getType();
-    if ($parent_type == '{http://www.alfresco.org/model/system/1.0}store_root') {
-      break;
-    }
-    $folder_id = $parent_folder->id;
-    $path = '/'. $folder_id . $path;
-    $current_folder = $parent_folder;
-  }
-
-  return $path;
-}
-
 /**
  *
  */
@@ -411,4 +395,28 @@ function _alfresco_browser_cache_set($key, $data) {
 
   $cid = "user=$user->uid;$key";
   cache_set($cid, $data, 'cache_alfresco_browser', CACHE_TEMPORARY);
+}
+
+/**
+ * Devuelve el path del nodo de Alfresco en el repositorio.
+ */
+function _alfresco_browser_node_path($node) {
+  static $paths = array();
+
+  if (!isset($paths[$node->id])) {
+    $path = '/'. $node->id;
+    $current_folder = $node;
+    while ($parent_folder = $current_folder->getPrimaryParent()) {
+      $parent_type = $parent_folder->getType();
+      if ($parent_type == '{http://www.alfresco.org/model/system/1.0}store_root') {
+        break;
+      }
+      $folder_id = $parent_folder->id;
+      $path = '/'. $folder_id . $path;
+      $current_folder = $parent_folder;
+    }
+    $paths[$node->id] = $path;
+  }
+
+  return $paths[$node->id];
 }
