@@ -124,7 +124,7 @@ function alfresco_schema() {
         'not null' => TRUE,
         'default'  => 0
       ),
-      // @todo Rename field name to alfresco_reference to avoid conflicts
+      // @todo Rename field name (and indexes) to alfresco_reference to avoid conflicts
       'reference' => array(
         'description' => 'The fully-qualified Alfresco node reference',
         'type'        => 'varchar',
@@ -207,7 +207,7 @@ function alfresco_schema() {
     ),
     'indexes' => array(
       'nid' => array('nid'),
-      'reference' => array('alfresco_reference')
+      'reference' => array('reference')
     ),
     'primary key' => array('vid'),
   );
@@ -258,7 +258,7 @@ function alfresco_schema() {
     'primary key' => array('vid'),
   );
 
-  // alfresco-6.x-1.1
+  // From alfresco-6.x-1.1
   $schema['alfresco_counter'] = array(
     'description' => 'Download statistics for {alfresco_node}s.',
     'fields' => array(
@@ -563,22 +563,32 @@ function alfresco_update_6101() {
 }
 
 /**
- * Set reasonable default node options (not promoted to front page).
- *
+ * Add field for alfresco node path and set reasonable default node options
+ * (not promoted to front page).
  */
 function alfresco_update_6102() {
   $ret = array();
 
   variable_set('node_options_alfresco_item', variable_get('node_options_alfresco_item', array('status')));
 
-  // Nueva columna para almacenar el path del nodo de Alfresco en el repositorio
+  // Add field for alfresco node path.
   db_add_field($ret, 'alfresco_node', 'alfresco_path', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
 
-  // Cambio del nombre de la columna referencia del nodo de Alfresco
-  //db_change_field($ret, 'alfresco_node', 'reference', 'alfresco_reference', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
-
-  // Eliminamos la columna timestamp
+  // Remove timestamp unused column.
   db_drop_field($ret, 'alfresco_node', 'timestamp');
 
   return $ret;
 }
+
+/**
+ * @todo Rename field name (and indexes) to alfresco_reference to avoid conflicts.
+ */
+/*
+function alfresco_update_6103() {
+  $ret = array();
+  db_change_field($ret, 'alfresco_node', 'reference', 'alfresco_reference', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
+  db_drop_index($ret, 'alfresco_node', 'alfresco_reference');
+  db_add_index($ret, 'alfresco_node', 'alfresco_reference', array('alfresco_reference'));
+  return $ret;
+}
+*/

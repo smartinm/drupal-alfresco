@@ -10,17 +10,17 @@ Features:
 - Añadido nuevo módulo Alfresco Field que proporciona un campo CCK para adjuntar
   elementos de Alfresco a un tipo de contenido.
 - Añadidos iconos de tipos de ficheros.
-- Añadido path
+- Añadido alfresco node path.
 
 Alfresco Browser:
 
 - Añadido botón 'Eliminar' en el widget.
 - Añadida opción para recordar el último espacio accedido por cada usuario.
+- Implemented hook_flush_caches for Alfresco Browser cache tables.
 
 Minors changes:
 
-- fixed call-time pass-by-reference
-- hook_flush_caches
+- Fixed PHP 5.3 call-time pass-by-reference.
 - Change default alfresco_item node options (not promoted to front page).
 
 
