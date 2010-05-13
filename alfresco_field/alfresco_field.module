@@ -43,18 +43,24 @@ function alfresco_field_field_settings($op, $field) {
     // define the way the value will be stored
     // in the database.
     case 'form':
-      return;
+      $vocabularies = taxonomy_get_vocabularies('alfresco_item');
+      $taxonomy = array();
+      foreach ($vocabularies as $vocabulary) {
+        if (!$vocabulary->tags) {
+          $value = isset($field['vid_'. $vocabulary->vid]) ? $field['vid_'. $vocabulary->vid] : 0;
+          $taxonomy['vid_'. $vocabulary->vid] = taxonomy_form($vocabulary->vid, $value);
+        }
+      }
       $form = array();
-      $form['max_length'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Maximum length'),
-        '#default_value' => is_numeric($field['max_length']) ? $field['max_length'] : 255,
-        '#required' => FALSE,
-
-        // Use #element_validate to validate the settings.
-        '#element_validate' => array('_example_length_validate'),
-        '#description' => t('The maximum length of the field in characters. Must be a number between 1 and 255'),
-      );
+      if (!empty($taxonomy)) {
+        $form['taxonomy'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Taxonomy default values'),
+          '#description' => t('Select taxonomy terms default value for new alfresco items nodes.'),
+          '#collapsible' => TRUE,
+        );
+        $form['taxonomy'][] = $taxonomy;
+      }
       return $form;
 
     // Return an array of the names of the field settings
@@ -63,8 +69,14 @@ function alfresco_field_field_settings($op, $field) {
     // and they will be available in the $field array.
     // This should match the items defined in 'form' above.
     case 'save':
-      return;
-      return array('max_length');
+      $settings = array();
+      $vocabularies = taxonomy_get_vocabularies('alfresco_item');
+      foreach ($vocabularies as $vocabulary) {
+        if (!$vocabulary->tags) {
+          $settings[] = 'vid_'. $vocabulary->vid;
+        }
+      }
+      return $settings;
 
     // Define the database storage for this field using
     // the same construct used by schema API. Most fields
@@ -153,7 +165,14 @@ function alfresco_field_field($op, &$node, $field, &$items, $teaser, $page) {
               }
             }
             else {
-              if (!alfresco_create_node($reference)) {
+              $taxonomy = array();
+              foreach (array_keys($field) as $key) {
+                if (strpos($key, 'vid_') === 0) {
+                  $tid = $field[$key];
+                  $taxonomy[$tid] = $tid;
+                }
+              }
+              if (!alfresco_create_node($reference, '', '', array('taxonomy' => $taxonomy))) {
                 form_set_error($error_element, t('Error creating alfresco node.', array()));
               }
             }
@@ -172,7 +191,8 @@ function alfresco_field_field($op, &$node, $field, &$items, $teaser, $page) {
               $items[$delta]['nid'] = $alf_node->nid;
             }
           }
-        } else {
+        }
+        else {
           $items[$delta]['nid'] = NULL;
         }
       }

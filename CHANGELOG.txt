@@ -1,27 +1,27 @@
 // $Id$
 
-Alfresco 6.x-1.2-dev, 2010-xx-xx
-============================
+Alfresco 6.x-1.2-beta1, 2010-05-13
+==================================
 
 You MUST run update.php when upgrading to this version.
 
 Features:
 
-- Añadido nuevo módulo Alfresco Field que proporciona un campo CCK para adjuntar
-  elementos de Alfresco a un tipo de contenido.
-- Añadidos iconos de tipos de ficheros.
-- Añadido alfresco node path.
+- Added Alfresco Field module which defines a CCK field type for referencing an
+  Alfresco node from another node.
+- Added filetypes icons for Alfresco files.
+- Added folder path for alfresco_items nodes.
 
-Alfresco Browser:
+Alfresco Browser/Field:
 
-- Añadido botón 'Eliminar' en el widget.
-- Añadida opción para recordar el último espacio accedido por cada usuario.
-- Implemented hook_flush_caches for Alfresco Browser cache tables.
+- Added 'Remove' button to Alfresco Browser widget (form element).
+- Added 'Remember last folder used' option.
 
 Minors changes:
 
 - Fixed PHP 5.3 call-time pass-by-reference.
 - Change default alfresco_item node options (not promoted to front page).
+- Implemented hook_flush_caches for Alfresco Browser cache tables.
 
 
 Alfresco 6.x-1.1, 2010-04-26

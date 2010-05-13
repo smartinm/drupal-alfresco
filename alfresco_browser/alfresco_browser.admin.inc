@@ -27,7 +27,7 @@ function alfresco_browser_admin_settings() {
   $form['browser']['alfresco_browser_home'] = array(
     '#type'          => 'textfield',
     '#title'         => t('Home path'),
-    '#description'   => t('Points to the root folder of Alfresco Repository (defaults to Company Home)'),
+    '#description'   => t('Points to the root folder of Alfresco Repository (defaults to !company_home).', array('!company_home' => t('Company Home'))),
     '#required'      => TRUE,
     '#default_value' => variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME),
   );
@@ -35,7 +35,7 @@ function alfresco_browser_admin_settings() {
   $form['browser']['alfresco_browser_query_limit'] = array(
     '#type'          => 'textfield',
     '#title'         => t('Page size'),
-    '#description'   => t('The number of records to display per page (defaults to 20)'),
+    '#description'   => t('The number of records to display per page (defaults to 20).'),
     '#required'      => TRUE,
     '#default_value' => variable_get('alfresco_browser_query_limit', 20),
     '#size'          => 8,
@@ -43,8 +43,8 @@ function alfresco_browser_admin_settings() {
 
   $form['browser']['alfresco_browser_remember_folder'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Remember last folder'),
-    '#description'   => t('Check for remember last folder accessed for user (defaults to true)'),
+    '#title'         => t('Remember last folder used'),
+    '#description'   => t('If selected, the Alfresco Browser will be opened in the last folder that the user accessed (defaults to true).'),
     '#required'      => TRUE,
     '#default_value' => variable_get('alfresco_browser_remember_folder', 1),
   );

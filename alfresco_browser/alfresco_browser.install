@@ -22,6 +22,7 @@ function alfresco_browser_uninstall() {
   variable_del('alfresco_browser_cache_enabled');
   variable_del('alfresco_browser_home');
   variable_del('alfresco_browser_query_limit');
+  variable_del('alfresco_browser_remember_folder');
 }
 
 /**
