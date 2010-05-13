@@ -4,3 +4,6 @@ description = Allows batches of Alfresco items to be imported from a space on th
 package = Alfresco
 dependencies[] = alfresco
 core = 6.x
+
+; Non-official release version 
+version = "6.x-1.2-beta1"

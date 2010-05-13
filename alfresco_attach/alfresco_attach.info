@@ -4,3 +4,6 @@ description = Allows easy attaching of Alfresco nodes to other content types.
 package = Alfresco
 dependencies[] = alfresco
 core = 6.x
+
+; Non-official release version 
+version = "6.x-1.2-beta1"
