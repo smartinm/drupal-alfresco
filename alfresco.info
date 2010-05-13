@@ -4,3 +4,6 @@ description = Alfresco and Drupal integration, this module provides a new node c
 package = Alfresco 
 core = 6.x
 php = 5.2
+
+; Non-official release version 
+version = "6.x-1.2-beta1"
