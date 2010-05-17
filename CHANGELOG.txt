@@ -1,5 +1,10 @@
 // $Id$
 
+Alfresco 6.x-1.2-dev, xxxx-xx-xx
+==================================
+- PHP 5.3 Compatibility.
+- Fixed duplicate key errors when attaching an existing alfresco item.
+
 Alfresco 6.x-1.2-beta1, 2010-05-13
 ==================================
 
@@ -17,9 +22,8 @@ Alfresco Browser/Field:
 - Added 'Remove' button to Alfresco Browser widget (form element).
 - Added 'Remember last folder used' option.
 
-Minors changes:
+Others changes:
 
-- Fixed PHP 5.3 call-time pass-by-reference.
 - Change default alfresco_item node options (not promoted to front page).
 - Implemented hook_flush_caches for Alfresco Browser cache tables.
 

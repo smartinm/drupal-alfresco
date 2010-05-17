@@ -228,7 +228,10 @@ function alfresco_attach_form_validate(&$form, &$form_state) {
 
     if ($nid = alfresco_exists_node($reference)) {
       // Attach existing alfresco item
-      if ($alf_node = node_load($nid)) {
+      if (isset($form['#node']->alfresco[$nid])) {
+        form_set_error('reference', t("This alfresco item is already attached in this node."));
+      }
+      elseif ($alf_node = node_load($nid)) {
         $form_state['alfresco_node'] = $alf_node;
       }
       else {
@@ -408,7 +411,7 @@ function theme_alfresco_attach_attachments($files) {
 /**
  * Theme the attachments list.
  */
-function theme_alfresco_attach_form_current(&$form) {
+function theme_alfresco_attach_form_current($form) {
 
   $header = array('', t('Delete'), t('List'), t('Title'), t('Weight'), t('Size'));
   drupal_add_tabledrag('alfresco-attachments', 'order', 'sibling', 'alfresco-weight');
