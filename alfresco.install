@@ -43,7 +43,7 @@ function alfresco_install() {
 function alfresco_enable() {
   $t = get_t();
   $args = array('@url' => url('admin/settings/alfresco'));
-  drupal_set_message($t('Please visit the <a href="@url">Alfresco settings page</a> for configure the repository location and user credentials.', $args));
+  drupal_set_message($t('Please visit the <a href="@url">Alfresco settings page</a> to configure the repository location and user credentials.', $args));
 }
 
 /**
