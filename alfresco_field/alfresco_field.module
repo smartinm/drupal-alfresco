@@ -192,7 +192,8 @@ function alfresco_field_field($op, &$node, $field, &$items, $teaser, $page) {
             }
           }
         }
-        else {
+        // Solo eliminamos el valor si se ha indicado una referencia vacia.
+        elseif (isset($item['reference'])) {
           $items[$delta]['nid'] = NULL;
         }
       }
@@ -218,7 +219,7 @@ function alfresco_field_field($op, &$node, $field, &$items, $teaser, $page) {
  * from forms.
  */
 function alfresco_field_content_is_empty($item, $field) {
-  if (empty($item['reference'])) {
+  if (empty($item['reference']) && empty($item['nid'])) {
     return TRUE;
   }
   return FALSE;
