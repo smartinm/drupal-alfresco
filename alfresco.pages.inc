@@ -369,7 +369,7 @@ function alfresco_upload_form_validate($form, &$form_state) {
   }
   else {
     // Subimos el fichero a Alfresco
-    alfresco_upload_form_add($form, &$form_state);
+    alfresco_upload_form_add($form, $form_state);
   }
 }
 
