@@ -48,12 +48,13 @@ function alfresco_browser_page() {
     'serviceDownloadUrl' => url('alfresco/browser/service/download'),
     'serviceUploadUrl'   => url('alfresco/browser/service/upload'),
     'serviceDeleteUrl'   => url('alfresco/browser/service/delete'),
-    'queryLimit'         => variable_get('alfresco_browser_query_limit', 20),
+    'queryLimit'         => intval(variable_get('alfresco_browser_query_limit', 20)),
     'accessAdd'          => user_access('upload alfresco repository'),
     'accessDelete'       => user_access('upload alfresco repository'),
     'folderPath'         => !empty($folder_path) ? $folder_path : '',
     'folderRef'          => !empty($folder_path) ? $folder_ref  : $home_ref,
     'folderName'         => !empty($folder_path) ? $folder_name : $home_name,
+    'maxUploadSize'      => format_size(file_upload_max_size()),
   ));
   drupal_add_js($settings, 'setting');
 
@@ -167,7 +168,7 @@ function alfresco_browser_service_items() {
   $node  = isset($_GET['node'])  ? trim($_GET['node']) : '';
   $query = isset($_GET['query']) ? trim($_GET['query']) : '';
   $start = isset($_GET['start']) ? intval($_GET['start']) : 0;
-  $limit = isset($_GET['limit']) ? intval($_GET['limit']) : variable_get('alfresco_browser_query_limit', 20);
+  $limit = isset($_GET['limit']) ? intval($_GET['limit']) : intval(variable_get('alfresco_browser_query_limit', 20));
   $cache_clear = isset($_GET['cache']) ? trim($_GET['cache']) : '';
 
   if (empty($query) && !alfresco_valid_uuid($node)) {
@@ -194,6 +195,8 @@ function alfresco_browser_service_items() {
   $nodes = array();
   $results = array();
 
+  $namespace = AlfNamespaceMap::getInstance();
+
   if (!empty($query)) {
     $store = new AlfStore($session, 'SpacesStore');
     $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
@@ -210,7 +213,6 @@ function alfresco_browser_service_items() {
       exit();
     }
 
-    $namespace = AlfNamespaceMap::getInstance();
     $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
 
     foreach ($folder->children as $child_assoc) {
