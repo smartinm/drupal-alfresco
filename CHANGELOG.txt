@@ -24,6 +24,8 @@ Others changes:
 - Implemented hook_flush_caches for Alfresco Browser cache tables.
 - Fixed duplicate key errors when attaching an existing alfresco item.
 - Fixed CCK bug when checking if alfresco field is empty.
+- Fixed search bug.
+- Fixed page limit size.
 
 
 Alfresco 6.x-1.1, 2010-04-26

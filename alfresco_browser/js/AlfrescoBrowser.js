@@ -179,7 +179,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
       xtype: 'fileuploadfield',
       id: 'form-file',
       name: 'files[file]',  // No change: required for Drupal Form API
-      emptyText: Drupal.t('Locate content to upload'),
+      emptyText: Drupal.t('Locate content to upload (max. upload size: !size)', {'!size' : Drupal.settings.alfresco.maxUploadSize}),
       fieldLabel: Drupal.t('File'),
       labelStyle: 'font-weight:bold;',
       listeners: {

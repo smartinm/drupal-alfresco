@@ -906,8 +906,8 @@ msgid "Request failed."
 msgstr "Petición fallada."
 
 #: alfresco_browser/js/AlfrescoBrowser.js:0
-msgid "Locate content to upload"
-msgstr "Localiza el contenido a subir"
+msgid "Locate content to upload (max. upload size: !size)"
+msgstr "Localiza el contenido a subir (tamaño máximo: !size)"
 
 #: alfresco_browser/js/AlfrescoBrowser.js:0;0
 msgid "Add"

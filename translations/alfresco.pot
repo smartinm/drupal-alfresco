@@ -839,7 +839,7 @@ msgid "Request failed."
 msgstr ""
 
 #: alfresco_browser/js/AlfrescoBrowser.js:0
-msgid "Locate content to upload"
+msgid "Locate content to upload (max. upload size: !size)"
 msgstr ""
 
 #: alfresco_browser/js/AlfrescoBrowser.js:0;0
