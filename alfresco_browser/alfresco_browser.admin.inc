@@ -49,6 +49,14 @@ function alfresco_browser_admin_settings() {
     '#default_value' => variable_get('alfresco_browser_remember_folder', 1),
   );
 
+  $form['browser']['alfresco_browser_search'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Search mode'),
+    '#description'   => t('Select the search mode for search of the repository.'),
+    '#options'       => array(0 => 'Disable', 1 => 'File names only', 2 => 'File names and contents'),
+    '#default_value' => variable_get('alfresco_browser_search', 1),
+  );
+
   /*
   $form['browser']['upload'] = array(
     '#type'          => 'fieldset',
@@ -118,9 +126,6 @@ function alfresco_browser_admin_settings_validate($form, &$form_state) {
  * Process admin alfresco browser settings form submissions.
  */
 function alfresco_browser_admin_settings_submit($form, &$form_state) {
-
-  if ($form_state['values']['alfresco_browser_cache_enabled'] != variable_get('alfresco_browser_cache_enabled', TRUE)) {
-    cache_clear_all(NULL, 'cache_alfresco_browser');
-    drupal_set_message(t('Alfresco browser cache cleared.'));
-  }
+  // Limpiamos siempre la cache
+  cache_clear_all(NULL, 'cache_alfresco_browser');
 }

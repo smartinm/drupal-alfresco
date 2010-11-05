@@ -55,6 +55,7 @@ function alfresco_browser_page() {
     'folderRef'          => !empty($folder_path) ? $folder_ref  : $home_ref,
     'folderName'         => !empty($folder_path) ? $folder_name : $home_name,
     'maxUploadSize'      => format_size(file_upload_max_size()),
+    'searchMode'         => intval(variable_get('alfresco_browser_search', 1)),
   ));
   drupal_add_js($settings, 'setting');
 
@@ -199,7 +200,16 @@ function alfresco_browser_service_items() {
 
   if (!empty($query)) {
     $store = new AlfStore($session, 'SpacesStore');
-    $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
+
+    $search_mode = variable_get('alfresco_browser_search', 1);
+    switch ($search_mode) {
+      case 1:
+        $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +@cm\:name:"*'. $query .'*"');
+        break;
+      case 2:
+        $results = $session->query($store, '+ISNODE:T +TYPE:"cm:content" +ALL:"*'. $query .'*"');
+        break;
+    }
   }
   else {
     $reference = 'workspace://SpacesStore/'. $node;
