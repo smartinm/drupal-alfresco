@@ -16,6 +16,7 @@ Alfresco Browser/Field:
 
 - Added 'Remove' button to Alfresco Browser widget (form element).
 - Added 'Remember last folder used' option.
+- Added 'Search mode' option.
 
 Others changes:
 

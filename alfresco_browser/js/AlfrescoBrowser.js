@@ -465,7 +465,8 @@ AlfrescoBrowser.App = function() {
         store: dataStore,
         width: 320,
         emptyText: Drupal.t('Search (minimum 3 characters)'),
-        applyTo: 'search'
+        applyTo: 'search',
+        hidden: Drupal.settings.alfresco.searchMode == 0 ? true : false
       })
     },
     initDocumentGrid: function(){
