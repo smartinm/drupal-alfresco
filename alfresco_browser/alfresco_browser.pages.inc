@@ -327,7 +327,8 @@ function alfresco_browser_service_upload() {
       'cm_author' => $author,
     );
 
-    $result = alfresco_soap_node_add($reference, $filepath, $name, $mimetype, $encoding, 'cm_content', $properties);
+    $replace = variable_get('alfresco_browser_file_exists', ALFRESCO_FILE_EXISTS_RENAME);
+    $result = alfresco_soap_node_add($reference, $filepath, $name, $mimetype, $encoding, 'cm_content', $properties, $replace);
 
     if (!isset($result->error)) {
       $success = array('success' => TRUE);

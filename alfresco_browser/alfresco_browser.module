@@ -213,7 +213,7 @@ function alfresco_browser_elements() {
  */
 function alfresco_browser_process($element, $edit, $form_state, $complete_form) {
 
-  if (isset($complete_form['#node'])) {
+  if (isset($complete_form['#node']) && !empty($node->cm_name)) {
     $node = $complete_form['#node'];
     $path = !empty($node->alfresco_path) ? $node->alfresco_path .'/' : '';
     $name = $path . $node->cm_name;
