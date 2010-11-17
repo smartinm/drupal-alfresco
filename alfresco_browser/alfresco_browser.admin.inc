@@ -50,11 +50,23 @@ function alfresco_browser_admin_settings() {
   );
 
   $form['browser']['alfresco_browser_search'] = array(
-    '#type'          => 'select',
+    '#type'          => 'radios',
     '#title'         => t('Search mode'),
     '#description'   => t('Select the search mode for search of the repository.'),
     '#options'       => array(0 => 'Disable', 1 => 'File names only', 2 => 'File names and contents'),
     '#default_value' => variable_get('alfresco_browser_search', 1),
+  );
+
+  $form['browser']['alfresco_browser_file_exists'] = array(
+    '#type'          => 'radios',
+    '#title'         => t('File exists'),
+    '#description'   => t('Behavior when the destination file already exists.'),
+    '#options'       => array(
+      ALFRESCO_FILE_EXISTS_RENAME => 'Rename (appends number until name is unique)',
+      ALFRESCO_FILE_EXISTS_REPLACE => 'Replace the existing file',
+      ALFRESCO_FILE_EXISTS_ERROR => 'Return error',
+    ),
+    '#default_value' => variable_get('alfresco_browser_file_exists', ALFRESCO_FILE_EXISTS_RENAME),
   );
 
   /*

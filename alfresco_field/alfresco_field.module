@@ -498,6 +498,9 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
 }
 
 function theme_alfresco_field_widget($element) {
+  if (!module_exists('alfresco_browser')) {
+    return;
+  }
   alfresco_browser_add_js();
   drupal_add_css(drupal_get_path('module', 'alfresco_field') .'/alfresco_field.css');
   return theme('form_element', $element, '<div class="container-inline alfresco-browser-container">'. drupal_render($element) .'</div>');
