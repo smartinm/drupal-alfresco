@@ -59,18 +59,22 @@ AlfrescoBrowser.ViewItem = function (itemsGrid) {
     html: '<iframe id="preview-frame" frameborder="0"  src="' + url + '" onLoad="AlfrescoBrowser.ViewItemOnLoad()"></iframe>',
     buttonAlign: 'center',
     defaultButton: 0,
+    animateTarget: 'btn-open',
     buttons: [{
       text: 'Close',
       handler: function() {
         iframeWin.close();
       }
-    }]
+    }],
+    listeners: {
+      'afterrender': function(win) {
+        var mask = new Ext.LoadMask(win.body);
+        mask.show();
+      }
+    }
   });
   
   iframeWin.show();
-  
-  var mask = new Ext.LoadMask(iframeWin.body);
-  mask.show();
 }
 
 AlfrescoBrowser.ViewItemOnLoad = function () {
@@ -269,6 +273,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
     minWidth: 300,
     modal: 'true',
     layout: 'fit', 
+    animateTarget: 'btn-add',
     items: [ uploadForm ]
   });
   
@@ -333,6 +338,8 @@ AlfrescoBrowser.App = function() {
         id: 'folder-tree',
         region: 'west',
         collapsible: true,
+        collapseMode: 'mini',
+        hideCollapseTool: true,
         title: Drupal.t('Browse Spaces'),
         margins: '5 0 5 5',
         cmargins: '5 5 5 5',
