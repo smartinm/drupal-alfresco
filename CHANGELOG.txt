@@ -28,6 +28,7 @@ Others changes:
 - Fixed CCK bug when checking if alfresco field is empty.
 - Fixed search bug.
 - Fixed page limit size.
+- Moved alfresco pages to admin.
 
 
 Alfresco 6.x-1.1, 2010-04-26
