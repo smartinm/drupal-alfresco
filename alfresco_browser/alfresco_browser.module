@@ -60,9 +60,9 @@ function alfresco_browser_menu() {
     'file' => 'alfresco_browser.admin.inc',
   );
 
-  // Pages
+  // Admin pages
 
-  $items['alfresco/repository'] = array(
+  $items['admin/alfresco/repository'] = array(
     'title' => 'Repository browser',
     'description' => 'Visualize, search, browse and retrieve nodes of the Alfresco repository.',
     'page callback' => 'alfresco_browser_repository_page',

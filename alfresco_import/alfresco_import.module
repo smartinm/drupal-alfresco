@@ -31,7 +31,7 @@ function alfresco_import_perm() {
  */
 function alfresco_import_menu() {
 
-  $items['alfresco/import'] = array(
+  $items['admin/alfresco/import'] = array(
     'title' => 'Import items',
     'description' => 'Import <em>Alfresco item</em> nodes from an Alfresco space.',
     'page callback' => 'drupal_get_form',

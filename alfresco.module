@@ -206,15 +206,16 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
 
-  // Pages
+  // Admin Pages
 
-  $items['alfresco'] = array(
+  $items['admin/alfresco'] = array(
     'title' => 'Alfresco',
+    'description' => "Manage your Alfresco repository's content.",
     'page callback' => 'alfresco_overview_page',
-    'access arguments' => array('access content'),
+    'access arguments' => array('administer site configuration'),
     'file' => 'alfresco.pages.inc',
   );
-  $items['alfresco/upload'] = array(
+  $items['admin/alfresco/upload'] = array(
     'title' => 'Upload content',
     'description' => 'Add content to a space and enter information about the content to be uploaded.',
     'page callback' => 'drupal_get_form',
@@ -223,11 +224,11 @@ function alfresco_menu() {
     'file' => 'alfresco.pages.inc',
   );
   if (module_exists('views')) {
-    $items['alfresco/items'] = array(
+    $items['admin/alfresco/items'] = array(
       'title' => 'View items',
       'description' => 'Displays a list of alfresco items nodes.',
       'page callback' => 'alfresco_items_page',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer site configuration'),
       'file' => 'alfresco.pages.inc',
     );
   }
