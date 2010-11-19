@@ -8,6 +8,28 @@
  */
 Ext.ns('AlfrescoBrowser');
 
+AlfrescoBrowser.ShowMsgError = function (title, msg) {
+  Ext.Msg.show({
+    title: title,
+    msg: msg,
+    minWidth: 200,
+    modal: true,
+    icon: Ext.MessageBox.ERROR,
+    buttons: Ext.Msg.OK
+  });
+}
+
+AlfrescoBrowser.ShowMsgWarning = function (title, msg) {
+  Ext.Msg.show({
+    title: title,
+    msg: msg,
+    minWidth: 200,
+    modal: true,
+    icon: Ext.MessageBox.WARNING,
+    buttons: Ext.Msg.OK
+  });
+}
+
 AlfrescoBrowser.SendItem = function (itemsGrid) {
   var items = itemsGrid.getSelectionModel().getSelections();
   if (items.length == 0 || !window.opener) {
@@ -131,26 +153,12 @@ AlfrescoBrowser.DeleteItem = function (itemsGrid) {
             if (result.success) {
               itemsGrid.store.load({params:{start: 0, cache: 'node'}});
             } else {
-              Ext.Msg.show({
-                title: Drupal.t('Aviso'),
-                msg: result.error,
-                minWidth: 200,
-                modal: true,
-                icon: Ext.MessageBox.WARNING,
-                buttons: Ext.Msg.OK
-              });
+              AlfrescoBrowser.ShowMsgWarning(Drupal.t('Warning'), result.error);
             }
             itemsGrid.enable();
           },
           failure: function() {
-            Ext.Msg.show({
-              title: Drupal.t('Fail'),
-              msg: Drupal.t('Request failed.'),
-              minWidth: 200,
-              modal: true,
-              icon: Ext.MessageBox.ERROR,
-              buttons: Ext.Msg.OK
-            });
+            AlfrescoBrowser.ShowMsgError(Drupal.t('Fail'), Drupal.t('Request failed.'));
             itemsGrid.enable();
           }
         });
@@ -174,6 +182,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
     autoHeight: true,
     bodyStyle: 'padding: 10px 10px 0 10px;',
     labelWidth: 50,
+    monitorValid: true,
     defaults: {
       anchor: '95%',
       allowBlank: false,
@@ -235,6 +244,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
     }],
     buttons: [{
       text: Drupal.t('Add'),
+      formBind: true,
       handler: function() {
         if (uploadForm.getForm().isValid()) {
           uploadForm.getForm().submit({
