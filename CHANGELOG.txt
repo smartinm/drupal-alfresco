@@ -1,6 +1,6 @@
 // $Id$
 
-Alfresco 6.x-1.x, xxxx-xx-xx
+Alfresco 6.x-1.2-beta2, 2010-11-19
 ============================
 
 You MUST run update.php when upgrading to this version.

@@ -8,4 +8,4 @@ dependencies[] = content
 core = 6.x
 
 ; Non-official release version 
-version = "6.x-1.2-dev"
+version = "6.x-1.2-beta2"
