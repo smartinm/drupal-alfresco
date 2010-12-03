@@ -6,4 +6,4 @@ dependencies[] = alfresco
 core = 6.x
 
 ; Non-official release version 
-version = "6.x-1.2-beta2"
+version = "6.x-1.2-beta3"
