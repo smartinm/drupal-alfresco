@@ -417,9 +417,13 @@ function _alfresco_browser_node_path($node) {
   static $paths = array();
 
   if (!isset($paths[$node->id])) {
+    $home_path = variable_get('alfresco_browser_home', ALFRESCO_BROWSER_HOME);
+    $home_node = alfresco_soap_node_load($home_path);
+
     $path = '/'. $node->id;
     $current_folder = $node;
     while ($parent_folder = $current_folder->getPrimaryParent()) {
+      $id = $parent_folder->id;
       $parent_type = $parent_folder->getType();
       if ($parent_type == '{http://www.alfresco.org/model/system/1.0}store_root') {
         break;
@@ -427,6 +431,9 @@ function _alfresco_browser_node_path($node) {
       $folder_id = $parent_folder->id;
       $path = '/'. $folder_id . $path;
       $current_folder = $parent_folder;
+      if ($id == $home_node->id) {
+        break;
+      }
     }
     $paths[$node->id] = $path;
   }
