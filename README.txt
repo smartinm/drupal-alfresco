@@ -17,6 +17,9 @@ configuration. The core of integration is based on the type of content
 * alfresco_browser.module: Allows users to visualize, search, browse and
   retrieve nodes of the Alfresco repository.
 
+* alfresco_field.module: Defines a CCK field type for creating and referencing
+  an Alfresco node from another node.
+
 * alfresco_attach.module: Allows users to create and attach alfresco items to
   other Drupal content (similar to upload.module).
 
@@ -32,7 +35,7 @@ configuration. The core of integration is based on the type of content
   * DOM Extension (part of PHP 5 core)
   * SOAP Extension (--enable-soap)
 
-* Ext JS - JavaScript Library
+* Ext JS (http://www.sencha.com/products/js)
   * Only for Alfresco browser module
 
 
@@ -55,9 +58,6 @@ configuration. The core of integration is based on the type of content
 
   - Repository: Set URL and credentials for the Alfresco repository.
   
-  - File downloads: Select the download method of the files stored in Alfresco
-    repository. 
- 
 * Configure user permissions in Administer >> User management >> Permissions
   >> alfresco module
 

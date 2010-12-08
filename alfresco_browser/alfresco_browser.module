@@ -118,6 +118,13 @@ function alfresco_browser_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['alfresco/browser/service/create'] = array(
+    'page callback' => 'alfresco_browser_service_create_space',
+    'access callback' => 'alfresco_browser_access',
+    'file' => 'alfresco_browser.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 

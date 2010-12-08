@@ -48,6 +48,7 @@ function alfresco_browser_page() {
     'serviceDownloadUrl' => url('alfresco/browser/service/download'),
     'serviceUploadUrl'   => url('alfresco/browser/service/upload'),
     'serviceDeleteUrl'   => url('alfresco/browser/service/delete'),
+    'serviceCreateUrl'   => url('alfresco/browser/service/create'),
     'queryLimit'         => intval(variable_get('alfresco_browser_query_limit', 20)),
     'accessAdd'          => user_access('upload alfresco repository'),
     'accessDelete'       => user_access('upload alfresco repository'),
@@ -301,6 +302,10 @@ function alfresco_browser_service_download() {
  */
 function alfresco_browser_service_upload() {
 
+  if (!user_access('upload alfresco repository')) {
+    exit();
+  }
+
   $space = isset($_POST['space']) ? trim($_POST['space']) : '';
   $name = isset($_POST['name']) ? trim($_POST['name']) : '';
   $title = isset($_POST['title']) ? trim($_POST['title']) : '';
@@ -337,6 +342,7 @@ function alfresco_browser_service_upload() {
       $success = array('success' => FALSE, 'error' => $result->error);
     }
 
+    // drupal_json no funciona con subida de ficheros
     drupal_set_header('Content-Type: text/html;charset=UTF-8');
     echo drupal_to_js($success);
     exit();
@@ -346,11 +352,55 @@ function alfresco_browser_service_upload() {
 /**
  *
  */
-function alfresco_browser_service_delete() {
+function alfresco_browser_service_create_space() {
+
+  if (!user_access('upload alfresco repository')) {
+    exit();
+  }
+
+  $space = isset($_POST['space']) ? trim($_POST['space']) : '';
+  $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+  $title = isset($_POST['title']) ? trim($_POST['title']) : '';
+  $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+
   alfresco_include('soap');
+
+  $reference = 'workspace://SpacesStore/'. $space;
+  $properties = array(
+    'cm_title' => $title,
+    'cm_description' => $description,
+  );
+
+  $result = alfresco_soap_node_add_folder($reference, $name, 'cm_folder', $properties);
+  if (!isset($result->error)) {
+    $success = array('success' => TRUE);
+  }
+  else {
+    $success = array('success' => FALSE, 'error' => $result->error);
+  }
+
+  if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
+    global $user;
+    $cid = "user=$user->uid;tree=$space";
+    cache_clear_all($cid, 'cache_alfresco_browser', TRUE);
+  }
+
+  drupal_json($success);
+}
+
+/**
+ *
+ */
+function alfresco_browser_service_delete() {
+
+  if (!user_access('upload alfresco repository')) {
+    exit();
+  }
 
   $node = isset($_GET['node']) ? trim($_GET['node']) : '';
   $reference = 'workspace://SpacesStore/'. $node;
+
+  alfresco_include('soap');
 
   $result = alfresco_soap_node_delete($reference);
   if (isset($result->error)) {
@@ -360,6 +410,12 @@ function alfresco_browser_service_delete() {
 
   if ($nid = alfresco_exists_node($reference)) {
     node_delete($nid);
+  }
+
+  if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
+    global $user;
+    $cid = "user=$user->uid";
+    cache_clear_all($cid, 'cache_alfresco_browser', TRUE);
   }
 
   drupal_json(array('success' => TRUE));
