@@ -132,26 +132,55 @@ AlfrescoBrowser.DownloadItem = function (itemsGrid, forceDownload) {
   }
 }
 
-AlfrescoBrowser.DeleteItem = function (itemsGrid) {
+AlfrescoBrowser.DeleteItem = function (itemsGrid, folderTree) {
+  var id = null;
+  var name = null;
+  var space = null;
   var items = itemsGrid.getSelectionModel().getSelections();
-  if (items.length == 0) {
+  if (items.length != 0) {
+    id = items[0].data.id;
+    name = items[0].data.name;
+  }
+  else {
+    var space = folderTree.getSelectionModel().getSelectedNode();
+    if (!Ext.isEmpty(space)) {
+      id = space.id;
+      name = space.text;
+    }
+  }
+  if (!id) {
     return;
   }
-  var node = items[0].data;
   itemsGrid.disable();
   
+  var confirmMsg = '';
+  if (space) {
+    confirmMsg = Drupal.t('Are you sure you want to delete "!name" space and all its contents?', {'!name' : name});
+  }
+  else {
+    confirmMsg = Drupal.t('Are you sure you want to delete "!name" and all previous versions?', {'!name' : name});
+  }
   Ext.MessageBox.confirm(
-    Drupal.t('Confirm'),
-    Drupal.t('Are you sure you want to delete "!name" and all previous versions?', {'!name' : node.name}),
+    space ? Drupal.t('Confirm Delete Space') : Drupal.t('Confirm Delete Item'),
+    confirmMsg,
     function(btn) {
       if (btn == 'yes') {
-        var url = Drupal.settings.alfresco.serviceDeleteUrl + "/" + node.name + "?node=" + node.id;
+        var url = Drupal.settings.alfresco.serviceDeleteUrl + "/" + name + "?node=" + id;
         Ext.Ajax.request({
           url: url,
           success: function(response, options) {
             var result = Ext.decode(response.responseText);
             if (result.success) {
-              itemsGrid.store.load({params:{start: 0, cache: 'node'}});
+              if (space) {
+                parentNode = space.parentNode;
+                parentNode.reload();
+                folderTree.selectPath(parentNode.getPath());
+                itemsGrid.store.baseParams = {node: parentNode.id};
+                itemsGrid.store.load({params:{start:0}});
+                itemsGrid.setTitle(name);
+              } else {
+                itemsGrid.store.load({params:{start: 0, cache: 'node'}});
+              }
             } else {
               AlfrescoBrowser.ShowMsgWarning(Drupal.t('Warning'), result.error);
             }
@@ -290,6 +319,97 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
   uploadWindow.show();
 }
 
+AlfrescoBrowser.CreateSpace = function (folderTree) {
+  var space = folderTree.getSelectionModel().getSelectedNode();
+  if (Ext.isEmpty(space)) {
+    return;
+  }
+
+  var createSpaceForm = new Ext.FormPanel({
+    width: 500,
+    frame: true,
+    border: false,
+    autoHeight: true,
+    bodyStyle: 'padding: 10px 10px 0 10px;',
+    labelWidth: 70,
+    monitorValid: true,
+    defaults: {
+      anchor: '95%',
+      allowBlank: false,
+      msgTarget: 'side'
+    },
+    items: [{
+      xtype: 'textfield',
+      id: 'form-name',
+      name: 'name',
+      allowBlank: false,
+      fieldLabel: Drupal.t('Name'),
+      labelStyle: 'font-weight:bold;',
+      maxLength: 255
+    }, {
+      xtype: 'hidden',
+      name: 'space',
+      value: space.id
+    }, {
+      xtype: 'textfield',
+      fieldLabel: Drupal.t('Title'),
+      name: 'title',
+      allowBlank: true,
+      maxLength: 255
+    },{
+      xtype: 'textarea',
+      fieldLabel: Drupal.t('Description'),
+      name: 'description',
+      allowBlank: true
+    }],
+    buttons: [{
+      text: Drupal.t('Create Space'),
+      formBind: true,
+      handler: function() {
+        if (createSpaceForm.getForm().isValid()) {
+          createSpaceForm.getForm().submit({
+            url: Drupal.settings.alfresco.serviceCreateUrl,
+            waitMsg: Drupal.t('Creating space...'),
+            success: function(form, o) {
+              space.reload();
+              createSpaceWindow.close();
+            },
+            failure: function(form, o){
+              Ext.Msg.show({
+                title: Drupal.t('Ha ocurrido un error'),
+                msg: o.result.error,
+                minWidth: 200,
+                modal: true,
+                icon: Ext.MessageBox.WARNING,
+                buttons: Ext.Msg.OK
+              });
+            }
+          });
+        }
+      }
+    }, {
+      text: 'Cancel',
+      handler: function(){
+        createSpaceWindow.close();
+      }
+    }]
+  });
+
+  var createSpaceWindow = new Ext.Window({
+    id: 'create-space-window',
+    title: Drupal.t('Create space on: !space', {'!space' : space.text}),
+    autoHeight: true,
+    width: 500,
+    minWidth: 300,
+    modal: 'true',
+    layout: 'fit', 
+    animateTarget: 'btn-add-folder',
+    items: [ createSpaceForm ]
+  });
+  
+  createSpaceWindow.show();
+}
+
 AlfrescoBrowser.App = function() {
   var folderTree;
   var itemsGrid;
@@ -301,9 +421,7 @@ AlfrescoBrowser.App = function() {
   return {
     init: function() {
       Ext.Ajax.timeout = 60000; // 60s (default 30s)
-
-      //Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
-      
+      Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
       Ext.QuickTips.init();
       
       this.initFolderTree();
@@ -397,9 +515,13 @@ AlfrescoBrowser.App = function() {
 	            itemsGrid.setTitle(node.text);
 	            //node.expand();
     	  	}
-            if (Drupal.settings.alfresco.accessAdd) {
-              Ext.getCmp('btn-add').enable();
-            }
+          if (Drupal.settings.alfresco.accessAdd) {
+            Ext.getCmp('btn-add').enable();
+            Ext.getCmp('btn-add-folder').enable();
+          }
+          if (Drupal.settings.alfresco.accessDelete) {
+            Ext.getCmp('btn-delete').enable();
+          }
         }},
         
         tools: [{
@@ -469,6 +591,8 @@ AlfrescoBrowser.App = function() {
             var title = Drupal.t('Search items: !query', {'!query': Ext.util.Format.htmlEncode(v)});
             itemsGrid.setTitle(title);
             Ext.getCmp('btn-add').disable();
+            Ext.getCmp('btn-add-folder').disable();
+            Ext.getCmp('btn-delete').disable();
 
             this.store.baseParams[this.paramName] = v;
             this.store.load({params:{start:0}});
@@ -527,7 +651,7 @@ AlfrescoBrowser.App = function() {
           load: {
             fn: function(){
               Ext.getCmp('btn-download').disable();
-              Ext.getCmp('btn-delete').disable();
+              //Ext.getCmp('btn-delete').disable();
               Ext.getCmp('btn-open').disable();
               Ext.getCmp('btn-send').disable();
               Ext.getCmp('grid-details').disable();
@@ -648,13 +772,22 @@ AlfrescoBrowser.App = function() {
             AlfrescoBrowser.AddItem(folderTree, dataStore);
           }
         }, {
+          id: 'btn-add-folder',
+          text: Drupal.t('Create Space'),
+          tooltip: Drupal.t('Create Space.'),
+          iconCls: 'create-space',
+          disabled: !Drupal.settings.alfresco.accessAdd,
+          handler: function() {
+            AlfrescoBrowser.CreateSpace(folderTree);
+          }
+        }, {
           id: 'btn-delete',
           text: Drupal.t('Delete'),
           tooltip: Drupal.t('Delete selected item.'),
           iconCls: 'delete',
           disabled: true,
           handler: function() {
-            AlfrescoBrowser.DeleteItem(itemsGrid);
+            AlfrescoBrowser.DeleteItem(itemsGrid, folderTree);
           }
         }, {
           id: 'btn-download',

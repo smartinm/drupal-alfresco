@@ -287,6 +287,7 @@ function alfresco_soap_search($text, $property = '@cm:name') {
 }
 
 /**
+ * @todo update doc
  * Uploads a file into content store and returns the content data string which
  * can be used to populate a content property.
  *
@@ -392,6 +393,59 @@ function alfresco_soap_node_add($space, $filepath, $name = NULL, $mimetype = NUL
 
       $session->save();
     }
+  }
+  catch (SoapFault $exception) {
+    $error_msg = alfresco_error_handler('alfresco', $exception, TRUE);
+    $result->error = !empty($error_msg) ? $error_msg : t('Imposible añadir el contenido. Por favor, compruebe que tiene los permisos necesarios para añadir contenido al espacio.');
+  }
+
+  return $result;
+}
+
+/**
+ * @todo add doc
+ *
+ * @param $space
+ * @param $name
+ * @param $type
+ * @param $properties
+ * @param $replace
+ */
+function alfresco_soap_node_add_folder($space, $name, $type = 'cm_folder', $properties = array()) {
+  $result = new stdClass();
+
+  try {
+    $session = alfresco_soap_get_session();
+    if (!$session) {
+      $result->error = t('Imposible obtener una sesión de Alfresco.');
+      return $result;
+    }
+
+    $space_node = alfresco_soap_node_load($space);
+    if (!$space_node) {
+      $result->error = t('El espacio especificado no existe.');
+      return $result;
+    }
+
+    $current_node = _alfresco_soap_node_exists($space_node, $name);
+    if ($current_node) {
+        $result->error = t('The folder %folder could not be created, because a folder by that name already exists in the destination.', array('%folder' => $name));
+        return $result;
+    }
+
+    $new_node = $space_node->createChild($type, 'cm_contains', 'cm_'. $name);
+    $new_node->cm_name = $name;
+
+    if (is_array($properties) && count($properties)) {
+      foreach ($properties as $key => $value) {
+        $new_node->$key = $value;
+      }
+    }
+
+    $result->space = $space_node;
+    $result->node = $new_node;
+
+    $session->save();
   }
   catch (SoapFault $exception) {
     $error_msg = alfresco_error_handler('alfresco', $exception, TRUE);

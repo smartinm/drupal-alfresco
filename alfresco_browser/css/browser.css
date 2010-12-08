@@ -75,6 +75,10 @@
   background-image: url(../images/delete.gif);
 }
 
+#items-grid button.create-space {
+  background-image: url(../images/create_space.gif);
+}
+
 /*
  * TreePanel component styles
  */
