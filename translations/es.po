@@ -866,7 +866,7 @@ msgstr "acceder navegador alfresco"
 
 #: alfresco_browser/alfresco_browser.module:66
 msgid "Repository browser"
-msgstr "Navegador de repositorio"
+msgstr "Navegador del repositorio"
 
 #: alfresco_browser/alfresco_browser.module:67
 msgid "Visualize, search, browse and retrieve nodes of the Alfresco repository."
@@ -1268,3 +1268,7 @@ msgstr "¿Esta seguro de que quiere eliminar la carpeta "!name" y todo su conten
 #: alfresco_browser/AlfrescoBrowser.js:432
 msgid "The folder %folder could not be created, because a folder by that name already exists in the destination."
 msgstr "La carpeta %folder" no puede ser creada, porque ya existe una carpeta con el mismo nombre en esta ubicación."
+
+#: alfresco_browser/AlfrescoBrowser.js:355
+msgid "Title"
+msgstr "Título"
