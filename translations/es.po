@@ -1238,3 +1238,33 @@ msgstr ""
 msgid "Display as download link"
 msgstr ""
 
+#: alfresco_browser/AlfrescoBrowser.js:400
+msgid "Create space on: !space"
+msgstr "Crear carpeta en: !space"
+
+#: alfresco_browser/AlfrescoBrowser.js:366
+#: alfresco_browser/AlfrescoBrowser.js:776
+#: alfresco_browser/AlfrescoBrowser.js:777
+#: alfresco_browser/AlfrescoBrowser.js:366
+msgid "Create Space"
+msgstr "Crear Carpeta"
+
+#: alfresco_browser/AlfrescoBrowser.js:372
+msgid "Creating space..."
+msgstr "Creando carpeta..."
+
+#: alfresco_browser/AlfrescoBrowser.js:164
+msgid "Confirm Delete Space"
+msgstr "Confirmar Borrado de Carpeta"
+
+#: alfresco_browser/AlfrescoBrowser.js:164
+msgid "Confirm Delete Item"
+msgstr "Confirmar Borrado de Elemento"
+
+#: alfresco_browser/AlfrescoBrowser.js:158
+msgid "Are you sure you want to delete "!name" space and all its contents?"
+msgstr "¿Esta seguro de que quiere eliminar la carpeta "!name" y todo su contenido?"
+
+#: alfresco_browser/AlfrescoBrowser.js:432
+msgid "The folder %folder could not be created, because a folder by that name already exists in the destination."
+msgstr "La carpeta %folder" no puede ser creada, porque ya existe una carpeta con el mismo nombre en esta ubicación."
