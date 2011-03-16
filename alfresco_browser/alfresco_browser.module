@@ -239,6 +239,7 @@ function alfresco_browser_process($element, $edit, $form_state, $complete_form) 
   $element['alfresco_browser_name'] = array(
     '#type' => 'textfield',
     '#default_value' => $name,
+    '#maxlength' => 255,
     '#attributes' => array('class' => 'alfresco-browser-name', 'readonly' => TRUE),
   );
 
