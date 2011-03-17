@@ -465,6 +465,7 @@ function alfresco_field_widget(&$form, &$form_state, $field, $items, $delta = 0)
 
   $element['name'] = array(
     '#type' => 'textfield',
+    '#maxlength' => 255,
     '#default_value' => isset($items[$delta]['name']) ? $items[$delta]['name'] : $defaults['name'],
     '#attributes' => array('class' => 'alfresco-browser-name', 'readonly' => TRUE),
   );
