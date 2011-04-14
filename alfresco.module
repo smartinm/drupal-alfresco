@@ -682,11 +682,15 @@ function alfresco_load($node) {
 
 /**
  * Implementation of hook_view().
- *
- * This is a typical implementation that simply runs the node text through
- * the output filters.
  */
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
+  // Si el usuario no tiene permisos para modificar el elemento, lo redirigimos
+  // directamente a la descarga.
+  if (variable_get('alfresco_redirect_download', FALSE) && !node_access('update', $node)) {
+    drupal_goto(alfresco_url_download($node));
+    return;
+  }
+
   drupal_add_css(drupal_get_path('module', 'alfresco') .'/alfresco.css');
 
   $node = node_prepare($node, $teaser);

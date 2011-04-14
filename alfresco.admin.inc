@@ -329,6 +329,13 @@ function alfresco_admin_advanced() {
     '#title' => t('Advanced settings'),
   );
 
+  $form['advanced']['alfresco_redirect_download'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force redirect to download'),
+    '#default_value' => variable_get('alfresco_redirect_download', FALSE),
+    '#description' => t('Marque esta opción si desea redirigir el usuario a la descarga del elemento en caso de que no tenga permisos para modificar el elemento de alfresco.'),
+  );
+
   $form['advanced']['alfresco_ticket_timeout'] = array(
     '#type' => 'select',
     '#title' => t('Ticket valid duration'),
@@ -362,7 +369,6 @@ function alfresco_admin_advanced() {
     '#type' => 'fieldset',
     '#title' => t('Download method'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
     '#description' => $download_help . theme('item_list', $download_tips),
   );
 

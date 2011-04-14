@@ -11,6 +11,7 @@ Features:
   Alfresco node from another node.
 - Added filetypes icons for Alfresco files.
 - Added folder path for alfresco_items nodes.
+- Added 'Force redirect to download' option on advanced settings.
 
 Alfresco Browser/Field:
 
@@ -19,7 +20,7 @@ Alfresco Browser/Field:
 - Added 'Remember last folder used' option.
 - Added 'Search mode' option.
 - Added 'File exists behavior' option.
-- New counter items on space tree.
+- Added display of items counts, between parentheses, for each space.
 
 Others changes:
 
