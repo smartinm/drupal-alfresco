@@ -136,22 +136,17 @@ function alfresco_browser_service_spaces() {
     exit();
   }
 
-  $namespace = AlfNamespaceMap::getInstance();
-  $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-
   foreach ($space->getChildren() as $child) {
     /* @var $child_node AlfNode */
     $child_node = $child->child;
 
-    // @todo: Enhanced suppport other folder types
-    $type = $namespace->getShortName($child_node->getType());
-    //$ctype = $session->getContentType(str_replace('_', ':', $type));
-
-    if (in_array($type, $folder_types)) {
+    if (alfresco_browser_is_folder_type($child_node->getType())) {
+      $count = _aflresco_browser_count_folder($child_node);
       $nodes[] = array(
         'id'   => $child_node->id,
-        'text' => trim($child_node->cm_name),
+        'text' => trim($child_node->cm_name) . ' ('. $count['items'] .')',
         'qtip' => trim($child_node->cm_title),
+        'leaf' => empty($count['folders']),
       );
     }
   }
@@ -163,6 +158,23 @@ function alfresco_browser_service_spaces() {
   }
 
   drupal_json($nodes);
+}
+
+function _aflresco_browser_count_folder($node) {
+  $folders = 0;
+  $items = 0;
+
+  foreach ($node->getChildren() as $child) {
+    $child_node = $child->child;
+    if (alfresco_browser_is_folder_type($child_node->getType())) {
+      $folders ++;
+    }
+    else {
+      $items ++;
+    }
+  }
+
+  return array('folders' => $folders, 'items' => $items);
 }
 
 function alfresco_browser_service_items() {
@@ -224,13 +236,10 @@ function alfresco_browser_service_items() {
       exit();
     }
 
-    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
-
     foreach ($folder->children as $child_assoc) {
-      // @todo: Enhanced suppport other folder types
-      $type = $namespace->getShortName($child_assoc->child->type);
-      if (!in_array($type, $folder_types)) {
-        $results[] = $child_assoc->child;
+      $child_node = $child_assoc->child;
+      if (!alfresco_browser_is_folder_type($child_node->type)) {
+        $results[] = $child_node;
       }
     }
   }
@@ -495,4 +504,22 @@ function _alfresco_browser_node_path($node) {
   }
 
   return $paths[$node->id];
+}
+
+/**
+ * @todo: Enhanced suppport other folder types
+ */
+function alfresco_browser_is_folder_type($type) {
+  static $cache = array();
+
+  //$ctype = $session->getContentType(str_replace('_', ':', $type));
+
+  if (!isset($cache[$type])) {
+    $namespace = AlfNamespaceMap::getInstance();
+    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
+    $short_type = $namespace->getShortName($type);
+    $cache[$type] = in_array($short_type, $folder_types);
+  }
+
+  return $cache[$type];
 }
