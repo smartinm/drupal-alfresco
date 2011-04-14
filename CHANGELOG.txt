@@ -19,6 +19,7 @@ Alfresco Browser/Field:
 - Added 'Remember last folder used' option.
 - Added 'Search mode' option.
 - Added 'File exists behavior' option.
+- New counter items on space tree.
 
 Others changes:
 

@@ -646,7 +646,7 @@ AlfrescoBrowser.App = function() {
         baseParams: {node: Drupal.settings.alfresco.folderRef},
         autoLoad: true,
         //remoteSort: true,
-        sortInfo: {field: 'name', direction: 'ASC'},
+        //sortInfo: {field: 'name', direction: 'ASC'},
         listeners: {
           load: {
             fn: function(){
@@ -666,14 +666,14 @@ AlfrescoBrowser.App = function() {
       }
 
       var columns = [
-        {id: 'name', header: Drupal.t('Name'), dataIndex: 'name', sortable: true, width: 200, renderer: renderName},
+        {id: 'name', header: Drupal.t('Name'), dataIndex: 'name', sortable: false, width: 200, renderer: renderName},
         {header: Drupal.t('Size'), dataIndex: 'size', sortable: false, align: 'right', width: 80},
-        {header: Drupal.t('Creator'), dataIndex: 'creator', sortable: true, width: 100},
-        {header: Drupal.t('Date created'), dataIndex: 'created', width: 130, hidden: true, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
-        {header: Drupal.t('Date modified'), dataIndex: 'modified', width: 130, sortable: true, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
-        {header: Drupal.t('Title'), dataIndex: 'title', width: 200, sortable: true, hidden: true},
+        {header: Drupal.t('Creator'), dataIndex: 'creator', sortable: false, width: 100},
+        {header: Drupal.t('Date created'), dataIndex: 'created', width: 130, hidden: true, sortable: false, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
+        {header: Drupal.t('Date modified'), dataIndex: 'modified', width: 130, sortable: false, renderer: Ext.util.Format.dateRenderer('d-m-Y H:i:s')},
+        {header: Drupal.t('Title'), dataIndex: 'title', width: 200, sortable: false, hidden: true},
         {header: Drupal.t('Description'), dataIndex: 'description', width: 200, sortable: false, hidden: true},
-        {header: Drupal.t('Author'), dataIndex: 'author', width: 100, sortable: true, hidden: true}
+        {header: Drupal.t('Author'), dataIndex: 'author', width: 100, sortable: false, hidden: true}
       ];
       
       var bar = new Ext.PagingToolbar({
