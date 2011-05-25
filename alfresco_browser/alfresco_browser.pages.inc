@@ -140,7 +140,7 @@ function alfresco_browser_service_spaces() {
     /* @var $child_node AlfNode */
     $child_node = $child->child;
 
-    if (alfresco_browser_is_folder_type($child_node->getType())) {
+    if (alfresco_browser_is_folder_type($child_node->getType(), TRUE)) {
       $count = _aflresco_browser_count_folder($child_node);
       $nodes[] = array(
         'id'   => $child_node->id,
@@ -514,15 +514,18 @@ function _alfresco_browser_node_path($node) {
 /**
  * @todo: Enhanced suppport other folder types
  */
-function alfresco_browser_is_folder_type($type) {
+function alfresco_browser_is_folder_type($type, $ignore_systemfolder = FALSE) {
   static $cache = array();
 
   //$ctype = $session->getContentType(str_replace('_', ':', $type));
-
   if (!isset($cache[$type])) {
     $namespace = AlfNamespaceMap::getInstance();
-    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
     $short_type = $namespace->getShortName($type);
+    if ($ignore_systemfolder && $short_type == 'cm_systemfolder') {
+      return FALSE;
+    }
+
+    $folder_types = variable_get('alfresco_folder_types', array('cm_folder'));
     $cache[$type] = in_array($short_type, $folder_types);
   }
 

@@ -25,14 +25,15 @@ New Alfresco Browser features:
 
 Minor changes:
 
+- Don't show system folders (Content Rules) in Alfresco Browser.
+- Implemented hook_flush_caches for Alfresco Browser cache tables.
 - Moved alfresco navigation pages to administration menu.
 - Change default alfresco_item node options (not promoted to front page).
-- Implemented hook_flush_caches for Alfresco Browser cache tables.
 
 Fixes:
 
+- Fixed bug when an alfresco item is attached to book page.
 - #808640 alexharries: Fixed PHP 5.3 compatibility issues.
-- Fixex bug when an alfresco item is attached to book page.
 - Fixed duplicate key errors when attaching an existing alfresco item.
 - Fixed browser search bug.
 - Fixed page limit size.

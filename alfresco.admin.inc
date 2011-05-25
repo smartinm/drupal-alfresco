@@ -59,26 +59,6 @@ function alfresco_admin_settings() {
     '#size'          => 25,
   );
 
-  // AUTHENTICATION METHOD
-
-  $form['authentication'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Authentication'),
-    //'#description' => t('NOTE: These settings have no effect on user with uid 1. The admin account always uses global account.'),
-  );
-
-  $form['authentication']['alfresco_authentication_method'] = array(
-    '#type' => 'radios',
-    '#title' => t('Authentication mode'),
-    '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_GLOBAL),
-    '#required' => TRUE,
-    '#options' => array(
-      ALFRESCO_AUTH_GLOBAL => t('Global: <em>Always use the above username and password</em>'),
-      ALFRESCO_AUTH_SSO => t('Single sign-on: <em>Each user to use their own Drupal account</em>'),
-    ),
-    '#description' => t('Choose method used to authenticate against Alfresco repository. On Single sign-on, users without Alfresco account (anonymous users included) always use the above global account.'),
-  );
-
   // STATISTICS
 
   // count content downloads settings
@@ -329,11 +309,16 @@ function alfresco_admin_advanced() {
     '#title' => t('Advanced settings'),
   );
 
-  $form['advanced']['alfresco_redirect_download'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Force redirect to download'),
-    '#default_value' => variable_get('alfresco_redirect_download', FALSE),
-    '#description' => t('Check this option to redirect users to download item if they do not have permissions to edit the alfresco item.'),
+  $form['advanced']['alfresco_authentication_method'] = array(
+    '#type' => 'radios',
+    '#title' => t('Authentication mode'),
+    '#default_value' => variable_get('alfresco_authentication_method', ALFRESCO_AUTH_GLOBAL),
+    '#options' => array(
+      ALFRESCO_AUTH_GLOBAL => t('Global: <em>Always use the above username and password</em>'),
+      ALFRESCO_AUTH_SSO => t('Single sign-on: <em>Each user to use their own Drupal account</em>'),
+    ),
+    '#description' => t('Choose method used to authenticate against Alfresco repository. On Single sign-on, users without Alfresco account (anonymous users included) always use the above global account.'),
+    //'#description' => t('NOTE: These settings have no effect on user with uid 1. The admin account always uses global account.'),
   );
 
   $form['advanced']['alfresco_ticket_timeout'] = array(
@@ -350,9 +335,16 @@ function alfresco_admin_advanced() {
 
   $form['advanced']['alfresco_workaround_dictionary_service_wsdl'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use workaround for incorrect targetNamespace WSDL.'),
+    '#title' => t('Use workaround for incorrect targetNamespace WSDL'),
     '#description' => $tip,
     '#default_value' => variable_get('alfresco_workaround_dictionary_service_wsdl', TRUE),
+  );
+
+  $form['advanced']['alfresco_redirect_download'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force redirect to download'),
+    '#default_value' => variable_get('alfresco_redirect_download', FALSE),
+    '#description' => t('Check this option to redirect users to download item if they do not have permissions to edit the alfresco item.'),
   );
 
   // DOWNLOAD METHOD
@@ -368,7 +360,6 @@ function alfresco_admin_advanced() {
   $form['downloads'] = array(
     '#type' => 'fieldset',
     '#title' => t('Download method'),
-    '#collapsible' => TRUE,
     '#description' => $download_help . theme('item_list', $download_tips),
   );
 
