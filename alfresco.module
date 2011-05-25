@@ -1221,12 +1221,17 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
   $node = new stdClass();
   $node->type  = 'alfresco_item';
   $node->name  = $user->name;
+  $node->uid   = $user->uid;
   $node->title = truncate_utf8($title, 255);
   $node->body  = $body;
+  $node->created = time();
 
-  // Set the node's defaults
-  module_load_include('inc', 'node', 'node.pages');
-  node_object_prepare($node);
+  // Set up default values
+  $node_options = variable_get('node_options_'. $node->type, array('status', 'promote'));
+  foreach (array('status', 'promote', 'sticky') as $key) {
+    $node->$key = in_array($key, $node_options);
+  }
+  $node->revision = in_array('revision', $node_options);
 
   // Node author information and options for administrators
   if (user_access('administer nodes')) {
@@ -1270,7 +1275,7 @@ function alfresco_create_node($reference, $title = '', $body = '', $options = ar
     }
   }
 
-  // Save the node.
+  // Save the node
   $node = node_submit($node);
   node_save($node);
 

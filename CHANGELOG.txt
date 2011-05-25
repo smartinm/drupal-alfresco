@@ -1,19 +1,20 @@
 // $Id$
 
-Alfresco 6.x-1.2-beta4, 2011-04-27
+Alfresco 6.x-1.2, 2011-05-25
 ============================
 
-You MUST run update.php when upgrading to this version.
+You MUST run update.php when upgrading to this version. Remember to check/set
+permissions for the new features.
 
-Features:
+New features:
 
-- Added Alfresco Field module which defines a CCK field type for referencing an
-  Alfresco node from another node.
+- Added Alfresco Field submodule which defines a CCK field type for referencing
+  an Alfresco node from another node.
 - Added filetypes icons for Alfresco files.
 - Added folder path for alfresco_items nodes.
-- Added 'Force redirect to download' option on advanced settings.
+- Added 'Force redirect to download' option on Alfresco advanced settings.
 
-Alfresco Browser/Field:
+New Alfresco Browser features:
 
 - Added 'Create Space' and 'Remove Space' features.
 - Added 'Remove' button to Alfresco Browser widget (form element).
@@ -22,16 +23,19 @@ Alfresco Browser/Field:
 - Added 'File exists behavior' option.
 - Added display of items counts, between parentheses, for each space.
 
-Others changes:
+Minor changes:
 
-- #808640 alexharries: Fixed PHP 5.3 compatibility issues.
+- Moved alfresco navigation pages to administration menu.
 - Change default alfresco_item node options (not promoted to front page).
 - Implemented hook_flush_caches for Alfresco Browser cache tables.
+
+Fixes:
+
+- #808640 alexharries: Fixed PHP 5.3 compatibility issues.
+- Fixex bug when an alfresco item is attached to book page.
 - Fixed duplicate key errors when attaching an existing alfresco item.
-- Fixed CCK bug when checking if alfresco field is empty.
-- Fixed search bug.
+- Fixed browser search bug.
 - Fixed page limit size.
-- Moved alfresco pages to admin.
 
 
 Alfresco 6.x-1.1, 2010-04-26

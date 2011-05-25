@@ -310,7 +310,6 @@ function alfresco_browser_service_download() {
  *
  */
 function alfresco_browser_service_upload() {
-
   if (!user_access('upload alfresco repository')) {
     exit();
   }
@@ -349,6 +348,12 @@ function alfresco_browser_service_upload() {
     }
     else {
       $success = array('success' => FALSE, 'error' => $result->error);
+    }
+
+    if (variable_get('alfresco_browser_cache_enabled', TRUE)) {
+      global $user;
+      $cid = "user=$user->uid";
+      cache_clear_all($cid, 'cache_alfresco_browser', TRUE);
     }
 
     // drupal_json no funciona con subida de ficheros
