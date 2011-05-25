@@ -584,7 +584,7 @@ function alfresco_update_6102() {
  * @todo Rename field name (and indexes) to alfresco_reference to avoid conflicts.
  */
 /*
-function alfresco_update_6103() {
+function alfresco_update_N() {
   $ret = array();
   db_change_field($ret, 'alfresco_node', 'reference', 'alfresco_reference', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''));
   db_drop_index($ret, 'alfresco_node', 'alfresco_reference');
