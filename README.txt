@@ -29,14 +29,14 @@ configuration. The core of integration is based on the type of content
 
 -- REQUIREMENTS --
 
-* Alfresco 3.x or 2.x (Alfresco Community or Alfresco Enterprise)
+* Compatible with Alfresco 3.x or 2.x (Alfresco Enterprise and Community)
+
+* Ext JS 2.x or 3.x (http://www.sencha.com/products/js)
+  * Only for Alfresco browser module
 
 * PHP 5.2 or later, with:
   * DOM Extension (part of PHP 5 core)
   * SOAP Extension (--enable-soap)
-
-* Ext JS (http://www.sencha.com/products/js)
-  * Only for Alfresco browser module
 
 
 -- INSTALLATION --

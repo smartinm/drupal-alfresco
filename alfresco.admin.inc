@@ -333,7 +333,7 @@ function alfresco_admin_advanced() {
     '#type' => 'checkbox',
     '#title' => t('Force redirect to download'),
     '#default_value' => variable_get('alfresco_redirect_download', FALSE),
-    '#description' => t('Marque esta opción si desea redirigir el usuario a la descarga del elemento en caso de que no tenga permisos para modificar el elemento de alfresco.'),
+    '#description' => t('Check this option to redirect users to download item if they do not have permissions to edit the alfresco item.'),
   );
 
   $form['advanced']['alfresco_ticket_timeout'] = array(

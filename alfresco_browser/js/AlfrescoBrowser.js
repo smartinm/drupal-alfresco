@@ -285,7 +285,7 @@ AlfrescoBrowser.AddItem = function (folderTree, dataStore) {
             },
             failure: function(form, o){
               Ext.Msg.show({
-                title: Drupal.t('Ha ocurrido un error'),
+                title: Drupal.t('An error has occurred.'),
                 msg: o.result.error,
                 minWidth: 200,
                 modal: true,
@@ -376,7 +376,7 @@ AlfrescoBrowser.CreateSpace = function (folderTree) {
             },
             failure: function(form, o){
               Ext.Msg.show({
-                title: Drupal.t('Ha ocurrido un error'),
+                title: Drupal.t('An error has occurred.'),
                 msg: o.result.error,
                 minWidth: 200,
                 modal: true,

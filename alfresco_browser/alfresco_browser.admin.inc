@@ -18,6 +18,14 @@
  * @see system_settings_form()
  */
 function alfresco_browser_admin_settings() {
+  $path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
+  if (!file_exists('./' . $path . '/ext-all.js') || !file_exists('./' . $path . '/adapter/ext/ext-base.js')) {
+    drupal_set_message(t('Alfresco browser module requires the <a href="@extjs-url">Ext JS 2.x or 3.x</a>. Please download the Ext JS library, extract the archive and copy its contents to the following location: %extjs-path. Make sure the main Ext JS file is located at %extjs-all-path', array(
+      '@extjs-url' => 'http://www.sencha.com/learn/Ext_Version_Archives',
+      '%extjs-path' => $path,
+      '%extjs-all-path' => $path . '/ext-all.js',
+    )), 'error');
+  }
 
   $form['browser'] = array(
     '#type' => 'fieldset',

@@ -43,15 +43,15 @@ function alfresco_browser_requirements($phase) {
   // Ensure translations don't break at install time.
   $t = get_t();
 
-  if ($phase == 'install' || $phase == 'runtime') {
+  if ($phase == 'runtime') {
     $path = module_exists('libraries') ? libraries_get_path('ext') : 'sites/all/libraries/ext';
 
     if (!file_exists('./' . $path . '/ext-all.js') || !file_exists('./' . $path . '/adapter/ext/ext-base.js')) {
       $requirements['alfresco_browser_extjs'] = array(
         'title' => $t('Alfresco browser Ext JS library'),
         'severity' => REQUIREMENT_ERROR,
-        'description' => $t('Alfresco browser module requires the <a href="@extjs-url">Ext JS Library</a>. Please download the Ext JS library, extract the archive and copy its contents to the following location: %extjs-path. Make sure the main Ext JS file is located at %extjs-all-path and then try to enable the module again.', array(
-          '@extjs-url' => 'http://www.extjs.com/products/extjs/download.php',
+        'description' => $t('Alfresco browser module requires the <a href="@extjs-url">Ext JS 2.x or 3.x</a>. Please download the Ext JS library, extract the archive and copy its contents to the following location: %extjs-path. Make sure the main Ext JS file is located at %extjs-all-path', array(
+          '@extjs-url' => 'http://www.sencha.com/learn/Ext_Version_Archives',
           '%extjs-path' => $path,
           '%extjs-all-path' => $path . '/ext-all.js',
         )),
