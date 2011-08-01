@@ -684,11 +684,13 @@ function alfresco_load($node) {
  * Implementation of hook_view().
  */
 function alfresco_view($node, $teaser = FALSE, $page = FALSE) {
-  // Si el usuario no tiene permisos para modificar el elemento, lo redirigimos
-  // directamente a la descarga.
-  if (variable_get('alfresco_redirect_download', FALSE) && !node_access('update', $node)) {
-    drupal_goto(alfresco_url_download($node));
-    return;
+  // Si el usuario no tiene permisos para modificar el elemento,
+  // lo redirigimos directamente a la descarga.
+  if (variable_get('alfresco_redirect_download', FALSE)) {
+    // Evitamos redirgir cuando se ejecuta el cron
+    if ($node->build_mode == NODE_BUILD_NORMAL && !node_access('update', $node)) {
+      drupal_goto(alfresco_url_download($node));
+    }
   }
 
   drupal_add_css(drupal_get_path('module', 'alfresco') .'/alfresco.css');

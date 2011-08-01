@@ -1,6 +1,12 @@
 // $Id$
 
-Alfresco 6.x-1.2, 2011-05-25
+Alfresco 6.x-1.2-dev, 2011-xx-xx
+============================
+
+Bug fixes:
+- Force redirect to download fails on cron.
+
+Alfresco 6.x-1.2-beta4, 2011-04-27
 ============================
 
 You MUST run update.php when upgrading to this version. Remember to check/set
