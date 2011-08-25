@@ -1,16 +1,11 @@
 // $Id$
 
-Alfresco 6.x-1.2-dev, 2011-xx-xx
+Alfresco 6.x-1.2, 2011-08-25
 ============================
 
-Bug fixes:
-- Force redirect to download fails on cron.
+You MUST run update.php when upgrading to this version.
 
-Alfresco 6.x-1.2-beta4, 2011-04-27
-============================
-
-You MUST run update.php when upgrading to this version. Remember to check/set
-permissions for the new features.
+Remember to check/set permissions for the new features.
 
 New features:
 
@@ -38,6 +33,7 @@ Minor changes:
 
 Fixes:
 
+- Fixed force redirect to download fails on cron.
 - Fixed bug when an alfresco item is attached to book page.
 - #808640 alexharries: Fixed PHP 5.3 compatibility issues.
 - Fixed duplicate key errors when attaching an existing alfresco item.
